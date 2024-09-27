@@ -7,6 +7,7 @@ LANG_STD = 			-std=c++17
 SRC_FILES = 		./src/*.cpp \
 					./src/game/*.cpp
 LINKER_FLAGS = 		-lSDL2 \
+					-lSDL2_image \
 					-lspdlog \
 					-lfmt
 INCLUDE_PATH = -I"./libs/"

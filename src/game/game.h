@@ -7,6 +7,8 @@ constexpr int FPS               {60};
 constexpr int MILLIS_PER_FRAME  {1'000/FPS};
 constexpr int WINDOW_HEIGHT     {768};
 constexpr int WINDOW_WIDTH      {1024};
+constexpr int TILE_HEIGHT       {60};
+constexpr int TILE_WIDTH        {120};
 
 class Game {
     bool is_running {false};
