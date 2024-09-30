@@ -2,11 +2,15 @@
 #define GAME_H
 
 #include <SDL2/SDL.h>
+#include <entt/entt.hpp>
+#include <unordered_map>
 
 constexpr int FPS               {60};
 constexpr int MILLIS_PER_FRAME  {1'000/FPS};
 constexpr int WINDOW_HEIGHT     {768};
 constexpr int WINDOW_WIDTH      {1024};
+constexpr int TILE_HEIGHT       {60};
+constexpr int TILE_WIDTH        {120};
 
 class Game {
     bool is_running {false};
@@ -19,11 +23,17 @@ class Game {
     SDL_Window* window;
     SDL_Rect camera{}; // Investigate whether this should be default-initialised
 
+    void load_tile_textures();
+    void load_tilemap();
     void process_input();
     void update();
     void render();
 
+    // Todo: read re. asset stores
+    std::unordered_map<int, SDL_Texture*> textures;
+
     // TODO: the EnTT registry
+    entt::registry registry;
 
     public:
         Game();
