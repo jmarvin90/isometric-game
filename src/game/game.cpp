@@ -1,8 +1,7 @@
 #include "game.h"
 #include "spdlog/spdlog.h"
-#include <unordered_map>
-#include <vector>
 #include <SDL2/SDL_image.h>
+#include <random>
 
 Game::Game() {
     spdlog::info("Game constructor called.");
@@ -39,6 +38,19 @@ void Game::initialise() {
     if (!renderer) {
         spdlog::error("Could not initialise the SDL Renderer.");
     }
+
+    tile_paths = {
+        "./assets/blue.png", 
+        "./assets/green.png",
+        "./assets/pink.png",
+        "./assets/road.png", 
+        "./assets/tall_tile.png", 
+        "./assets/taller_tile.png",
+        "./assets/tallest_tile.png"
+    };
+
+    get_textures();
+    create_random_tilemap();
 
     // TODO: initialise ImGui
 }
@@ -79,41 +91,51 @@ void Game::update() {
     millis_previous_frame = SDL_GetTicks();
 }
 
-std::unordered_map<std::string, SDL_Texture*> get_textures(SDL_Renderer* renderer) {
-    std::unordered_map<std::string, SDL_Texture*> textures;
+void Game::create_random_tilemap() {
+    spdlog::info("Creating a random tilemap...");
 
-    std::vector<std::string> tile_paths {
-        "./assets/blue.png", 
-        "./assets/green.png",
-        "./assets/pink.png",
-        "./assets/road.png", 
-        "./assets/tall_tile.png"
-    };
+    std::random_device seed;
+    std::mt19937 gen{seed()};
+    std::uniform_int_distribution<> dist{0, static_cast<int>(tile_paths.size()-1)};
 
-    for (std::string tile_path: tile_paths) {
-        SDL_Surface* surface {IMG_Load(tile_path.c_str())};
+    for (int n=0; n<TILEMAP_SIZE; n++) {
+        std::vector<int> tiles;
+        for (int m=0; m<TILEMAP_SIZE; m++) {
+            tiles.push_back(dist(gen));
+        }
+        tile_map.push_back(tiles);
+    }
+}
+
+void Game::get_textures() {
+    spdlog::info("Loading textures...");
+
+    for (int n=0; n<static_cast<int>(tile_paths.size()); n++) {
+        spdlog::info(tile_paths.at(n));
+        SDL_Surface* surface {IMG_Load(tile_paths.at(n).c_str())};
         if (!surface) {
-            spdlog::error("Error in loading texture: " + tile_path);
+            spdlog::error("Error in loading texture: " + tile_paths.at(n));
         }
 
         SDL_Texture* texture {SDL_CreateTextureFromSurface(renderer, surface)};
         if (!texture) {
-            spdlog::error("Error in creating texture from surface for: " + tile_path);
+            spdlog::error(
+                "Error in creating texture from surface for: " + 
+                tile_paths.at(n)
+            );
         }
 
         SDL_FreeSurface(surface);
 
         textures.emplace(
-            std::make_pair(tile_path, texture)
+            std::make_pair(n, texture)
         );
     }
-
-    return textures;
 }
 
 void render_tilemap(
-    std::unordered_map<std::string, SDL_Texture*> textures,
-    std::vector<std::vector<std::string>> tile_map,
+    std::unordered_map<int, SDL_Texture*>& textures,
+    std::vector<std::vector<int>>& tile_map,
     SDL_Renderer* renderer
 ) {
     int initial_x_position {(WINDOW_WIDTH / 2) - (TILE_WIDTH / 2)};
@@ -121,7 +143,6 @@ void render_tilemap(
 
     for (int x = 0; x < static_cast<int>(tile_map.size()); x++) {
         for (int y = 0; y < static_cast<int>(tile_map.at(x).size()); y++) {
-
             int x_position {initial_x_position + ((y - x) * (TILE_WIDTH / 2))};
             int y_position {initial_y_position + ((y + x) * (TILE_HEIGHT / 2))};
 
@@ -172,38 +193,9 @@ void Game::render() {
 
     // TODO: implement rendering logic
     // ...
-    std::vector<std::vector<std::string>> tile_map {
-        {
-            "./assets/blue.png", 
-            "./assets/pink.png",
-            "./assets/green.png",
-            "./assets/road.png"
-        },
-        {
-            "./assets/green.png",
-            // "./assets/blue.png", 
-            "./assets/tall_tile.png",
-            // "./assets/pink.png",
-            "./assets/tall_tile.png",
-            "./assets/road.png"
-        },
-        {
-            "./assets/pink.png",
-            "./assets/green.png",
-            // "./assets/blue.png",
-            "./assets/tall_tile.png",
-            "./assets/road.png"
-        },
-        {
-            "./assets/blue.png", 
-            "./assets/green.png",
-            "./assets/pink.png",
-            "./assets/road.png"
-        }
-    };
 
     render_tilemap(
-        get_textures(renderer),
+        textures,
         tile_map,
         renderer
     );
@@ -213,6 +205,7 @@ void Game::render() {
 
 void Game::run() {
     is_running = true;
+
     while (is_running) {
         process_input();
         update();
