@@ -21,7 +21,14 @@ void Game::load_tile_textures(){
         "./assets/pink.png",                // 3
         "./assets/tallest_tile.png",        // 4
         "./assets/tall_tile.png",           // 5
-        "./assets/taller_tile.png"          // 6
+        "./assets/taller_tile.png",         // 6
+        "./assets/BLBR.png",                // 7
+        "./assets/BLTL.png",                // 8
+        "./assets/BLTR.png",                // 9
+        "./assets/BRTR.png",                // 10
+        "./assets/TLBR.png",                // 11
+        "./assets/TLTR.png",                // 12
+        "./assets/BLBRTR.png"               // 13
     };
 
     for (unsigned int texture_id=0; texture_id<tile_paths.size(); texture_id++) {
@@ -49,10 +56,10 @@ void Game::load_tile_textures(){
 void Game::load_tilemap() {
     const std::vector<std::vector<int>> tile_map {
         {0, 2, 3, 4, 6},
-        {3, 5, 1, 2, 3}, 
-        {2, 3, 6, 0, 6},
-        {1, 1, 2, 3, 4},
-        {3, 5, 1, 2, 6}
+        {4, 7, 9, 10, 3}, 
+        {2, 11, 6, 11, 6},
+        {1, 8, 13, 12, 3},
+        {3, 5, 11, 2, 6}
     };
 
     const int initial_x {(WINDOW_WIDTH / 2) - (TILE_WIDTH / 2)};
@@ -64,8 +71,8 @@ void Game::load_tilemap() {
             int x_offset {row-col};
             int y_offset {col+row};
 
-            int height;
-            int width;
+            int height_px;
+            int width_px;
             int texture_id {tile_map.at(row).at(col)};
 
             glm::vec2 position{
@@ -74,12 +81,22 @@ void Game::load_tilemap() {
             };
 
             SDL_QueryTexture(
-                textures[texture_id], NULL, NULL, &width, &height
+                textures[texture_id], NULL, NULL, &width_px, &height_px
             );
+
+            int vertical_offset_px {TILE_HEIGHT - height_px};
+            int horizontal_offset_px {TILE_WIDTH - width_px};
 
             auto entity {registry.create()};
             registry.emplace<Transform>(entity, position, 0.0);
-            registry.emplace<Sprite>(entity, height, width, texture_id);
+            registry.emplace<Sprite>(
+                entity,
+                height_px,
+                width_px,
+                vertical_offset_px,
+                horizontal_offset_px,
+                texture_id
+            );
         }
     }
 }
@@ -170,14 +187,12 @@ void Game::render() {
         auto& transform {view.get<Transform>(entity)};
         auto& sprite {view.get<Sprite>(entity)};
 
-        int vert_offset {TILE_HEIGHT - sprite.height_px};
-        int horiz_offset {TILE_WIDTH - sprite.width_px};
-
+        // Assume we fetch the whole texture from the top left
         SDL_Rect source_rect{0, 0, sprite.width_px, sprite.height_px};
-
+        
         SDL_Rect dest_rect{
-            static_cast<int>(transform.position.x) + horiz_offset, 
-            static_cast<int>(transform.position.y) + vert_offset, 
+            static_cast<int>(transform.position.x) + sprite.horitonzal_offset_px, 
+            static_cast<int>(transform.position.y) + sprite.vertical_offset_px, 
             sprite.width_px,
             sprite.height_px
         };
