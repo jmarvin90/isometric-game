@@ -14,7 +14,7 @@ Game::~Game() {
     spdlog::info("Game destuctor called.");
 }
 
-void Game::load_tile_textures(){
+void Game::load_textures(){
     std::vector<std::string> tile_paths {
         "./assets/road.png",                // 0
         "./assets/green.png",               // 1
@@ -131,7 +131,7 @@ void Game::initialise() {
         spdlog::error("Could not initialise the SDL Renderer.");
     }
 
-    load_tile_textures();
+    load_textures();
     load_tilemap();
 
     // TODO: initialise ImGui

@@ -23,7 +23,7 @@ class Game {
     SDL_Window* window;
     SDL_Rect camera{}; // Investigate whether this should be default-initialised
 
-    void load_tile_textures();
+    void load_textures();
     void load_tilemap();
     void process_input();
     void update();
