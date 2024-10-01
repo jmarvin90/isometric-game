@@ -1,4 +1,5 @@
-
+#ifndef SPRITECOMPONENT_H
+#define SPRITECOMPONENT_H
 
 struct Sprite {
     int height_px;
@@ -7,3 +8,5 @@ struct Sprite {
     int horitonzal_offset_px;
     int texture_id;
 };
+
+#endif
