@@ -4,6 +4,7 @@
 #include <SDL2/SDL_image.h>
 #include "../components/transform.h"
 #include "../components/sprite.h"
+#include "../components/rigid_body.h"
 
 Game::Game() {
     spdlog::info("Game constructor called.");
@@ -28,7 +29,8 @@ void Game::load_tile_textures(){
         "./assets/BRTR.png",                // 10
         "./assets/TLBR.png",                // 11
         "./assets/TLTR.png",                // 12
-        "./assets/BLBRTR.png"               // 13
+        "./assets/BLBRTR.png",              // 13
+        "./assets/moveable_sprite_test.png" // 14
     };
 
     for (unsigned int texture_id=0; texture_id<tile_paths.size(); texture_id++) {
@@ -59,7 +61,7 @@ void Game::load_tilemap() {
         {4, 7, 9, 10, 3}, 
         {2, 11, 6, 11, 6},
         {1, 8, 13, 12, 3},
-        {3, 5, 11, 2, 6}
+        {5, 3, 11, 2, 6}
     };
 
     const int initial_x {(WINDOW_WIDTH / 2) - (TILE_WIDTH / 2)};
@@ -70,15 +72,15 @@ void Game::load_tilemap() {
 
             int x_offset {row-col};
             int y_offset {col+row};
-
-            int height_px;
-            int width_px;
             int texture_id {tile_map.at(row).at(col)};
 
             glm::vec2 position{
                 initial_x + (x_offset * (TILE_WIDTH / 2)),
                 initial_y + (y_offset * (TILE_HEIGHT / 2))
             };
+
+            int height_px;
+            int width_px;
 
             SDL_QueryTexture(
                 textures[texture_id], NULL, NULL, &width_px, &height_px
@@ -149,9 +151,6 @@ void Game::process_input() {
 }
 
 void Game::update() {
-    // Perform logic to update the game state FIRST, as an experiment
-    // ...
-
     // Calculate the amount of time to delay (assuming positive)
     int time_to_delay {
         MILLIS_PER_FRAME - (
@@ -159,13 +158,18 @@ void Game::update() {
         )
     };
 
-    // May be unsused until movement logic is implemented
-    [[maybe_unused]] double delta_time {time_to_delay / 1'000.f};
-
     // Check the delay period is positive and delay if so
-    if (time_to_delay > 0) {
+    if (time_to_delay > 0 && time_to_delay <= MILLIS_PER_FRAME) {
         SDL_Delay(time_to_delay);
     }
+
+    // May be unsused until movement logic is implemented
+    [[maybe_unused]] double delta_time {
+        (SDL_GetTicks() - millis_previous_frame) / 1'000.f
+    };
+    
+    // To be extracted to its own function call
+    // movement logic
 
     // Update the member to indicate the time the last update was run
     millis_previous_frame = SDL_GetTicks();
@@ -178,18 +182,28 @@ void Game::render() {
     // TODO: implement rendering logic
     // ...
 
-    registry.sort<Transform>([](const Transform& rhs, const Transform& lhs) {
-        return rhs.position.y < lhs.position.y;
+    registry.sort<Transform>([](const Transform& lhs, const Transform& rhs) {
+
+        int lhs_abspixel {
+            static_cast<int>((lhs.position.y * WINDOW_WIDTH) + lhs.position.x)
+        };
+
+        int rhs_abspixel {
+            static_cast<int>((rhs.position.y * WINDOW_WIDTH) + rhs.position.x)
+        };
+        
+        return rhs_abspixel > lhs_abspixel;
     });
 
     auto view {registry.view<Transform, Sprite>()};
+
     for (auto entity: view) {
         auto& transform {view.get<Transform>(entity)};
         auto& sprite {view.get<Sprite>(entity)};
 
         // Assume we fetch the whole texture from the top left
         SDL_Rect source_rect{0, 0, sprite.width_px, sprite.height_px};
-        
+
         SDL_Rect dest_rect{
             static_cast<int>(transform.position.x) + sprite.horitonzal_offset_px, 
             static_cast<int>(transform.position.y) + sprite.vertical_offset_px, 
