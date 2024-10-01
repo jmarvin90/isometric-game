@@ -11,6 +11,19 @@ constexpr int WINDOW_HEIGHT     {768};
 constexpr int WINDOW_WIDTH      {1024};
 constexpr int TILE_HEIGHT       {60};
 constexpr int TILE_WIDTH        {120};
+constexpr int MAP_SIZE          {5};
+constexpr int TILEMAP_X_START   {(WINDOW_WIDTH / 2) - (TILE_WIDTH / 2)};
+constexpr int TILEMAP_Y_START   {100};
+
+class TileMap {
+    std::vector<std::vector<int>> tilemap;
+
+    public: 
+        TileMap();
+        ~TileMap();
+        int coordinate_value(const int x, const int y) const;
+        void set(const int x, const int y, const int value);
+};
 
 class Game {
     bool is_running {false};
@@ -22,6 +35,9 @@ class Game {
     SDL_Renderer* renderer;
     SDL_Window* window;
     SDL_Rect camera{}; // Investigate whether this should be default-initialised
+
+    TileMap terrain;
+    TileMap mutable_elements;
 
     void load_textures();
     void load_tilemap();

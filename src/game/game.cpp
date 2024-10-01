@@ -6,6 +6,25 @@
 #include "../components/sprite.h"
 #include "../components/rigid_body.h"
 
+TileMap::TileMap() {
+    spdlog::info("TileMap constructor called.");
+    tilemap = std::vector<std::vector<int>>(
+        MAP_SIZE, std::vector<int>(MAP_SIZE,1)
+    );
+}
+
+TileMap::~TileMap() {
+    spdlog::info("TileMap destructor called.");
+}
+
+int TileMap::coordinate_value(const int x, const int y) const {
+    return tilemap.at(y).at(x);
+}
+
+void TileMap::set(const int x, const int y, const int value) {
+    tilemap[x][y] = value;
+}
+
 Game::Game() {
     spdlog::info("Game constructor called.");
 }
@@ -56,27 +75,17 @@ void Game::load_textures(){
 }
 
 void Game::load_tilemap() {
-    const std::vector<std::vector<int>> tile_map {
-        {0, 2, 3, 4, 6},
-        {4, 7, 9, 10, 3}, 
-        {2, 11, 6, 11, 6},
-        {1, 8, 13, 12, 3},
-        {5, 3, 11, 2, 6}
-    };
 
-    const int initial_x {(WINDOW_WIDTH / 2) - (TILE_WIDTH / 2)};
-    const int initial_y {100};
+    for (int y=0; y<static_cast<int>(MAP_SIZE); y++) {
+        for (int x=0; x<static_cast<int>(MAP_SIZE); x++) {
 
-    for (int col=0; col<static_cast<int>(tile_map.size()); col++) {
-        for (int row=0; row<static_cast<int>(tile_map.at(col).size()); row++) {
-
-            int x_offset {row-col};
-            int y_offset {col+row};
-            int texture_id {tile_map.at(row).at(col)};
+            int x_offset {x-y};
+            int y_offset {y+x};
+            int texture_id {terrain.coordinate_value(x, y)};
 
             glm::vec2 position{
-                initial_x + (x_offset * (TILE_WIDTH / 2)),
-                initial_y + (y_offset * (TILE_HEIGHT / 2))
+                TILEMAP_X_START + (x_offset * (TILE_WIDTH / 2)),
+                TILEMAP_Y_START + (y_offset * (TILE_HEIGHT / 2))
             };
 
             int height_px;
@@ -132,6 +141,8 @@ void Game::initialise() {
     }
 
     load_textures();
+    terrain.set(0, 0, 2);
+    terrain.set(1, 1, 2);
     load_tilemap();
 
     // TODO: initialise ImGui
@@ -175,6 +186,18 @@ void Game::update() {
     millis_previous_frame = SDL_GetTicks();
 }
 
+bool transform_y_comparison(const Transform& lhs, const Transform& rhs) {
+    int lhs_abspixel {
+        static_cast<int>((lhs.position.y * WINDOW_WIDTH) + lhs.position.x)
+    };
+
+    int rhs_abspixel {
+        static_cast<int>((rhs.position.y * WINDOW_WIDTH) + rhs.position.x)
+    };
+    
+    return rhs_abspixel > lhs_abspixel;
+}
+
 void Game::render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
@@ -182,18 +205,7 @@ void Game::render() {
     // TODO: implement rendering logic
     // ...
 
-    registry.sort<Transform>([](const Transform& lhs, const Transform& rhs) {
-
-        int lhs_abspixel {
-            static_cast<int>((lhs.position.y * WINDOW_WIDTH) + lhs.position.x)
-        };
-
-        int rhs_abspixel {
-            static_cast<int>((rhs.position.y * WINDOW_WIDTH) + rhs.position.x)
-        };
-        
-        return rhs_abspixel > lhs_abspixel;
-    });
+    registry.sort<Transform>(transform_y_comparison);
 
     auto view {registry.view<Transform, Sprite>()};
 
