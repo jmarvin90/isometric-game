@@ -16,13 +16,12 @@ constexpr int TILEMAP_X_START   {(WINDOW_WIDTH / 2) - (TILE_WIDTH / 2)};
 constexpr int TILEMAP_Y_START   {100};
 
 class TileMap {
-    std::vector<std::vector<int>> tilemap;
+    std::vector<std::vector<entt::entity>> tilemap;
 
-    public: 
-        TileMap();
+    public:
+        entt::entity at(const int x, const int y);
+        TileMap(entt::registry& registry);
         ~TileMap();
-        int coordinate_value(const int x, const int y) const;
-        void set(const int x, const int y, const int value);
 };
 
 class Game {
@@ -32,12 +31,14 @@ class Game {
     // Has to be default initialised because it's referenced in Game::update()
     int millis_previous_frame{};    
 
+    // TODO: the EnTT registry
+    entt::registry registry;
+
     SDL_Renderer* renderer;
     SDL_Window* window;
     SDL_Rect camera{}; // Investigate whether this should be default-initialised
 
-    TileMap terrain;
-    TileMap mutable_elements;
+    TileMap tilemap;
 
     void load_textures();
     void load_tilemap();
@@ -47,9 +48,6 @@ class Game {
 
     // Todo: read re. asset stores
     std::unordered_map<int, SDL_Texture*> textures;
-
-    // TODO: the EnTT registry
-    entt::registry registry;
 
     public:
         Game();
