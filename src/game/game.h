@@ -5,6 +5,9 @@
 #include <entt/entt.hpp>
 #include <unordered_map>
 
+#include "../components/transform.h"
+#include "../components/sprite.h"
+
 constexpr int FPS               {60};
 constexpr int MILLIS_PER_FRAME  {1'000/FPS};
 constexpr int WINDOW_HEIGHT     {768};
@@ -37,6 +40,8 @@ class Game {
     SDL_Renderer* renderer;
     SDL_Window* window;
     SDL_Rect camera{}; // Investigate whether this should be default-initialised
+    // Todo: read re. asset stores
+    std::unordered_map<int, SDL_Texture*> textures;
 
     TileMap tilemap;
 
@@ -45,9 +50,6 @@ class Game {
     void process_input();
     void update();
     void render();
-
-    // Todo: read re. asset stores
-    std::unordered_map<int, SDL_Texture*> textures;
 
     public:
         Game();

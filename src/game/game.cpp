@@ -211,6 +211,18 @@ void Game::process_input() {
     }
 }
 
+void apply_velocity(
+    entt::view<entt::get_t<RigidBody, Transform>> moveable_entities, 
+    double delta_time
+) {
+    for (entt::entity entity: moveable_entities) {
+        RigidBody& rigid_body = moveable_entities.get<RigidBody>(entity);
+        Transform& transform = moveable_entities.get<Transform>(entity);
+        transform.position.x += (rigid_body.velocity.x * delta_time);
+        transform.position.y += (rigid_body.velocity.y * delta_time);
+    }
+}
+
 void Game::update() {
     // Calculate the amount of time to delay (assuming positive)
     int time_to_delay {
@@ -231,13 +243,8 @@ void Game::update() {
     
     // To be extracted to its own function call
     // movement logic
-    auto moveable_entities = registry.view<RigidBody, Transform>();
-    for (entt::entity entity: moveable_entities) {
-        RigidBody& rigid_body = moveable_entities.get<RigidBody>(entity);
-        Transform& transform = moveable_entities.get<Transform>(entity);
-        transform.position.x += (rigid_body.velocity.x * delta_time);
-        transform.position.y += (rigid_body.velocity.y * delta_time);
-    }
+    apply_velocity(registry.view<RigidBody, Transform>(), delta_time);
+
 
     // Update the member to indicate the time the last update was run
     millis_previous_frame = SDL_GetTicks();
