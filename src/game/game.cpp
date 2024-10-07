@@ -187,6 +187,7 @@ void Game::initialise() {
         textures[15], NULL, NULL, &width_px, &height_px
     );
 
+    // TODO: remove
     entt::entity entity {registry.create()};
     glm::vec2 position {grid_pos_to_pixels(5, 2)};
     position.x += ((TILE_WIDTH / 2) - (width_px / 2));
