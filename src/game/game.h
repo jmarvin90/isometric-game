@@ -31,12 +31,15 @@ class Game {
     bool is_running {false};
     bool debug_mode {false};
 
+    int mouse_x{};
+    int mouse_y{};
+    int mouse_x_previous{};
+    int mouse_y_previous{};
+
     // Has to be default initialised because it's referenced in Game::update()
     int millis_previous_frame{};    
 
-    // TODO: the EnTT registry
     entt::registry registry;
-
     SDL_Renderer* renderer;
     SDL_Window* window;
     SDL_Rect camera{}; // Investigate whether this should be default-initialised
