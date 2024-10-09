@@ -7,25 +7,8 @@
 
 #include "../components/transform.h"
 #include "../components/sprite.h"
-
-constexpr int FPS               {60};
-constexpr int MILLIS_PER_FRAME  {1'000/FPS};
-constexpr int WINDOW_HEIGHT     {768};
-constexpr int WINDOW_WIDTH      {1024};
-constexpr int TILE_HEIGHT       {60};
-constexpr int TILE_WIDTH        {120};
-constexpr int MAP_SIZE          {5};
-constexpr int TILEMAP_X_START   {(WINDOW_WIDTH / 2) - (TILE_WIDTH / 2)};
-constexpr int TILEMAP_Y_START   {100};
-
-class TileMap {
-    std::vector<std::vector<entt::entity>> tilemap;
-
-    public:
-        entt::entity at(const int x, const int y);
-        TileMap(entt::registry& registry);
-        ~TileMap();
-};
+#include "tilemap.h"
+#include "mousemap.h"
 
 class Game {
     bool is_running {false};
@@ -43,10 +26,12 @@ class Game {
     SDL_Renderer* renderer;
     SDL_Window* window;
     SDL_Rect camera{}; // Investigate whether this should be default-initialised
+    
     // Todo: read re. asset stores
     std::unordered_map<int, SDL_Texture*> textures;
 
     TileMap tilemap;
+    MouseMap mousemap;
 
     void load_textures();
     void load_tilemap();

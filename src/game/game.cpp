@@ -7,27 +7,14 @@
 #include "../components/transform.h"
 #include "../components/sprite.h"
 #include "../components/rigid_body.h"
+#include "constants.h"
 
-TileMap::TileMap(entt::registry& registry) {
-    spdlog::info("TileMap constructor called.");
-    for (int x=0; x<MAP_SIZE; x++) {
-        std::vector<entt::entity> row;
-        for (int y=0; y<MAP_SIZE; y++) {
-            row.push_back(registry.create());
-        }
-        tilemap.push_back(row);
-    }
-}
 
-TileMap::~TileMap() {
-    spdlog::info("TileMap destructor called.");
-}
-
-entt::entity TileMap::at(const int x, const int y) {
-    return tilemap.at(x).at(y);
-}
-
-Game::Game(): registry{entt::registry()}, tilemap{registry} {
+Game::Game(): 
+    registry{entt::registry()}, 
+    tilemap{registry},
+    mousemap{MouseMap("./assets/mousemap.png")} 
+{
     spdlog::info("Game constructor called.");
 }
 
@@ -35,6 +22,7 @@ Game::~Game() {
     spdlog::info("Game destuctor called.");
 }
 
+// TODO: the mousemap shouldn't live in the same place
 void Game::load_textures(){
     std::vector<std::string> tile_paths {
         "./assets/road.png",                        // 0
@@ -52,7 +40,8 @@ void Game::load_textures(){
         "./assets/TLTR.png",                        // 12
         "./assets/BLBRTR.png",                      // 13
         "./assets/moveable_sprite_test.png",        // 14
-        "./assets/moveable_sprite_tall_test.png"    // 15
+        "./assets/moveable_sprite_tall_test.png",   // 15
+        "./assets/mousemap.png"                     // 16
     };
 
     for (unsigned int texture_id=0; texture_id<tile_paths.size(); texture_id++) {
@@ -77,12 +66,21 @@ void Game::load_textures(){
     }
 }
 
-glm::vec2 pixels_to_grid_pos(double x, double y) {
-    double screen_offset_x = x - TILEMAP_X_START;
-    double screen_offset_y = y - TILEMAP_Y_START;
+glm::vec2 pixels_to_grid_pos(int x, int y) {
+    // int relative_x {x - TILEMAP_X_START};
+    // int relative_y {y - TILEMAP_Y_START};
 
-    double tile_offset_x = screen_offset_x / (TILE_WIDTH / 2);
-    double tile_offset_y = screen_offset_y / (TILE_HEIGHT / 2);
+    // int n_tiles_x {relative_x / (TILE_WIDTH / 2)};
+    // int n_tiles_y {relative_y / (TILE_HEIGHT / 2)};
+
+    // int x_px {relative_x % (TILE_WIDTH / 2)};
+    // int y_px {relative_y % (TILE_HEIGHT / 2)};
+    
+    double screen_offset_x = x - constants::TILEMAP_X_START;
+    double screen_offset_y = y - constants::TILEMAP_Y_START;
+
+    double tile_offset_x = screen_offset_x / constants::TILE_WIDTH_HALF;
+    double tile_offset_y = screen_offset_y / constants::TILE_HEIGHT_HALF;
 
     double offset_x = ((tile_offset_x + tile_offset_y) / 2);
     double offset_y = ((tile_offset_y - tile_offset_x) / 2);
@@ -93,15 +91,15 @@ glm::vec2 grid_pos_to_pixels(const int x, const int y) {
     int x_offset {x-y};
     int y_offset {y+x};
     return glm::vec2 {
-        TILEMAP_X_START + (x_offset * (TILE_WIDTH / 2)),
-        TILEMAP_Y_START + (y_offset * (TILE_HEIGHT / 2))
+        constants::TILEMAP_X_START + (x_offset * constants::TILE_WIDTH_HALF),
+        constants::TILEMAP_Y_START + (y_offset * constants::TILE_HEIGHT_HALF)
     };
 }
 
 void Game::load_tilemap() {
     spdlog::info("Loading tilemap");
-    for (int y=0; y<static_cast<int>(MAP_SIZE); y++) {
-        for (int x=0; x<static_cast<int>(MAP_SIZE); x++) {
+    for (int y=0; y<static_cast<int>(constants::MAP_SIZE); y++) {
+        for (int x=0; x<static_cast<int>(constants::MAP_SIZE); x++) {
 
             glm::vec2 position {grid_pos_to_pixels(x, y)};
             int texture_id {1};
@@ -113,8 +111,8 @@ void Game::load_tilemap() {
                 textures[texture_id], NULL, NULL, &width_px, &height_px
             );
 
-            int vertical_offset_px {TILE_HEIGHT - height_px};
-            int horizontal_offset_px {TILE_WIDTH - width_px};
+            int vertical_offset_px {constants::TILE_HEIGHT - height_px};
+            int horizontal_offset_px {constants::TILE_WIDTH - width_px};
 
             entt::entity entity {tilemap.at(x, y)};
             
@@ -146,8 +144,8 @@ void Game::load_tilemap() {
             height_px,
             width_px,
             n+4,
-            TILE_HEIGHT - height_px,
-            TILE_WIDTH - width_px
+            constants::TILE_HEIGHT - height_px,
+            constants::TILE_WIDTH - width_px
         );
 
         registry.emplace<VerticalSprite>(
@@ -155,8 +153,8 @@ void Game::load_tilemap() {
             height_px,
             width_px,
             n+4,
-            TILE_HEIGHT - height_px,
-            TILE_WIDTH - width_px
+            constants::TILE_HEIGHT - height_px,
+            constants::TILE_WIDTH - width_px
         );
     }
 }
@@ -169,8 +167,8 @@ void Game::initialise() {
         NULL,                       // title - leave blank for now
         SDL_WINDOWPOS_CENTERED,     // Window x position (centred)
         SDL_WINDOWPOS_CENTERED,     // Window y position (centred)
-        WINDOW_WIDTH,               // X res from constant
-        WINDOW_HEIGHT,              // Y res from constant
+        constants::WINDOW_WIDTH,    // X res from constant
+        constants::WINDOW_HEIGHT,   // Y res from constant
         SDL_WINDOW_INPUT_GRABBED    // Input grabbed flag
     );
 
@@ -202,10 +200,10 @@ void Game::initialise() {
     // TODO: remove
     entt::entity entity {registry.create()};
     glm::vec2 position {grid_pos_to_pixels(5, 2)};
-    position.x += ((TILE_WIDTH / 2) - (width_px / 2));
-    position.y -= ((TILE_HEIGHT / 2));
+    position.x += (constants::TILE_WIDTH_HALF - (width_px / 2));
+    position.y -= (constants::TILE_HEIGHT_HALF);
     registry.emplace<Transform>(entity, position, 0.0);
-    registry.emplace<VerticalSprite>(entity, height_px, width_px, 15, TILE_HEIGHT-height_px, 0);
+    registry.emplace<VerticalSprite>(entity, height_px, width_px, 15, constants::TILE_HEIGHT-height_px, 0);
     registry.emplace<RigidBody>(entity, glm::vec2(-40, -20));
     
     // TODO: initialise ImGui
@@ -239,13 +237,13 @@ void apply_velocity(
 void Game::update() {
     // Calculate the amount of time to delay (assuming positive)
     int time_to_delay {
-        MILLIS_PER_FRAME - (
+        constants::MILLIS_PER_FRAME - (
             static_cast<int>(SDL_GetTicks()) - millis_previous_frame
         )
     };
 
     // Check the delay period is positive and delay if so
-    if (time_to_delay > 0 && time_to_delay <= MILLIS_PER_FRAME) {
+    if (time_to_delay > 0 && time_to_delay <= constants::MILLIS_PER_FRAME) {
         SDL_Delay(time_to_delay);
     }
 
@@ -280,7 +278,7 @@ void Game::update() {
 
 int transform_abspixel(const Transform& transform) {
     return static_cast<int>(
-        (transform.position.y * WINDOW_WIDTH) + transform.position.x
+        (transform.position.y * constants::WINDOW_WIDTH) + transform.position.x
     );
 }
 
