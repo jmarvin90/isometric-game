@@ -9,6 +9,7 @@ class MouseMap {
     public:
         MouseMap(const std::string mousemap_file_path);
         ~MouseMap();
+        SDL_Color get_pixel(const int x, const int y) const;
 };
 
 #endif

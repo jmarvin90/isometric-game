@@ -67,24 +67,13 @@ void Game::load_textures(){
 }
 
 glm::vec2 pixels_to_grid_pos(int x, int y) {
-    // int relative_x {x - TILEMAP_X_START};
-    // int relative_y {y - TILEMAP_Y_START};
-
-    // int n_tiles_x {relative_x / (TILE_WIDTH / 2)};
-    // int n_tiles_y {relative_y / (TILE_HEIGHT / 2)};
-
-    // int x_px {relative_x % (TILE_WIDTH / 2)};
-    // int y_px {relative_y % (TILE_HEIGHT / 2)};
-    
-    double screen_offset_x = x - constants::TILEMAP_X_START;
-    double screen_offset_y = y - constants::TILEMAP_Y_START;
-
-    double tile_offset_x = screen_offset_x / constants::TILE_WIDTH_HALF;
-    double tile_offset_y = screen_offset_y / constants::TILE_HEIGHT_HALF;
-
-    double offset_x = ((tile_offset_x + tile_offset_y) / 2);
-    double offset_y = ((tile_offset_y - tile_offset_x) / 2);
-    return glm::vec2(offset_x, offset_y);
+    int screen_offset_x {x - constants::TILEMAP_X_START};
+    int screen_offset_y {y - constants::TILEMAP_Y_START};
+    // int tile_offset_x {screen_offset_x / constants::TILE_WIDTH_HALF};
+    // int tile_offset_y {screen_offset_y / constants::TILE_HEIGHT_HALF};
+    int remainder_x {screen_offset_x % constants::TILE_WIDTH};
+    int remainder_y {screen_offset_y % constants::TILE_HEIGHT};
+    return glm::vec2(remainder_x, remainder_y);
 }
 
 glm::vec2 grid_pos_to_pixels(const int x, const int y) {
@@ -268,7 +257,15 @@ void Game::update() {
             std::to_string(mouse_x) + ", " +
             std::to_string(mouse_y) + " (grid position " +
             std::to_string(static_cast<int>(grid_pos.x)) + ", " + 
-            std::to_string(static_cast<int>(grid_pos.y)) + ")"
+            std::to_string(static_cast<int>(grid_pos.y)) + ") "
+         ); 
+
+        SDL_Color pixel_colour {mousemap.get_pixel(grid_pos.x, grid_pos.y)};
+        spdlog::info( 
+            "Mouse map colour at position: (r:" + std::to_string(pixel_colour.r) + 
+            ", g:" + std::to_string(pixel_colour.g) + 
+            ", b:" + std::to_string(pixel_colour.b) +
+            ")"
         );
 
         mouse_x_previous = mouse_x;
