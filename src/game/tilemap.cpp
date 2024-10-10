@@ -7,8 +7,15 @@
 #include "constants.h"
 
 
-TileMap::TileMap(entt::registry& registry) {
+// Create the vector of tile entities and load the mousemap surface.
+TileMap::TileMap(
+    entt::registry& registry,
+    const std::string mousemap_file_path
+):mousemap{IMG_Load(mousemap_file_path.c_str())} 
+{
     spdlog::info("TileMap constructor called.");
+
+    // Create the entities associated with the map
     for (int x=0; x<constants::MAP_SIZE; x++) {
         std::vector<entt::entity> row;
         for (int y=0; y<constants::MAP_SIZE; y++) {
@@ -18,29 +25,19 @@ TileMap::TileMap(entt::registry& registry) {
     }
 }
 
+// Ensure to free the mousemap surface. Question re. destruction of entities
 TileMap::~TileMap() {
     spdlog::info("TileMap destructor called.");
+    SDL_FreeSurface(mousemap);
 }
 
+// Get an entity from tilemap position x, y
 entt::entity TileMap::at(const int x, const int y) {
     return tilemap.at(x).at(y);
 }
 
-MouseMap::MouseMap(const std::string mousemap_file_path): 
-    mousemap{IMG_Load(mousemap_file_path.c_str())} 
-{
-    spdlog::info("MouseMap constructor called.");
-    if (!mousemap) {
-        spdlog::info("Could not load mouse map!");
-    }
-}
-
-MouseMap::~MouseMap() {
-    spdlog::info("MouseMap destuctor called.");
-    SDL_FreeSurface(mousemap);
-}
-
-SDL_Color MouseMap::get_pixel(const int x, const int y) const {
+// Query the pixel colour for a pixel on the mousemap at position x, y
+SDL_Color TileMap::mousemap_pixel_colour(const int x, const int y) const {
     const unsigned int bpp {mousemap->format->BytesPerPixel};
     
     // TODO: understand wtf happens here
@@ -61,7 +58,8 @@ SDL_Color MouseMap::get_pixel(const int x, const int y) const {
     return pixel_colour;
 }
 
-glm::vec2 MouseMap::pixel_to_vector(const SDL_Colour& colour) const {
+// Convert the pixel colour into a vector to be added to a 'coarse' grid location
+glm::vec2 TileMap::pixel_colour_vector(const SDL_Colour& colour) const {
     if (colour.r == 255) {
         return glm::vec2(-1, 0);
     }
@@ -79,4 +77,57 @@ glm::vec2 MouseMap::pixel_to_vector(const SDL_Colour& colour) const {
     }
 
     return glm::vec2(0, 0);
+}
+
+// Calculate the 'coarse' grid position tile walk map
+glm::vec2 TileMap::tile_walk(const glm::vec2& tile_screen_pos) const {
+    glm::vec2 vertical{0, 0};
+    glm::vec2 horizontal{0, 0};
+
+    // If we're left of origin
+    if (tile_screen_pos.x < 0) {
+        horizontal = tile_walk_map.at('L') * tile_screen_pos.x;
+    }
+
+    // If we're right of origin
+    if (tile_screen_pos.x > 0) {
+        horizontal = tile_walk_map.at('R') * tile_screen_pos.x;
+    }
+
+    // If we're above origin (we shouldn't be?)
+    if (tile_screen_pos.y < 0) {
+        vertical = tile_walk_map.at('U') * tile_screen_pos.y;
+    }
+
+    // If we're below origin
+    if (tile_screen_pos.y > 0) {
+        vertical = tile_walk_map.at('D') * tile_screen_pos.y;
+    }
+
+    return vertical + horizontal;
+}
+
+// Public function converting x, y screen coordinates into tilemap coordinates
+glm::vec2 TileMap::pixel_to_grid(const int x, const int y) const {
+    // Coarse coordinates
+    int screen_offset_x {x - constants::TILEMAP_X_START};
+    int screen_offset_y {y - constants::TILEMAP_Y_START};
+    int tile_offset_x {screen_offset_x / constants::TILE_WIDTH};
+    int tile_offset_y {screen_offset_y / constants::TILE_HEIGHT};
+    int remainder_x {screen_offset_x % constants::TILE_WIDTH};
+    int remainder_y {screen_offset_y % constants::TILE_HEIGHT};
+
+    glm::vec2 coarse {tile_walk(glm::vec2(tile_offset_x, tile_offset_y))};
+    SDL_Color pixel_colour = mousemap_pixel_colour(remainder_x, remainder_y);
+    return coarse + pixel_colour_vector(pixel_colour);
+}
+
+// Public function converting x, y tilemap coordinates to screen coordinates
+glm::vec2 TileMap::grid_to_pixel(const int x, const int y) const {
+    int x_offset {x-y};
+    int y_offset {y+x};
+    return glm::vec2 {
+        constants::TILEMAP_X_START + (x_offset * constants::TILE_WIDTH_HALF),
+        constants::TILEMAP_Y_START + (y_offset * constants::TILE_HEIGHT_HALF)
+    };
 }

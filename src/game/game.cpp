@@ -1,20 +1,20 @@
-#include "game.h"
-#include "map.h"
-#include "spdlog/spdlog.h"
 #include <string>
+
 #include <SDL2/SDL_image.h>
 #include <entt/entt.hpp>
+#include "spdlog/spdlog.h"
+
+#include "constants.h"
+#include "game.h"
 
 #include "../components/transform.h"
 #include "../components/sprite.h"
 #include "../components/rigid_body.h"
-#include "constants.h"
 
 
 Game::Game(): 
     registry{entt::registry()}, 
-    tilemap{registry},
-    mousemap{MouseMap("./assets/mousemap.png")} 
+    tilemap{registry, "./assets/mousemap.png"}
 {
     spdlog::info("Game constructor called.");
 }
@@ -23,7 +23,6 @@ Game::~Game() {
     spdlog::info("Game destuctor called.");
 }
 
-// TODO: the mousemap shouldn't live in the same place
 void Game::load_textures(){
     std::vector<std::string> tile_paths {
         "./assets/road.png",                        // 0
@@ -42,7 +41,6 @@ void Game::load_textures(){
         "./assets/BLBRTR.png",                      // 13
         "./assets/moveable_sprite_test.png",        // 14
         "./assets/moveable_sprite_tall_test.png",   // 15
-        "./assets/mousemap.png"                     // 16
     };
 
     for (unsigned int texture_id=0; texture_id<tile_paths.size(); texture_id++) {
@@ -72,7 +70,7 @@ void Game::load_tilemap() {
     for (int y=0; y<static_cast<int>(constants::MAP_SIZE); y++) {
         for (int x=0; x<static_cast<int>(constants::MAP_SIZE); x++) {
 
-            glm::vec2 position {grid_pos_to_pixels(x, y)};
+            glm::vec2 position {tilemap.grid_to_pixel(x, y)};
             int texture_id {1};
 
             int height_px;
@@ -170,7 +168,7 @@ void Game::initialise() {
 
     // TODO: remove
     entt::entity entity {registry.create()};
-    glm::vec2 position {grid_pos_to_pixels(5, 2)};
+    glm::vec2 position {tilemap.grid_to_pixel(5, 2)};
     position.x += (constants::TILE_WIDTH_HALF - (width_px / 2));
     position.y -= (constants::TILE_HEIGHT_HALF);
     registry.emplace<Transform>(entity, position, 0.0);
@@ -233,22 +231,14 @@ void Game::update() {
 
     SDL_GetMouseState(&mouse_x, &mouse_y);
     if (mouse_x != mouse_x_previous || mouse_y != mouse_y_previous) {
-        glm::vec2 grid_pos {pixels_to_grid_pos(mouse_x, mouse_y)};
+        glm::vec2 grid_pos {tilemap.pixel_to_grid(mouse_x, mouse_y)};
         spdlog::info(
             "Mouse position: " + 
             std::to_string(mouse_x) + ", " +
             std::to_string(mouse_y) + " (grid position " +
             std::to_string(static_cast<int>(grid_pos.x)) + ", " + 
             std::to_string(static_cast<int>(grid_pos.y)) + ") "
-         ); 
-
-        SDL_Color pixel_colour {mousemap.get_pixel(grid_pos.x, grid_pos.y)};
-        spdlog::info( 
-            "Mouse map colour at position: (r:" + std::to_string(pixel_colour.r) + 
-            ", g:" + std::to_string(pixel_colour.g) + 
-            ", b:" + std::to_string(pixel_colour.b) +
-            ")"
-        );
+         );
 
         mouse_x_previous = mouse_x;
         mouse_y_previous = mouse_y;

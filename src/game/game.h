@@ -30,7 +30,6 @@ class Game {
     std::unordered_map<int, SDL_Texture*> textures;
 
     TileMap tilemap;
-    MouseMap mousemap;
 
     void load_textures();
     void load_tilemap();
