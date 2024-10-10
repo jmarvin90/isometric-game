@@ -1,4 +1,5 @@
 #include "game.h"
+#include "map.h"
 #include "spdlog/spdlog.h"
 #include <string>
 #include <SDL2/SDL_image.h>
@@ -64,25 +65,6 @@ void Game::load_textures(){
         SDL_FreeSurface(surface);
         textures.emplace(texture_id, texture);
     }
-}
-
-glm::vec2 pixels_to_grid_pos(int x, int y) {
-    int screen_offset_x {x - constants::TILEMAP_X_START};
-    int screen_offset_y {y - constants::TILEMAP_Y_START};
-    // int tile_offset_x {screen_offset_x / constants::TILE_WIDTH_HALF};
-    // int tile_offset_y {screen_offset_y / constants::TILE_HEIGHT_HALF};
-    int remainder_x {screen_offset_x % constants::TILE_WIDTH};
-    int remainder_y {screen_offset_y % constants::TILE_HEIGHT};
-    return glm::vec2(remainder_x, remainder_y);
-}
-
-glm::vec2 grid_pos_to_pixels(const int x, const int y) {
-    int x_offset {x-y};
-    int y_offset {y+x};
-    return glm::vec2 {
-        constants::TILEMAP_X_START + (x_offset * constants::TILE_WIDTH_HALF),
-        constants::TILEMAP_Y_START + (y_offset * constants::TILE_HEIGHT_HALF)
-    };
 }
 
 void Game::load_tilemap() {
