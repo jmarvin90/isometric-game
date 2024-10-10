@@ -60,6 +60,11 @@ SDL_Color TileMap::mousemap_pixel_colour(const int x, const int y) const {
 
 // Convert the pixel colour into a vector to be added to a 'coarse' grid location
 glm::vec2 TileMap::pixel_colour_vector(const SDL_Colour& colour) const {
+
+    if (colour.r == 255 && colour.g == 255 && colour.b == 255) {
+        return glm::vec2(0, 0);
+    }
+
     if (colour.r == 255) {
         return glm::vec2(-1, 0);
     }
@@ -112,13 +117,53 @@ glm::vec2 TileMap::pixel_to_grid(const int x, const int y) const {
     // Coarse coordinates
     int screen_offset_x {x - constants::TILEMAP_X_START};
     int screen_offset_y {y - constants::TILEMAP_Y_START};
+
+    spdlog::info(
+        "Screen offset: " + 
+        std::to_string(screen_offset_x) + ", " + 
+        std::to_string(screen_offset_y)
+    );
+
     int tile_offset_x {screen_offset_x / constants::TILE_WIDTH};
     int tile_offset_y {screen_offset_y / constants::TILE_HEIGHT};
+
+    spdlog::info(
+        "Tile offset: " + 
+        std::to_string(tile_offset_x) + ", " +
+        std::to_string(tile_offset_y)
+    );
+    
     int remainder_x {screen_offset_x % constants::TILE_WIDTH};
     int remainder_y {screen_offset_y % constants::TILE_HEIGHT};
 
+    spdlog::info(
+        "Tile offset: " + 
+        std::to_string(tile_offset_x) + ", " +
+        std::to_string(tile_offset_y)
+    );
+
     glm::vec2 coarse {tile_walk(glm::vec2(tile_offset_x, tile_offset_y))};
-    SDL_Color pixel_colour = mousemap_pixel_colour(remainder_x, remainder_y);
+    spdlog::info(
+        "Coarse: " + 
+        std::to_string(coarse.x) + ", " +
+        std::to_string(coarse.y)
+    );
+
+    SDL_Color pixel_colour = mousemap_pixel_colour(abs(remainder_x), abs(remainder_y));
+    spdlog::info(
+        "Pixel colour: r:" +
+        std::to_string(pixel_colour.r) + ", g:" +
+        std::to_string(pixel_colour.g) + ", b:" +
+        std::to_string(pixel_colour.b)
+    );
+
+    glm::vec2 add_vec {pixel_colour_vector(pixel_colour)};
+    spdlog::info(
+        "Mousemap offset vector: " + 
+        std::to_string(add_vec.x) + ", " +
+        std::to_string(add_vec.y)
+    );
+
     return coarse + pixel_colour_vector(pixel_colour);
 }
 
