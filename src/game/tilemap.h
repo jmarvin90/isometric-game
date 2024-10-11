@@ -4,11 +4,8 @@
 #include <entt/entt.hpp>
 #include <vector>
 
-const std::unordered_map<char, glm::vec2> tile_walk_map {
-        // Screen tile offset   // Map tile offset
-    {   'V',                    glm::vec2(1, 1)     },
-    {   'H',                    glm::vec2(1, -1)    }
-};
+constexpr glm::vec2 horizontal_vector{1, -1};
+constexpr glm::vec2 vertical_vector{1, 1};
 
 class TileMap {
     SDL_Surface* mousemap;

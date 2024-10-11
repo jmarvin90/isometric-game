@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "SDL2/SDL_image.h"
 #include "SDL2/SDL.h"
 #include "spdlog/spdlog.h"
@@ -90,14 +92,14 @@ glm::vec2 TileMap::tile_walk(const glm::vec2& tile_screen_pos) const {
     glm::vec2 horizontal{0, 0};
 
     if (tile_screen_pos.x != 0) {
-        horizontal = tile_walk_map.at('H') * tile_screen_pos.x;
+        horizontal = horizontal_vector * tile_screen_pos.x;
     }
 
     // If we're above origin (we shouldn't be?)
     if (tile_screen_pos.y != 0) {
-        vertical = tile_walk_map.at('V') * tile_screen_pos.y;
+        vertical = vertical_vector * tile_screen_pos.y;
     }
-    
+
     return vertical + horizontal;
 }
 
@@ -113,8 +115,8 @@ glm::vec2 TileMap::pixel_to_grid(const int x, const int y) const {
         std::to_string(screen_offset_y)
     );
 
-    int tile_offset_x {screen_offset_x / constants::TILE_WIDTH};
-    int tile_offset_y {screen_offset_y / constants::TILE_HEIGHT};
+    double tile_offset_x {floor(screen_offset_x / static_cast<double>(constants::TILE_WIDTH))};
+    double tile_offset_y {floor(screen_offset_y / static_cast<double>(constants::TILE_HEIGHT))};
 
     spdlog::info(
         "Tile offset: " + 
@@ -126,9 +128,9 @@ glm::vec2 TileMap::pixel_to_grid(const int x, const int y) const {
     int remainder_y {screen_offset_y % constants::TILE_HEIGHT};
 
     spdlog::info(
-        "Tile offset: " + 
-        std::to_string(tile_offset_x) + ", " +
-        std::to_string(tile_offset_y)
+        "Remainder: " + 
+        std::to_string(remainder_x) + ", " +
+        std::to_string(remainder_y)
     );
 
     glm::vec2 coarse {tile_walk(glm::vec2(tile_offset_x, tile_offset_y))};
