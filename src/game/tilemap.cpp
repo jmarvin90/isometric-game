@@ -89,26 +89,15 @@ glm::vec2 TileMap::tile_walk(const glm::vec2& tile_screen_pos) const {
     glm::vec2 vertical{0, 0};
     glm::vec2 horizontal{0, 0};
 
-    // If we're left of origin
-    if (tile_screen_pos.x < 0) {
-        horizontal = tile_walk_map.at('L') * tile_screen_pos.x;
-    }
-
-    // If we're right of origin
-    if (tile_screen_pos.x > 0) {
-        horizontal = tile_walk_map.at('R') * tile_screen_pos.x;
+    if (tile_screen_pos.x != 0) {
+        horizontal = tile_walk_map.at('H') * tile_screen_pos.x;
     }
 
     // If we're above origin (we shouldn't be?)
-    if (tile_screen_pos.y < 0) {
-        vertical = tile_walk_map.at('U') * tile_screen_pos.y;
+    if (tile_screen_pos.y != 0) {
+        vertical = tile_walk_map.at('V') * tile_screen_pos.y;
     }
-
-    // If we're below origin
-    if (tile_screen_pos.y > 0) {
-        vertical = tile_walk_map.at('D') * tile_screen_pos.y;
-    }
-
+    
     return vertical + horizontal;
 }
 

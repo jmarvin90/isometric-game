@@ -6,10 +6,8 @@
 
 const std::unordered_map<char, glm::vec2> tile_walk_map {
         // Screen tile offset   // Map tile offset
-    {   'L',                    glm::vec2(-1, 1)    },
-    {   'D',                    glm::vec2(1, 1)     },
-    {   'R',                    glm::vec2(1, -1)    },
-    {   'U',                    glm::vec2(-1, -1)   }
+    {   'V',                    glm::vec2(1, 1)     },
+    {   'H',                    glm::vec2(1, -1)    }
 };
 
 class TileMap {
