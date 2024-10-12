@@ -8,15 +8,11 @@
 #include "../components/transform.h"
 #include "../components/sprite.h"
 #include "tilemap.h"
+#include "mouse.h"
 
 class Game {
     bool is_running {false};
     bool debug_mode {false};
-
-    int mouse_x{};
-    int mouse_y{};
-    int mouse_x_previous{};
-    int mouse_y_previous{};
 
     // Has to be default initialised because it's referenced in Game::update()
     int millis_previous_frame{};    
@@ -30,6 +26,7 @@ class Game {
     std::unordered_map<int, SDL_Texture*> textures;
 
     TileMap tilemap;
+    Mouse mouse;
 
     void load_textures();
     void load_tilemap();

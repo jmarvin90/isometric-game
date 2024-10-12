@@ -14,7 +14,8 @@
 
 Game::Game(): 
     registry{entt::registry()}, 
-    tilemap{registry, "./assets/mousemap.png"}
+    tilemap{registry},
+    mouse{"./assets/mousemap.png"}
 {
     spdlog::info("Game constructor called.");
 }
@@ -229,20 +230,10 @@ void Game::update() {
     // Update the member to indicate the time the last update was run
     millis_previous_frame = SDL_GetTicks();
 
+    int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
-    if (mouse_x != mouse_x_previous || mouse_y != mouse_y_previous) {
-        glm::vec2 grid_pos {tilemap.pixel_to_grid(mouse_x, mouse_y)};
-        spdlog::info(
-            "Mouse position: " + 
-            std::to_string(mouse_x) + ", " +
-            std::to_string(mouse_y) + " (grid position " +
-            std::to_string(static_cast<int>(grid_pos.x)) + ", " + 
-            std::to_string(static_cast<int>(grid_pos.y)) + ") "
-         );
-
-        mouse_x_previous = mouse_x;
-        mouse_y_previous = mouse_y;
-    }
+    mouse.set_pos({mouse_x, mouse_y});
+    glm::vec2 mouse_grid_pos {mouse.pixel_to_grid()};
 }
 
 int transform_abspixel(const Transform& transform) {
