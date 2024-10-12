@@ -230,10 +230,7 @@ void Game::update() {
 
     // Update the member to indicate the time the last update was run
     millis_previous_frame = SDL_GetTicks();
-
-    int mouse_x, mouse_y;
-    SDL_GetMouseState(&mouse_x, &mouse_y);
-    mouse.set_pos({mouse_x, mouse_y});
+    mouse.update();
 }
 
 int transform_abspixel(const Transform& transform) {

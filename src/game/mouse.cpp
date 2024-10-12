@@ -143,12 +143,10 @@ Point Mouse::pixel_to_grid() const {
     return coarse + pixel_colour_vector(pixel_colour);
 }
 
-void Mouse::set_pos(const Point& mouse_position) {
-    if (position == mouse_position) {
-        return;
-    } else {
-        position.x = mouse_position.x;
-        position.y = mouse_position.y;
+void Mouse::update() {
+    previous_position = position;
+    SDL_GetMouseState(&position.x, &position.y);
+    if (position != previous_position) {
         spdlog::info(
             "Mouse position: " + 
             std::to_string(position.x) + ", " + 

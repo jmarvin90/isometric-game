@@ -8,6 +8,7 @@ struct Point {
     bool operator==(const Point& comparator) const;
     Point operator+(const Point& second) const;
     Point operator*(int multiplier) const;
+    bool operator!=(const Point& comparator) const;
 };
 
 #endif

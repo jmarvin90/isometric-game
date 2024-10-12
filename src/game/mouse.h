@@ -11,6 +11,7 @@ constexpr Point horizontal_vector{1, -1};
 constexpr Point vertical_vector{1, 1};
 
 class Mouse {
+    Point previous_position;
     Point position;
     SDL_Surface* mousemap;
     SDL_Color mousemap_pixel_colour(const Point& pixel_offset) const;
@@ -21,7 +22,7 @@ class Mouse {
         Mouse(const std::string mousemap_file_path);
         ~Mouse();
         Point pixel_to_grid() const;
-        void set_pos(const Point& mouse_position);
+        void update();
 };
 
 #endif

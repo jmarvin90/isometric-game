@@ -11,3 +11,7 @@ Point Point::operator*(const int multiplier) const {
 bool Point::operator==(const Point& comparator) const {
     return (x == comparator.x && y == comparator.y);
 }
+
+bool Point::operator!=(const Point& comparator) const {
+    return (x != comparator.x || y != comparator.y);
+}
