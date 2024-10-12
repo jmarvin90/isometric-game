@@ -5,21 +5,23 @@
 #include "glm/glm.hpp"
 #include "SDL2/SDL.h"
 
-constexpr glm::vec2 horizontal_vector{1, -1};
-constexpr glm::vec2 vertical_vector{1, 1};
+#include "point.h"
+
+constexpr Point horizontal_vector{1, -1};
+constexpr Point vertical_vector{1, 1};
 
 class Mouse {
-    glm::vec2 position;
+    Point position;
     SDL_Surface* mousemap;
-    SDL_Color mousemap_pixel_colour(const glm::vec2& pixel_offset) const;
-    glm::vec2 pixel_colour_vector(const SDL_Color& colour) const;
-    glm::vec2 tile_walk(const glm::vec2& tile_offset) const;
+    SDL_Color mousemap_pixel_colour(const Point& pixel_offset) const;
+    Point pixel_colour_vector(const SDL_Color& colour) const;
+    Point tile_walk(const Point& tile_offset) const;
 
     public:
         Mouse(const std::string mousemap_file_path);
         ~Mouse();
-        glm::vec2 pixel_to_grid() const;
-        void set_pos(const glm::vec2& mouse_position);
+        Point pixel_to_grid() const;
+        void set_pos(const Point& mouse_position);
 };
 
 #endif

@@ -5,6 +5,7 @@
 
 #include "mouse.h"
 #include "constants.h"
+#include "point.h"
 
 Mouse::Mouse(const std::string mousemap_file_path):
     mousemap {IMG_Load(mousemap_file_path.c_str())} 
@@ -21,7 +22,7 @@ Mouse::~Mouse() {
 }
 
 // Query the pixel colour for a pixel on the mousemap at position x, y
-SDL_Color Mouse::mousemap_pixel_colour(const glm::vec2& pixel_offset) const {
+SDL_Color Mouse::mousemap_pixel_colour(const Point& pixel_offset) const {
     const unsigned int bpp {mousemap->format->BytesPerPixel};
     
     // TODO: understand wtf happens here
@@ -48,35 +49,35 @@ SDL_Color Mouse::mousemap_pixel_colour(const glm::vec2& pixel_offset) const {
 }
 
 // Convert the pixel colour into a vector to be added to a 'coarse' grid location
-glm::vec2 Mouse::pixel_colour_vector(const SDL_Colour& colour) const {
+Point Mouse::pixel_colour_vector(const SDL_Colour& colour) const {
 
     if (colour.r == 255 && colour.g == 255 && colour.b == 255) {
-        return glm::vec2(0, 0);
+        return Point{0, 0};
     }
 
     if (colour.r == 255) {
-        return glm::vec2(-1, 0);
+        return Point{-1, 0};
     }
 
     if (colour.g == 255) {
-        return glm::vec2(0, -1);
+        return Point{0, -1};
     }
 
     if (colour.b == 255) {
-        return glm::vec2(1, 0);
+        return Point{1, 0};
     }
 
     if (colour.r == 0 && colour.g == 0 && colour.b == 0) {
-        return glm::vec2(0, 1);
+        return Point{0, 1};
     }
 
-    return glm::vec2(0, 0);
+    return Point{0, 0};
 }
 
 // Calculate the 'coarse' grid position tile walk map
-glm::vec2 Mouse::tile_walk(const glm::vec2& tile_offset) const {
-    glm::vec2 vertical{0, 0};
-    glm::vec2 horizontal{0, 0};
+Point Mouse::tile_walk(const Point& tile_offset) const {
+    Point vertical{0, 0};
+    Point horizontal{0, 0};
 
     if (tile_offset.x != 0) {
         horizontal = horizontal_vector * tile_offset.x;
@@ -91,13 +92,26 @@ glm::vec2 Mouse::tile_walk(const glm::vec2& tile_offset) const {
 }
 
 // Public function converting x, y screen coordinates into tilemap coordinates
-glm::vec2 Mouse::pixel_to_grid() const {
+Point Mouse::pixel_to_grid() const {
     // Coarse coordinates
-    int screen_offset_x {static_cast<int>(position.x) - constants::TILEMAP_X_START};
-    int screen_offset_y {static_cast<int>(position.y) - constants::TILEMAP_Y_START};
+    int screen_offset_x {position.x - constants::TILEMAP_X_START};
+    int screen_offset_y {position.y - constants::TILEMAP_Y_START};
 
-    double tile_offset_x {floor(screen_offset_x / static_cast<double>(constants::TILE_WIDTH))};
-    double tile_offset_y {floor(screen_offset_y / static_cast<double>(constants::TILE_HEIGHT))};
+    int tile_offset_x {
+        static_cast<int>(
+            floor(
+                screen_offset_x / static_cast<double>(constants::TILE_WIDTH)
+            )
+        )
+    };
+
+    int tile_offset_y {
+        static_cast<int>(
+            floor(
+                screen_offset_y / static_cast<double>(constants::TILE_HEIGHT)
+            )
+        )
+    };
 
     int remainder_x{0};
     int remainder_y{0};
@@ -120,18 +134,17 @@ glm::vec2 Mouse::pixel_to_grid() const {
         remainder_y = screen_offset_y % constants::TILE_HEIGHT;
     }
 
-    glm::vec2 coarse {tile_walk(glm::vec2(tile_offset_x, tile_offset_y))};
+    Point coarse {tile_walk({tile_offset_x, tile_offset_y})};
 
     SDL_Color pixel_colour = mousemap_pixel_colour(
-        glm::vec2(abs(remainder_x), abs(remainder_y))
+        Point({abs(remainder_x), abs(remainder_y)})
     );
 
-    glm::vec2 add_vec {pixel_colour_vector(pixel_colour)};
     return coarse + pixel_colour_vector(pixel_colour);
 }
 
-void Mouse::set_pos(const glm::vec2& mouse_position) {
-    if (mouse_position == position) {
+void Mouse::set_pos(const Point& mouse_position) {
+    if (position == mouse_position) {
         return;
     } else {
         position.x = mouse_position.x;
@@ -142,7 +155,7 @@ void Mouse::set_pos(const glm::vec2& mouse_position) {
             std::to_string(position.y)
         );
 
-        glm::vec2 grid_position {pixel_to_grid()};
+        Point grid_position {pixel_to_grid()};
         spdlog::info(
             "Grid position: " + 
             std::to_string(grid_position.x) + ", " +

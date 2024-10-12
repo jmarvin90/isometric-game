@@ -6,6 +6,7 @@
 
 #include "constants.h"
 #include "game.h"
+#include "point.h"
 
 #include "../components/transform.h"
 #include "../components/sprite.h"
@@ -71,7 +72,7 @@ void Game::load_tilemap() {
     for (int y=0; y<static_cast<int>(constants::MAP_SIZE); y++) {
         for (int x=0; x<static_cast<int>(constants::MAP_SIZE); x++) {
 
-            glm::vec2 position {tilemap.grid_to_pixel(x, y)};
+            Point position {tilemap.grid_to_pixel(x, y)};
             int texture_id {1};
 
             int height_px;
@@ -169,7 +170,7 @@ void Game::initialise() {
 
     // TODO: remove
     entt::entity entity {registry.create()};
-    glm::vec2 position {tilemap.grid_to_pixel(5, 2)};
+    Point position {tilemap.grid_to_pixel(5, 2)};
     position.x += (constants::TILE_WIDTH_HALF - (width_px / 2));
     position.y -= (constants::TILE_HEIGHT_HALF);
     registry.emplace<Transform>(entity, position, 0.0);
@@ -233,7 +234,6 @@ void Game::update() {
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
     mouse.set_pos({mouse_x, mouse_y});
-    glm::vec2 mouse_grid_pos {mouse.pixel_to_grid()};
 }
 
 int transform_abspixel(const Transform& transform) {
