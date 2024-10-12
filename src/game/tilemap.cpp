@@ -123,9 +123,27 @@ glm::vec2 TileMap::pixel_to_grid(const int x, const int y) const {
         std::to_string(tile_offset_x) + ", " +
         std::to_string(tile_offset_y)
     );
+
+    int remainder_x{0};
+    int remainder_y{0};
     
-    int remainder_x {screen_offset_x % constants::TILE_WIDTH};
-    int remainder_y {screen_offset_y % constants::TILE_HEIGHT};
+    if (screen_offset_x < 0) {
+        remainder_x = (
+            constants::TILE_WIDTH + 
+            (screen_offset_x % constants::TILE_WIDTH)
+        );
+    } else {
+        remainder_x = screen_offset_x % constants::TILE_WIDTH;
+    }
+
+    if (screen_offset_y < 0) {
+        remainder_y = (
+            constants::TILE_HEIGHT +
+            (screen_offset_y % constants::TILE_HEIGHT)
+        );
+    } else {
+        remainder_y = screen_offset_y % constants::TILE_HEIGHT;
+    }
 
     spdlog::info(
         "Remainder: " + 
