@@ -12,9 +12,11 @@ Mouse::Mouse(const std::string mousemap_file_path):
     if (!mousemap) {
         spdlog::error("Could not load mousemap from " + mousemap_file_path);
     }
+    spdlog::info("Mouse constructor called.");
 }
 
 Mouse::~Mouse() {
+    spdlog::info("Mouse destructor called.");
     SDL_FreeSurface(mousemap);
 }
 

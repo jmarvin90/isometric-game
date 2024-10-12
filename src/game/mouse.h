@@ -20,7 +20,6 @@ class Mouse {
         ~Mouse();
         glm::vec2 pixel_to_grid() const;
         void set_pos(const glm::vec2& mouse_position);
-        const glm::vec2& get_pos() const;
 };
 
 #endif
