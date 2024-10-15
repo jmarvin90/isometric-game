@@ -94,13 +94,13 @@ glm::ivec2 Mouse::tile_walk(const glm::ivec2& tile_offset) const {
 // Public function converting x, y screen coordinates into tilemap coordinates
 glm::ivec2 Mouse::pixel_to_grid() const {
     // Coarse coordinates
-    int screen_offset_x {position.x - constants::TILEMAP_X_START};
-    int screen_offset_y {position.y - constants::TILEMAP_Y_START};
+    int screen_offset_x {world_position.x - constants::TILEMAP_X_START};
+    int screen_offset_y {world_position.y - constants::TILEMAP_Y_START};
 
     int tile_offset_x {
         static_cast<int>(
             floor(
-                screen_offset_x / <double>(constants::TILE_WIDTH)
+                screen_offset_x / static_cast<double>(constants::TILE_WIDTH)
             )
         )
     };
@@ -143,18 +143,27 @@ glm::ivec2 Mouse::pixel_to_grid() const {
     return coarse + pixel_colour_vector(pixel_colour);
 }
 
-void Mouse::update() {
-    previous_position = position;
-    SDL_GetMouseState(&position.x, &position.y);
+void Mouse::update(const SDL_Rect& camera) {
+    previous_position = window_position;
+
+    SDL_GetMouseState(&window_position.x, &window_position.y);
+
+    world_position.x = window_position.x + camera.x;
+    world_position.y = window_position.y + camera.y;
+
     glm::ivec2 grid_position {pixel_to_grid()};
 
-    if (position != previous_position) {
+    if (window_position != previous_position) {
         spdlog::info(
             "Mouse position: " + 
-            std::to_string(position.x) + ", " + 
-            std::to_string(position.y) + " (" +
+            std::to_string(window_position.x) + ", " + 
+            std::to_string(window_position.y) + " (" +
             std::to_string(grid_position.x) + ", " +
             std::to_string(grid_position.y) + ")"
         );
     }
+}
+
+const glm::ivec2& Mouse::get_position() const {
+    return window_position;
 }

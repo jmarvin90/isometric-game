@@ -168,6 +168,8 @@ void Game::initialise() {
         textures[15], NULL, NULL, &width_px, &height_px
     );
 
+    SDL_RenderSetClipRect(renderer, &render_rect);
+
     // TODO: remove
     entt::entity entity {registry.create()};
     glm::vec2 position {tilemap.grid_to_pixel(5, 2)};
@@ -227,15 +229,39 @@ void Game::update() {
     // movement logic
     apply_velocity(registry.view<RigidBody, Transform>(), delta_time);
 
+    // Update the mouse position
+    mouse.update(camera);
+
+    // Update the camera position
+    const glm::vec2& mouse_position {mouse.get_position()};
+    if (mouse_position.x < constants::CAMERA_BORDER_PX) {
+        --camera.x;
+    }
+
+    if (
+        (constants::WINDOW_WIDTH - mouse_position.x) < 
+        constants::CAMERA_BORDER_PX
+    ) {
+        ++camera.x;
+    }
+
+    if (mouse_position.y < constants::CAMERA_BORDER_PX) {
+        --camera.y;
+    }
+
+    if (
+        (constants::WINDOW_HEIGHT - mouse_position.y) <
+        constants::CAMERA_BORDER_PX
+    ) {
+        ++camera.y;
+    }
 
     // Update the member to indicate the time the last update was run
     millis_previous_frame = SDL_GetTicks();
-    mouse.update();
 }
 
 int transform_abspixel(const Transform& transform) {
-    return 
-        (transform.position.y * constants::WINDOW_WIDTH) + transform.position.x;
+    return (transform.position.y * constants::WINDOW_WIDTH) + transform.position.x;
 }
 
 bool transform_y_comparison(const Transform& lhs, const Transform& rhs) {
@@ -245,7 +271,8 @@ bool transform_y_comparison(const Transform& lhs, const Transform& rhs) {
 }
 
 void render_sprite(
-    SDL_Renderer* renderer, 
+    SDL_Renderer* renderer,
+    const SDL_Rect& camera,
     const std::unordered_map<int, SDL_Texture*>& textures,
     const Transform& transform, 
     const Sprite& sprite
@@ -253,8 +280,8 @@ void render_sprite(
 
     SDL_Rect source_rect {0, 0, sprite.width_px, sprite.height_px};
     SDL_Rect dest_rect {
-        static_cast<int>(transform.position.x) + sprite.horitonzal_offset_px, 
-        static_cast<int>(transform.position.y) + sprite.vertical_offset_px, 
+        (static_cast<int>(transform.position.x) + sprite.horitonzal_offset_px) - camera.x, 
+        (static_cast<int>(transform.position.y) + sprite.vertical_offset_px) - camera.y, 
         sprite.width_px,
         sprite.height_px
     };
@@ -282,7 +309,7 @@ void Game::render() {
     for (auto entity: terrain_tiles) {
         auto& transform {terrain_tiles.get<Transform>(entity)};
         auto& sprite {terrain_tiles.get<TerrainSprite>(entity)};
-        render_sprite(renderer, textures, transform, sprite);
+        render_sprite(renderer, camera, textures, transform, sprite);
     }
 
     auto vertical_tiles = registry.view<Transform, VerticalSprite>();
@@ -290,7 +317,7 @@ void Game::render() {
     for (auto entity: vertical_tiles) {
         auto& transform {vertical_tiles.get<Transform>(entity)};
         auto& sprite {vertical_tiles.get<VerticalSprite>(entity)};
-        render_sprite(renderer, textures, transform, sprite);
+        render_sprite(renderer, camera, textures, transform, sprite);
     }
 
     SDL_RenderPresent(renderer);
