@@ -1,12 +1,12 @@
 #include <string>
 
+#include <glm/glm.hpp>
 #include <SDL2/SDL_image.h>
 #include <entt/entt.hpp>
 #include "spdlog/spdlog.h"
 
 #include "constants.h"
 #include "game.h"
-#include "point.h"
 
 #include "../components/transform.h"
 #include "../components/sprite.h"
@@ -69,10 +69,10 @@ void Game::load_textures(){
 
 void Game::load_tilemap() {
     spdlog::info("Loading tilemap");
-    for (int y=0; y<static_cast<int>(constants::MAP_SIZE); y++) {
-        for (int x=0; x<static_cast<int>(constants::MAP_SIZE); x++) {
+    for (int y=0; y<constants::MAP_SIZE; y++) {
+        for (int x=0; x<constants::MAP_SIZE; x++) {
 
-            Point position {tilemap.grid_to_pixel(x, y)};
+            glm::ivec2 position {tilemap.grid_to_pixel(x, y)};
             int texture_id {1};
 
             int height_px;
@@ -170,7 +170,7 @@ void Game::initialise() {
 
     // TODO: remove
     entt::entity entity {registry.create()};
-    Point position {tilemap.grid_to_pixel(5, 2)};
+    glm::vec2 position {tilemap.grid_to_pixel(5, 2)};
     position.x += (constants::TILE_WIDTH_HALF - (width_px / 2));
     position.y -= (constants::TILE_HEIGHT_HALF);
     registry.emplace<Transform>(entity, position, 0.0);
@@ -234,9 +234,8 @@ void Game::update() {
 }
 
 int transform_abspixel(const Transform& transform) {
-    return static_cast<int>(
-        (transform.position.y * constants::WINDOW_WIDTH) + transform.position.x
-    );
+    return 
+        (transform.position.y * constants::WINDOW_WIDTH) + transform.position.x;
 }
 
 bool transform_y_comparison(const Transform& lhs, const Transform& rhs) {

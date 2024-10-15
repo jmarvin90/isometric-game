@@ -1,10 +1,10 @@
 #ifndef TRANSFORMCOMPONENT_H
 #define TRANSFORMCOMPONENT_H
 
-#include "../game/point.h"
+#include <glm/glm.hpp>
 
 struct Transform{
-    Point position;
+    glm::vec2 position;
     double rotation;
 };
 

@@ -1,11 +1,11 @@
 
 #include <cmath>
 #include <SDL2/SDL_image.h>
+#include <glm/glm.hpp>
 #include "spdlog/spdlog.h"
 
 #include "mouse.h"
 #include "constants.h"
-#include "point.h"
 
 Mouse::Mouse(const std::string mousemap_file_path):
     mousemap {IMG_Load(mousemap_file_path.c_str())} 
@@ -22,15 +22,15 @@ Mouse::~Mouse() {
 }
 
 // Query the pixel colour for a pixel on the mousemap at position x, y
-SDL_Color Mouse::mousemap_pixel_colour(const Point& pixel_offset) const {
+SDL_Color Mouse::mousemap_pixel_colour(const glm::ivec2& pixel_offset) const {
     const unsigned int bpp {mousemap->format->BytesPerPixel};
     
     // TODO: understand wtf happens here
     // Void pointer converted to int pointer and dereferenced?
     unsigned char* pixel {
         (Uint8*)mousemap->pixels + 
-        static_cast<int>(pixel_offset.y) * mousemap->pitch + 
-        static_cast<int>(pixel_offset.x) * bpp
+        pixel_offset.y * mousemap->pitch + 
+        pixel_offset.x * bpp
     };
 
     unsigned int pixel_data = *(unsigned int*)pixel;
@@ -49,35 +49,35 @@ SDL_Color Mouse::mousemap_pixel_colour(const Point& pixel_offset) const {
 }
 
 // Convert the pixel colour into a vector to be added to a 'coarse' grid location
-Point Mouse::pixel_colour_vector(const SDL_Colour& colour) const {
+glm::ivec2 Mouse::pixel_colour_vector(const SDL_Colour& colour) const {
 
     if (colour.r == 255 && colour.g == 255 && colour.b == 255) {
-        return Point{0, 0};
+        return glm::ivec2{0, 0};
     }
 
     if (colour.r == 255) {
-        return Point{-1, 0};
+        return glm::ivec2{-1, 0};
     }
 
     if (colour.g == 255) {
-        return Point{0, -1};
+        return glm::ivec2{0, -1};
     }
 
     if (colour.b == 255) {
-        return Point{1, 0};
+        return glm::ivec2{1, 0};
     }
 
     if (colour.r == 0 && colour.g == 0 && colour.b == 0) {
-        return Point{0, 1};
+        return glm::ivec2{0, 1};
     }
 
-    return Point{0, 0};
+    return glm::ivec2{0, 0};
 }
 
 // Calculate the 'coarse' grid position tile walk map
-Point Mouse::tile_walk(const Point& tile_offset) const {
-    Point vertical{0, 0};
-    Point horizontal{0, 0};
+glm::ivec2 Mouse::tile_walk(const glm::ivec2& tile_offset) const {
+    glm::ivec2 vertical{0, 0};
+    glm::ivec2 horizontal{0, 0};
 
     if (tile_offset.x != 0) {
         horizontal = horizontal_vector * tile_offset.x;
@@ -92,7 +92,7 @@ Point Mouse::tile_walk(const Point& tile_offset) const {
 }
 
 // Public function converting x, y screen coordinates into tilemap coordinates
-Point Mouse::pixel_to_grid() const {
+glm::ivec2 Mouse::pixel_to_grid() const {
     // Coarse coordinates
     int screen_offset_x {position.x - constants::TILEMAP_X_START};
     int screen_offset_y {position.y - constants::TILEMAP_Y_START};
@@ -100,7 +100,7 @@ Point Mouse::pixel_to_grid() const {
     int tile_offset_x {
         static_cast<int>(
             floor(
-                screen_offset_x / static_cast<double>(constants::TILE_WIDTH)
+                screen_offset_x / <double>(constants::TILE_WIDTH)
             )
         )
     };
@@ -134,10 +134,10 @@ Point Mouse::pixel_to_grid() const {
         remainder_y = screen_offset_y % constants::TILE_HEIGHT;
     }
 
-    Point coarse {tile_walk({tile_offset_x, tile_offset_y})};
+    glm::ivec2 coarse {tile_walk({tile_offset_x, tile_offset_y})};
 
     SDL_Color pixel_colour = mousemap_pixel_colour(
-        Point{remainder_x, remainder_y}
+        glm::ivec2{remainder_x, remainder_y}
     );
 
     return coarse + pixel_colour_vector(pixel_colour);
@@ -146,7 +146,7 @@ Point Mouse::pixel_to_grid() const {
 void Mouse::update() {
     previous_position = position;
     SDL_GetMouseState(&position.x, &position.y);
-    Point grid_position {pixel_to_grid()};
+    glm::ivec2 grid_position {pixel_to_grid()};
 
     if (position != previous_position) {
         spdlog::info(
