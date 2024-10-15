@@ -3,7 +3,7 @@
 
 #include <string>
 #include "SDL2/SDL.h"
-#include <glm/ext/vector_int1.hpp>
+#include <glm/glm.hpp>
 
 constexpr glm::ivec2 horizontal_vector{1, -1};
 constexpr glm::ivec2 vertical_vector{1, 1};

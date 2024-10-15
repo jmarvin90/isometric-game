@@ -69,10 +69,10 @@ void Game::load_textures(){
 
 void Game::load_tilemap() {
     spdlog::info("Loading tilemap");
-    for (int y=0; y<static_cast<int>(constants::MAP_SIZE); y++) {
-        for (int x=0; x<static_cast<int>(constants::MAP_SIZE); x++) {
+    for (int y=0; y<constants::MAP_SIZE; y++) {
+        for (int x=0; x<constants::MAP_SIZE; x++) {
 
-            glm::vec2 position {tilemap.grid_to_pixel(x, y)};
+            glm::ivec2 position {tilemap.grid_to_pixel(x, y)};
             int texture_id {1};
 
             int height_px;
@@ -234,9 +234,8 @@ void Game::update() {
 }
 
 int transform_abspixel(const Transform& transform) {
-    return static_cast<int>(
-        (transform.position.y * constants::WINDOW_WIDTH) + transform.position.x
-    );
+    return 
+        (transform.position.y * constants::WINDOW_WIDTH) + transform.position.x;
 }
 
 bool transform_y_comparison(const Transform& lhs, const Transform& rhs) {

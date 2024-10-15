@@ -2,7 +2,6 @@
 #include <cmath>
 #include <SDL2/SDL_image.h>
 #include <glm/glm.hpp>
-#include <glm/ext/vector_int1.hpp>
 #include "spdlog/spdlog.h"
 
 #include "mouse.h"
@@ -30,8 +29,8 @@ SDL_Color Mouse::mousemap_pixel_colour(const glm::ivec2& pixel_offset) const {
     // Void pointer converted to int pointer and dereferenced?
     unsigned char* pixel {
         (Uint8*)mousemap->pixels + 
-        static_cast<int>(pixel_offset.y) * mousemap->pitch + 
-        static_cast<int>(pixel_offset.x) * bpp
+        pixel_offset.y * mousemap->pitch + 
+        pixel_offset.x * bpp
     };
 
     unsigned int pixel_data = *(unsigned int*)pixel;
@@ -95,13 +94,13 @@ glm::ivec2 Mouse::tile_walk(const glm::ivec2& tile_offset) const {
 // Public function converting x, y screen coordinates into tilemap coordinates
 glm::ivec2 Mouse::pixel_to_grid() const {
     // Coarse coordinates
-    int screen_offset_x {static_cast<int>(position.x) - constants::TILEMAP_X_START};
-    int screen_offset_y {static_cast<int>(position.y) - constants::TILEMAP_Y_START};
+    int screen_offset_x {position.x - constants::TILEMAP_X_START};
+    int screen_offset_y {position.y - constants::TILEMAP_Y_START};
 
     int tile_offset_x {
         static_cast<int>(
             floor(
-                screen_offset_x / static_cast<double>(constants::TILE_WIDTH)
+                screen_offset_x / <double>(constants::TILE_WIDTH)
             )
         )
     };
@@ -146,12 +145,7 @@ glm::ivec2 Mouse::pixel_to_grid() const {
 
 void Mouse::update() {
     previous_position = position;
-
-    int x, y;
-    SDL_GetMouseState(&x, &y);
-    position.x = x;
-    position.y = y;
-
+    SDL_GetMouseState(&position.x, &position.y);
     glm::ivec2 grid_position {pixel_to_grid()};
 
     if (position != previous_position) {
