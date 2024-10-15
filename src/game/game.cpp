@@ -175,7 +175,7 @@ void Game::initialise() {
     position.y -= (constants::TILE_HEIGHT_HALF);
     registry.emplace<Transform>(entity, position, 0.0);
     registry.emplace<VerticalSprite>(entity, height_px, width_px, 15, constants::TILE_HEIGHT-height_px, 0);
-    registry.emplace<RigidBody>(entity, glm::vec2(-40, -20));
+    registry.emplace<RigidBody>(entity, glm::vec2(-60, -30));
     
     // TODO: initialise ImGui
 }

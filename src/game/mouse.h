@@ -2,7 +2,6 @@
 #define MOUSE_H
 
 #include <string>
-#include "glm/glm.hpp"
 #include "SDL2/SDL.h"
 
 #include "point.h"

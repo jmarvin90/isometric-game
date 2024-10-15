@@ -137,7 +137,7 @@ Point Mouse::pixel_to_grid() const {
     Point coarse {tile_walk({tile_offset_x, tile_offset_y})};
 
     SDL_Color pixel_colour = mousemap_pixel_colour(
-        Point({abs(remainder_x), abs(remainder_y)})
+        Point{remainder_x, remainder_y}
     );
 
     return coarse + pixel_colour_vector(pixel_colour);
@@ -146,18 +146,15 @@ Point Mouse::pixel_to_grid() const {
 void Mouse::update() {
     previous_position = position;
     SDL_GetMouseState(&position.x, &position.y);
+    Point grid_position {pixel_to_grid()};
+
     if (position != previous_position) {
         spdlog::info(
             "Mouse position: " + 
             std::to_string(position.x) + ", " + 
-            std::to_string(position.y)
-        );
-
-        Point grid_position {pixel_to_grid()};
-        spdlog::info(
-            "Grid position: " + 
+            std::to_string(position.y) + " (" +
             std::to_string(grid_position.x) + ", " +
-            std::to_string(grid_position.y)
+            std::to_string(grid_position.y) + ")"
         );
     }
 }

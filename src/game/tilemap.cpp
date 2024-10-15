@@ -3,7 +3,6 @@
 #include "SDL2/SDL_image.h"
 #include "SDL2/SDL.h"
 #include "spdlog/spdlog.h"
-#include "glm/glm.hpp"
 
 #include "tilemap.h"
 #include "constants.h"
