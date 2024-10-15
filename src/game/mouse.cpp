@@ -10,10 +10,10 @@
 Mouse::Mouse(const std::string mousemap_file_path):
     mousemap {IMG_Load(mousemap_file_path.c_str())} 
 {
+    spdlog::info("Mouse constructor called.");
     if (!mousemap) {
         spdlog::error("Could not load mousemap from " + mousemap_file_path);
     }
-    spdlog::info("Mouse constructor called.");
 }
 
 Mouse::~Mouse() {
