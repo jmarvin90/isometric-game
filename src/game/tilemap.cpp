@@ -3,10 +3,10 @@
 #include "SDL2/SDL_image.h"
 #include "SDL2/SDL.h"
 #include "spdlog/spdlog.h"
+#include <glm/glm.hpp>
 
 #include "tilemap.h"
 #include "constants.h"
-#include "point.h"
 
 
 // Create the vector of tile entities and load the mousemap surface.
@@ -34,10 +34,10 @@ entt::entity TileMap::at(const int x, const int y) {
 }
 
 // Public function converting x, y tilemap coordinates to screen coordinates
-Point TileMap::grid_to_pixel(const int x, const int y) const {
+glm::vec2 TileMap::grid_to_pixel(const int x, const int y) const {
     int x_offset {x-y};
     int y_offset {y+x};
-    return Point {
+    return glm::vec2 {
         constants::TILEMAP_X_START + (x_offset * constants::TILE_WIDTH_HALF),
         constants::TILEMAP_Y_START + (y_offset * constants::TILE_HEIGHT_HALF)
     };
