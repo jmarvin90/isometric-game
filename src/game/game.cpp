@@ -1,33 +1,23 @@
-#include "game.h"
-#include "spdlog/spdlog.h"
 #include <string>
+
 #include <SDL2/SDL_image.h>
 #include <entt/entt.hpp>
+#include "spdlog/spdlog.h"
+
+#include "constants.h"
+#include "game.h"
+#include "point.h"
 
 #include "../components/transform.h"
 #include "../components/sprite.h"
 #include "../components/rigid_body.h"
 
-TileMap::TileMap(entt::registry& registry) {
-    spdlog::info("TileMap constructor called.");
-    for (int x=0; x<MAP_SIZE; x++) {
-        std::vector<entt::entity> row;
-        for (int y=0; y<MAP_SIZE; y++) {
-            row.push_back(registry.create());
-        }
-        tilemap.push_back(row);
-    }
-}
 
-TileMap::~TileMap() {
-    spdlog::info("TileMap destructor called.");
-}
-
-entt::entity TileMap::at(const int x, const int y) {
-    return tilemap.at(x).at(y);
-}
-
-Game::Game(): registry{entt::registry()}, tilemap{registry} {
+Game::Game(): 
+    registry{entt::registry()}, 
+    tilemap{registry},
+    mouse{"./assets/mousemap.png"}
+{
     spdlog::info("Game constructor called.");
 }
 
@@ -52,7 +42,7 @@ void Game::load_textures(){
         "./assets/TLTR.png",                        // 12
         "./assets/BLBRTR.png",                      // 13
         "./assets/moveable_sprite_test.png",        // 14
-        "./assets/moveable_sprite_tall_test.png"    // 15
+        "./assets/moveable_sprite_tall_test.png",   // 15
     };
 
     for (unsigned int texture_id=0; texture_id<tile_paths.size(); texture_id++) {
@@ -77,21 +67,12 @@ void Game::load_textures(){
     }
 }
 
-glm::vec2 grid_pos_to_pixels(const int x, const int y) {
-    int x_offset {x-y};
-    int y_offset {y+x};
-    return glm::vec2 {
-        TILEMAP_X_START + (x_offset * (TILE_WIDTH / 2)),
-        TILEMAP_Y_START + (y_offset * (TILE_HEIGHT / 2))
-    };
-}
-
 void Game::load_tilemap() {
     spdlog::info("Loading tilemap");
-    for (int y=0; y<static_cast<int>(MAP_SIZE); y++) {
-        for (int x=0; x<static_cast<int>(MAP_SIZE); x++) {
+    for (int y=0; y<static_cast<int>(constants::MAP_SIZE); y++) {
+        for (int x=0; x<static_cast<int>(constants::MAP_SIZE); x++) {
 
-            glm::vec2 position {grid_pos_to_pixels(x, y)};
+            Point position {tilemap.grid_to_pixel(x, y)};
             int texture_id {1};
 
             int height_px;
@@ -101,8 +82,8 @@ void Game::load_tilemap() {
                 textures[texture_id], NULL, NULL, &width_px, &height_px
             );
 
-            int vertical_offset_px {TILE_HEIGHT - height_px};
-            int horizontal_offset_px {TILE_WIDTH - width_px};
+            int vertical_offset_px {constants::TILE_HEIGHT - height_px};
+            int horizontal_offset_px {constants::TILE_WIDTH - width_px};
 
             entt::entity entity {tilemap.at(x, y)};
             
@@ -134,8 +115,8 @@ void Game::load_tilemap() {
             height_px,
             width_px,
             n+4,
-            TILE_HEIGHT - height_px,
-            TILE_WIDTH - width_px
+            constants::TILE_HEIGHT - height_px,
+            constants::TILE_WIDTH - width_px
         );
 
         registry.emplace<VerticalSprite>(
@@ -143,8 +124,8 @@ void Game::load_tilemap() {
             height_px,
             width_px,
             n+4,
-            TILE_HEIGHT - height_px,
-            TILE_WIDTH - width_px
+            constants::TILE_HEIGHT - height_px,
+            constants::TILE_WIDTH - width_px
         );
     }
 }
@@ -157,8 +138,8 @@ void Game::initialise() {
         NULL,                       // title - leave blank for now
         SDL_WINDOWPOS_CENTERED,     // Window x position (centred)
         SDL_WINDOWPOS_CENTERED,     // Window y position (centred)
-        WINDOW_WIDTH,               // X res from constant
-        WINDOW_HEIGHT,              // Y res from constant
+        constants::WINDOW_WIDTH,    // X res from constant
+        constants::WINDOW_HEIGHT,   // Y res from constant
         SDL_WINDOW_INPUT_GRABBED    // Input grabbed flag
     );
 
@@ -189,12 +170,12 @@ void Game::initialise() {
 
     // TODO: remove
     entt::entity entity {registry.create()};
-    glm::vec2 position {grid_pos_to_pixels(5, 2)};
-    position.x += ((TILE_WIDTH / 2) - (width_px / 2));
-    position.y -= ((TILE_HEIGHT / 2));
+    Point position {tilemap.grid_to_pixel(5, 2)};
+    position.x += (constants::TILE_WIDTH_HALF - (width_px / 2));
+    position.y -= (constants::TILE_HEIGHT_HALF);
     registry.emplace<Transform>(entity, position, 0.0);
-    registry.emplace<VerticalSprite>(entity, height_px, width_px, 15, TILE_HEIGHT-height_px, 0);
-    registry.emplace<RigidBody>(entity, glm::vec2(-40, -20));
+    registry.emplace<VerticalSprite>(entity, height_px, width_px, 15, constants::TILE_HEIGHT-height_px, 0);
+    registry.emplace<RigidBody>(entity, glm::vec2(-60, -30));
     
     // TODO: initialise ImGui
 }
@@ -227,13 +208,13 @@ void apply_velocity(
 void Game::update() {
     // Calculate the amount of time to delay (assuming positive)
     int time_to_delay {
-        MILLIS_PER_FRAME - (
+        constants::MILLIS_PER_FRAME - (
             static_cast<int>(SDL_GetTicks()) - millis_previous_frame
         )
     };
 
     // Check the delay period is positive and delay if so
-    if (time_to_delay > 0 && time_to_delay <= MILLIS_PER_FRAME) {
+    if (time_to_delay > 0 && time_to_delay <= constants::MILLIS_PER_FRAME) {
         SDL_Delay(time_to_delay);
     }
 
@@ -249,12 +230,12 @@ void Game::update() {
 
     // Update the member to indicate the time the last update was run
     millis_previous_frame = SDL_GetTicks();
-
+    mouse.update();
 }
 
 int transform_abspixel(const Transform& transform) {
     return static_cast<int>(
-        (transform.position.y * WINDOW_WIDTH) + transform.position.x
+        (transform.position.y * constants::WINDOW_WIDTH) + transform.position.x
     );
 }
 
