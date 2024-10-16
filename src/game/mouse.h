@@ -21,7 +21,7 @@ class Mouse {
         Mouse(const std::string mousemap_file_path);
         ~Mouse();
         glm::ivec2 pixel_to_grid() const;
-        void update(const SDL_Rect& camera);
+        void set_position(const SDL_Rect& camera);
         const glm::ivec2& get_position() const;
 };
 

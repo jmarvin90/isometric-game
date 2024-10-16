@@ -230,31 +230,10 @@ void Game::update() {
     apply_velocity(registry.view<RigidBody, Transform>(), delta_time);
 
     // Update the mouse position
-    mouse.update(camera);
+    mouse.set_position(camera.get_position());
 
     // Update the camera position
-    const glm::vec2& mouse_position {mouse.get_position()};
-    if (mouse_position.x < constants::CAMERA_BORDER_PX) {
-        --camera.x;
-    }
-
-    if (
-        (constants::WINDOW_WIDTH - mouse_position.x) < 
-        constants::CAMERA_BORDER_PX
-    ) {
-        ++camera.x;
-    }
-
-    if (mouse_position.y < constants::CAMERA_BORDER_PX) {
-        --camera.y;
-    }
-
-    if (
-        (constants::WINDOW_HEIGHT - mouse_position.y) <
-        constants::CAMERA_BORDER_PX
-    ) {
-        ++camera.y;
-    }
+    camera.set_position(mouse.get_position());
 
     // Update the member to indicate the time the last update was run
     millis_previous_frame = SDL_GetTicks();
@@ -303,13 +282,15 @@ void Game::render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
+    const SDL_Rect& camera_position {camera.get_position()};
+
     registry.sort<Transform>(transform_y_comparison);
 
     auto terrain_tiles = registry.view<Transform, TerrainSprite>();
     for (auto entity: terrain_tiles) {
         auto& transform {terrain_tiles.get<Transform>(entity)};
         auto& sprite {terrain_tiles.get<TerrainSprite>(entity)};
-        render_sprite(renderer, camera, textures, transform, sprite);
+        render_sprite(renderer, camera_position, textures, transform, sprite);
     }
 
     auto vertical_tiles = registry.view<Transform, VerticalSprite>();
@@ -317,7 +298,7 @@ void Game::render() {
     for (auto entity: vertical_tiles) {
         auto& transform {vertical_tiles.get<Transform>(entity)};
         auto& sprite {vertical_tiles.get<VerticalSprite>(entity)};
-        render_sprite(renderer, camera, textures, transform, sprite);
+        render_sprite(renderer, camera_position, textures, transform, sprite);
     }
 
     SDL_RenderPresent(renderer);

@@ -143,7 +143,7 @@ glm::ivec2 Mouse::pixel_to_grid() const {
     return coarse + pixel_colour_vector(pixel_colour);
 }
 
-void Mouse::update(const SDL_Rect& camera) {
+void Mouse::set_position(const SDL_Rect& camera) {
     previous_position = window_position;
 
     SDL_GetMouseState(&window_position.x, &window_position.y);

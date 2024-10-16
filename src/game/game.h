@@ -9,6 +9,7 @@
 #include "../components/sprite.h"
 #include "tilemap.h"
 #include "mouse.h"
+#include "camera.h"
 #include "constants.h"
 
 class Game {
@@ -23,7 +24,7 @@ class Game {
     SDL_Window* window;
 
     // Investigate whether this should be default-initialised
-    SDL_Rect camera{0, 0, constants::WINDOW_WIDTH, constants::WINDOW_HEIGHT};
+    Camera camera;
 
     // Investigate whether this is redundant!
     SDL_Rect render_rect{20, 20, constants::WINDOW_WIDTH-40, constants::WINDOW_HEIGHT-40};
