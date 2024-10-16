@@ -156,14 +156,18 @@ void Mouse::set_position(const SDL_Rect& camera) {
     if (window_position != previous_position) {
         spdlog::info(
             "Mouse position: " + 
-            std::to_string(window_position.x) + ", " + 
+            std::to_string(camera.x) + "," + 
+            std::to_string(camera.y) + "; " + 
+            std::to_string(world_position.x) + "," + 
+            std::to_string(world_position.y) + "; " +
+            std::to_string(window_position.x) + "," + 
             std::to_string(window_position.y) + " (" +
-            std::to_string(grid_position.x) + ", " +
+            std::to_string(grid_position.x) + "," +
             std::to_string(grid_position.y) + ")"
         );
     }
 }
 
-const glm::ivec2& Mouse::get_position() const {
+const glm::ivec2& Mouse::get_window_position() const {
     return window_position;
 }

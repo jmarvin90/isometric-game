@@ -22,7 +22,7 @@ class Mouse {
         ~Mouse();
         glm::ivec2 pixel_to_grid() const;
         void set_position(const SDL_Rect& camera);
-        const glm::ivec2& get_position() const;
+        const glm::ivec2& get_window_position() const;
 };
 
 #endif

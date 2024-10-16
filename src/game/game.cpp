@@ -69,8 +69,8 @@ void Game::load_textures(){
 
 void Game::load_tilemap() {
     spdlog::info("Loading tilemap");
-    for (int y=0; y<constants::MAP_SIZE; y++) {
-        for (int x=0; x<constants::MAP_SIZE; x++) {
+    for (int y=0; y<constants::MAP_SIZE_N_TILES; y++) {
+        for (int x=0; x<constants::MAP_SIZE_N_TILES; x++) {
 
             glm::ivec2 position {tilemap.grid_to_pixel(x, y)};
             int texture_id {1};
@@ -233,7 +233,7 @@ void Game::update() {
     mouse.set_position(camera.get_position());
 
     // Update the camera position
-    camera.set_position(mouse.get_position());
+    camera.set_position(mouse.get_window_position());
 
     // Update the member to indicate the time the last update was run
     millis_previous_frame = SDL_GetTicks();
