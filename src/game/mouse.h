@@ -10,7 +10,8 @@ constexpr glm::ivec2 vertical_vector{1, 1};
 
 class Mouse {
     glm::ivec2 previous_position;
-    glm::ivec2 position;
+    glm::ivec2 window_position;
+    glm::ivec2 world_position;
     SDL_Surface* mousemap;
     SDL_Color mousemap_pixel_colour(const glm::ivec2& pixel_offset) const;
     glm::ivec2 pixel_colour_vector(const SDL_Color& colour) const;
@@ -20,7 +21,8 @@ class Mouse {
         Mouse(const std::string mousemap_file_path);
         ~Mouse();
         glm::ivec2 pixel_to_grid() const;
-        void update();
+        void set_position(const SDL_Rect& camera);
+        const glm::ivec2& get_window_position() const;
 };
 
 #endif

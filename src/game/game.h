@@ -9,6 +9,8 @@
 #include "../components/sprite.h"
 #include "tilemap.h"
 #include "mouse.h"
+#include "camera.h"
+#include "constants.h"
 
 class Game {
     bool is_running {false};
@@ -20,7 +22,12 @@ class Game {
     entt::registry registry;
     SDL_Renderer* renderer;
     SDL_Window* window;
-    SDL_Rect camera{}; // Investigate whether this should be default-initialised
+
+    // Investigate whether this should be default-initialised
+    Camera camera;
+
+    // Investigate whether this is redundant!
+    SDL_Rect render_rect{20, 20, constants::WINDOW_WIDTH-40, constants::WINDOW_HEIGHT-40};
     
     // Todo: read re. asset stores
     std::unordered_map<int, SDL_Texture*> textures;

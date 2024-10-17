@@ -1,0 +1,38 @@
+#include "camera.h"
+#include "constants.h"
+
+void Camera::set_position(
+    const glm::ivec2& mouse_screen_position
+) {
+    if (
+        mouse_screen_position.x < constants::CAMERA_BORDER_PX &&
+        camera_position.x > 0
+    ) {
+        camera_position.x -= 4;
+    }
+
+    if (
+        (constants::WINDOW_WIDTH - mouse_screen_position.x) < constants::CAMERA_BORDER_PX &&
+        camera_position.x < constants::RENDER_SPACE_PX
+    ) {
+        camera_position.x += 4;
+    }
+
+    if (
+        mouse_screen_position.y < constants::CAMERA_BORDER_PX &&
+        camera_position.y > 0
+    ) {
+        camera_position.y -= 4;
+    }
+
+    if (
+        (constants::WINDOW_HEIGHT - mouse_screen_position.y) < constants::CAMERA_BORDER_PX &&
+        camera_position.y < constants::RENDER_SPACE_PX
+    ) {
+        camera_position.y += 4;
+    }
+}
+
+const SDL_Rect& Camera::get_position() const {
+    return camera_position;
+}
