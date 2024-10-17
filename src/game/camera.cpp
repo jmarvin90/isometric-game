@@ -1,6 +1,5 @@
 #include "camera.h"
 #include "constants.h"
-#include <spdlog/spdlog.h>
 
 void Camera::set_position(
     const glm::ivec2& mouse_screen_position
