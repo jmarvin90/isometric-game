@@ -13,7 +13,7 @@ void Camera::set_position(
 
     if (
         (constants::WINDOW_WIDTH - mouse_screen_position.x) < constants::CAMERA_BORDER_PX &&
-        camera_position.x < constants::RENDER_SPACE_PX
+        (camera_position.x + camera_position.w) < constants::RENDER_SPACE_WIDTH_PX
     ) {
         camera_position.x += 4;
     }
@@ -27,7 +27,7 @@ void Camera::set_position(
 
     if (
         (constants::WINDOW_HEIGHT - mouse_screen_position.y) < constants::CAMERA_BORDER_PX &&
-        camera_position.y < constants::RENDER_SPACE_PX
+        (camera_position.y + camera_position.h) < constants::RENDER_SPACE_HEIGHT_PX
     ) {
         camera_position.y += 4;
     }

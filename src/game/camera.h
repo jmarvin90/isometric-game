@@ -7,10 +7,10 @@
 
 class Camera {
     SDL_Rect camera_position {
-        ((constants::RENDER_SPACE_PX / 2) - (constants::WINDOW_WIDTH / 2)),   // Initial X
-        0,                                                                    // Initial Y
-        constants::WINDOW_WIDTH,                                              // Width
-        constants::WINDOW_HEIGHT                                              // Height
+        (constants::RENDER_SPACE_WIDTH_PX / 2) - (constants::WINDOW_WIDTH / 2),     // Initial X
+        0,                                                                          // Initial Y
+        constants::WINDOW_WIDTH,                                                    // Width
+        constants::WINDOW_HEIGHT                                                    // Height
     };
 
     public:
