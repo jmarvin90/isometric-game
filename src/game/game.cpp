@@ -12,6 +12,8 @@
 #include "../components/sprite.h"
 #include "../components/rigid_body.h"
 
+#include "../systems/movement.h"
+#include "../systems/render.h"
 
 Game::Game(): 
     registry{entt::registry()}, 
@@ -195,18 +197,6 @@ void Game::process_input() {
     }
 }
 
-void apply_velocity(
-    entt::view<entt::get_t<RigidBody, Transform>> moveable_entities, 
-    double delta_time
-) {
-    for (entt::entity entity: moveable_entities) {
-        RigidBody& rigid_body = moveable_entities.get<RigidBody>(entity);
-        Transform& transform = moveable_entities.get<Transform>(entity);
-        transform.position.x += (rigid_body.velocity.x * delta_time);
-        transform.position.y += (rigid_body.velocity.y * delta_time);
-    }
-}
-
 void Game::update() {
     // Calculate the amount of time to delay (assuming positive)
     int time_to_delay {
@@ -224,16 +214,31 @@ void Game::update() {
     [[maybe_unused]] double delta_time {
         (SDL_GetTicks() - millis_previous_frame) / 1'000.f
     };
-    
-    // To be extracted to its own function call
-    // movement logic
-    apply_velocity(registry.view<RigidBody, Transform>(), delta_time);
 
     // Update the mouse position
-    mouse.set_position(camera.get_position());
+    mouse.update(camera.get_position());
+
+    if (mouse.has_moved_this_frame() && mouse.is_on_world_grid()) {
+        const glm::ivec2& grid_position {mouse.get_grid_position()};
+        spdlog::info(
+            "Mouse position: " + 
+            std::to_string(grid_position.x) + ", " +
+            std::to_string(grid_position.y)
+        );
+    }
 
     // Update the camera position
-    camera.set_position(mouse.get_window_position());
+    camera.update(mouse.get_window_position());
+
+    // To be extracted to its own function call - movement logic
+    auto entities_in_motion {registry.view<RigidBody, Transform>()};
+    for (auto entity: entities_in_motion) {
+        apply_velocity(
+            entities_in_motion.get<Transform>(entity), 
+            entities_in_motion.get<RigidBody>(entity),
+            delta_time
+        );
+    }
 
     // Update the member to indicate the time the last update was run
     millis_previous_frame = SDL_GetTicks();
@@ -249,35 +254,6 @@ bool transform_y_comparison(const Transform& lhs, const Transform& rhs) {
     return lhs_abspixel < rhs_abspixel;
 }
 
-void render_sprite(
-    SDL_Renderer* renderer,
-    const SDL_Rect& camera,
-    const std::unordered_map<int, SDL_Texture*>& textures,
-    const Transform& transform, 
-    const Sprite& sprite
-) {
-
-    SDL_Rect source_rect {0, 0, sprite.width_px, sprite.height_px};
-    SDL_Rect dest_rect {
-        (static_cast<int>(transform.position.x) + sprite.horitonzal_offset_px) - camera.x, 
-        (static_cast<int>(transform.position.y) + sprite.vertical_offset_px) - camera.y, 
-        sprite.width_px,
-        sprite.height_px
-    };
-
-    SDL_Texture* texture {textures.find(sprite.texture_id)->second};
-
-    SDL_RenderCopyEx(
-        renderer,
-        texture,
-        &source_rect,
-        &dest_rect,
-        transform.rotation,
-        NULL,
-        SDL_FLIP_NONE
-    );
-}
-
 void Game::render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
@@ -290,7 +266,7 @@ void Game::render() {
     for (auto entity: terrain_tiles) {
         auto& transform {terrain_tiles.get<Transform>(entity)};
         auto& sprite {terrain_tiles.get<TerrainSprite>(entity)};
-        render_sprite(renderer, camera_position, textures, transform, sprite);
+        render_sprite(renderer, camera_position, render_rect, textures, transform, sprite);
     }
 
     auto vertical_tiles = registry.view<Transform, VerticalSprite>();
@@ -298,7 +274,7 @@ void Game::render() {
     for (auto entity: vertical_tiles) {
         auto& transform {vertical_tiles.get<Transform>(entity)};
         auto& sprite {vertical_tiles.get<VerticalSprite>(entity)};
-        render_sprite(renderer, camera_position, textures, transform, sprite);
+        render_sprite(renderer, camera_position, render_rect, textures, transform, sprite);
     }
 
     SDL_RenderPresent(renderer);

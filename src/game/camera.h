@@ -14,7 +14,7 @@ class Camera {
     };
 
     public:
-        void set_position(const glm::ivec2& mouse_screen_position);
+        void update(const glm::ivec2& mouse_screen_position);
         const SDL_Rect& get_position() const;
 };
 
