@@ -1,7 +1,7 @@
 #include "camera.h"
 #include "constants.h"
 
-void Camera::set_position(
+void Camera::update(
     const glm::ivec2& mouse_screen_position
 ) {
     if (

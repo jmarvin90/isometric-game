@@ -143,31 +143,35 @@ glm::ivec2 Mouse::pixel_to_grid() const {
     return coarse + pixel_colour_vector(pixel_colour);
 }
 
-void Mouse::set_position(const SDL_Rect& camera) {
-    previous_position = window_position;
+void Mouse::update(const SDL_Rect& camera) {
+    // Update the current & previous window position
+    window_previous_position = window_current_position;
+    SDL_GetMouseState(&window_current_position.x, &window_current_position.y);
 
-    SDL_GetMouseState(&window_position.x, &window_position.y);
+    // Update the world position
+    world_position.x = window_current_position.x + camera.x;
+    world_position.y = window_current_position.y + camera.y;
 
-    world_position.x = window_position.x + camera.x;
-    world_position.y = window_position.y + camera.y;
-
-    glm::ivec2 grid_position {pixel_to_grid()};
-
-    if (window_position != previous_position) {
-        spdlog::info(
-            "Mouse position: " + 
-            std::to_string(camera.x) + "," + 
-            std::to_string(camera.y) + "; " + 
-            std::to_string(world_position.x) + "," + 
-            std::to_string(world_position.y) + "; " +
-            std::to_string(window_position.x) + "," + 
-            std::to_string(window_position.y) + " (" +
-            std::to_string(grid_position.x) + "," +
-            std::to_string(grid_position.y) + ")"
-        );
-    }
+    // Update the current grid position
+    grid_position = pixel_to_grid();
 }
 
 const glm::ivec2& Mouse::get_window_position() const {
-    return window_position;
+    return window_current_position;
+}
+
+const glm::ivec2& Mouse::get_world_position() const {
+    return world_position;
+}
+
+const glm::ivec2& Mouse::get_grid_position() const {
+    return grid_position;
+}
+
+const bool Mouse::has_moved_this_frame() const {
+    return window_previous_position != window_current_position;
+}
+
+const bool Mouse::is_on_world_grid() const {
+    return grid_position.x > 0 && grid_position.y > 0;
 }
