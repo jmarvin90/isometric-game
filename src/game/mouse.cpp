@@ -173,5 +173,5 @@ const bool Mouse::has_moved_this_frame() const {
 }
 
 const bool Mouse::is_on_world_grid() const {
-    return grid_position.x > 0 && grid_position.y > 0;
+    return grid_position.x >= 0 && grid_position.y >= 0;
 }
