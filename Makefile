@@ -5,7 +5,7 @@ COMPILER_FLAGS =	-Werror \
 					-pedantic-errors
 LANG_STD = 			-std=c++17
 SRC_FILES = 		./src/*.cpp \
-					./src/game/*.cpp
+					./src/engine/*.cpp
 LINKER_FLAGS = 		-lSDL2 \
 					-lSDL2_image \
 					-lspdlog \
