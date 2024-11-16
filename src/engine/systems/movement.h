@@ -3,8 +3,8 @@
 
 #include <entt/entt.hpp>
 
-#include "../components/rigid_body.h"
-#include "../components/transform.h"
+#include "rigid_body.h"
+#include "transform.h"
 
 void apply_velocity(
     Transform& transform, 
