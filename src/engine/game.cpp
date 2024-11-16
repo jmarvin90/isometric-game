@@ -200,14 +200,8 @@ void Game::update() {
     millis_previous_frame = SDL_GetTicks();
 }
 
-int transform_abspixel(const Transform& transform) {
-    return (transform.position.y * constants::WINDOW_WIDTH) + transform.position.x;
-}
-
 bool transform_y_comparison(const Transform& lhs, const Transform& rhs) {
-    int lhs_abspixel {transform_abspixel(lhs)};
-    int rhs_abspixel {transform_abspixel(rhs)};
-    return lhs_abspixel < rhs_abspixel;
+    return lhs.position.y < rhs.position.y;
 }
 
 void Game::render() {
