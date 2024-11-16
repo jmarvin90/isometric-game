@@ -91,14 +91,16 @@ entt::entity Game::create_entity() {
 void Game::initialise(const std::vector<std::string>& tile_paths) {
     SDL_Init(SDL_INIT_EVERYTHING);
 
+    SDL_GetDesktopDisplayMode(0, &display_mode);
+
     // Create the SDL Window
     window = SDL_CreateWindow(
         NULL,                       // title - leave blank for now
-        SDL_WINDOWPOS_CENTERED,     // Window x position (centred)
+        SDL_WINDOWPOS_CENTERED,     // Window xconstant position (centred)
         SDL_WINDOWPOS_CENTERED,     // Window y position (centred)
-        constants::WINDOW_WIDTH,    // X res from constant
-        constants::WINDOW_HEIGHT,   // Y res from constant
-        SDL_WINDOW_INPUT_GRABBED    // Input grabbed flag
+        display_mode.w,             // X res from current display mode
+        display_mode.h,             // Y res from current display mode
+        SDL_WINDOW_FULLSCREEN       // Input grabbed flag
     );
 
     if (!window) {
@@ -125,6 +127,13 @@ void Game::initialise(const std::vector<std::string>& tile_paths) {
     SDL_QueryTexture(
         textures[15], NULL, NULL, &width_px, &height_px
     );
+
+    render_rect = {
+        20, 
+        20,
+        display_mode.w - 40,
+        display_mode.h - 40
+    };
 
     SDL_RenderSetClipRect(renderer, &render_rect);    
     // TODO: initialise ImGui

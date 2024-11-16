@@ -22,12 +22,13 @@ class Game {
     entt::registry registry;
     SDL_Renderer* renderer;
     SDL_Window* window;
+    SDL_DisplayMode display_mode;
 
     // Investigate whether this should be default-initialised
     Camera camera;
 
     // Investigate whether this is redundant!
-    SDL_Rect render_rect{20, 20, constants::WINDOW_WIDTH-40, constants::WINDOW_HEIGHT-40};
+    SDL_Rect render_rect;
     
     // Todo: read re. asset stores
     std::unordered_map<int, SDL_Texture*> textures;
