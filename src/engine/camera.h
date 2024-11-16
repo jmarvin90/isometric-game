@@ -6,15 +6,13 @@
 #include "constants.h"
 
 class Camera {
-    SDL_Rect camera_position {
-        (constants::RENDER_SPACE_WIDTH_PX / 2) - (constants::WINDOW_WIDTH / 2),     // Initial X
-        0,                                                                          // Initial Y
-        constants::WINDOW_WIDTH,                                                    // Width
-        constants::WINDOW_HEIGHT                                                    // Height
-    };
+    SDL_Rect camera_position;
 
     public:
-        void update(const glm::ivec2& mouse_screen_position);
+        Camera(const SDL_DisplayMode& display_mode);
+        ~Camera() = default;
+
+        void update(const SDL_DisplayMode& display_mode, const glm::ivec2& mouse_screen_position);
         const SDL_Rect& get_position() const;
 };
 

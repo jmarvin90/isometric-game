@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <entt/entt.hpp>
 #include <unordered_map>
+#include <memory>
 
 #include "components/transform.h"
 #include "components/sprite.h"
@@ -22,18 +23,20 @@ class Game {
     entt::registry registry;
     SDL_Renderer* renderer;
     SDL_Window* window;
+    SDL_DisplayMode display_mode;
 
-    // Investigate whether this should be default-initialised
-    Camera camera;
+    // Camera is smart pointer to allow late initialisation
+    std::unique_ptr<Camera> camera;
+
+    // TileMap and Mouse can be initialised during game construction
+    TileMap tilemap;
+    Mouse mouse;
 
     // Investigate whether this is redundant!
-    SDL_Rect render_rect{20, 20, constants::WINDOW_WIDTH-40, constants::WINDOW_HEIGHT-40};
+    SDL_Rect render_rect;
     
     // Todo: read re. asset stores
     std::unordered_map<int, SDL_Texture*> textures;
-
-    TileMap tilemap;
-    Mouse mouse;
 
     void load_textures(const std::vector<std::string>& tile_paths);
     void load_tilemap();

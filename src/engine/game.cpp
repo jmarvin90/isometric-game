@@ -91,14 +91,17 @@ entt::entity Game::create_entity() {
 void Game::initialise(const std::vector<std::string>& tile_paths) {
     SDL_Init(SDL_INIT_EVERYTHING);
 
+    SDL_GetDesktopDisplayMode(0, &display_mode);
+    camera = std::make_unique<Camera>(display_mode);
+
     // Create the SDL Window
     window = SDL_CreateWindow(
         NULL,                       // title - leave blank for now
-        SDL_WINDOWPOS_CENTERED,     // Window x position (centred)
+        SDL_WINDOWPOS_CENTERED,     // Window xconstant position (centred)
         SDL_WINDOWPOS_CENTERED,     // Window y position (centred)
-        constants::WINDOW_WIDTH,    // X res from constant
-        constants::WINDOW_HEIGHT,   // Y res from constant
-        SDL_WINDOW_INPUT_GRABBED    // Input grabbed flag
+        display_mode.w,             // X res from current display mode
+        display_mode.h,             // Y res from current display mode
+        SDL_WINDOW_FULLSCREEN       // Input grabbed flag
     );
 
     if (!window) {
@@ -125,6 +128,13 @@ void Game::initialise(const std::vector<std::string>& tile_paths) {
     SDL_QueryTexture(
         textures[15], NULL, NULL, &width_px, &height_px
     );
+
+    render_rect = {
+        20, 
+        20,
+        display_mode.w - 40,
+        display_mode.h - 40
+    };
 
     SDL_RenderSetClipRect(renderer, &render_rect);    
     // TODO: initialise ImGui
@@ -162,7 +172,7 @@ void Game::update() {
     };
 
     // Update the mouse position
-    mouse.update(camera.get_position());
+    mouse.update(camera->get_position());
 
     if (mouse.has_moved_this_frame() && mouse.is_on_world_grid()) {
         const glm::ivec2& grid_position {mouse.get_grid_position()};
@@ -174,7 +184,7 @@ void Game::update() {
     }
 
     // Update the camera position
-    camera.update(mouse.get_window_position());
+    camera->update(display_mode, mouse.get_window_position());
 
     // To be extracted to its own function call - movement logic
     auto entities_in_motion {registry.view<RigidBody, Transform>()};
@@ -190,21 +200,15 @@ void Game::update() {
     millis_previous_frame = SDL_GetTicks();
 }
 
-int transform_abspixel(const Transform& transform) {
-    return (transform.position.y * constants::WINDOW_WIDTH) + transform.position.x;
-}
-
 bool transform_y_comparison(const Transform& lhs, const Transform& rhs) {
-    int lhs_abspixel {transform_abspixel(lhs)};
-    int rhs_abspixel {transform_abspixel(rhs)};
-    return lhs_abspixel < rhs_abspixel;
+    return lhs.position.y < rhs.position.y;
 }
 
 void Game::render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
-    const SDL_Rect& camera_position {camera.get_position()};
+    const SDL_Rect& camera_position {camera->get_position()};
 
     registry.sort<Transform>(transform_y_comparison);
 
