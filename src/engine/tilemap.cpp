@@ -23,13 +23,13 @@ TileMap::TileMap(entt::registry& registry) {
     }
 }
 
-// Ensure to free the mousemap surface. Question re. destruction of entities
+// Question re. destruction of entities
 TileMap::~TileMap() {
     spdlog::info("TileMap destructor called.");
 }
 
 // Get an entity from tilemap position x, y
-entt::entity TileMap::at(const int x, const int y) {
+entt::entity TileMap::at(const int x, const int y) const {
     return tilemap.at(x).at(y);
 }
 

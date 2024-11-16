@@ -5,8 +5,8 @@
 #include <entt/entt.hpp>
 #include <unordered_map>
 
-#include "../components/transform.h"
-#include "../components/sprite.h"
+#include "components/transform.h"
+#include "components/sprite.h"
 #include "tilemap.h"
 #include "mouse.h"
 #include "camera.h"
@@ -35,7 +35,7 @@ class Game {
     TileMap tilemap;
     Mouse mouse;
 
-    void load_textures();
+    void load_textures(const std::vector<std::string>& tile_paths);
     void load_tilemap();
     void process_input();
     void update();
@@ -51,9 +51,24 @@ class Game {
         // TODO: define operator= method to enable -Weffc++
         // ...operator=(const Game&) ...;
 
-        void initialise();
+        void initialise(const std::vector<std::string>& tile_paths);
         void run();
         void destroy();
+
+        const TileMap& get_tilemap() {
+            return tilemap;
+        }
+
+        SDL_Texture* fetch_texture(int index) {
+            return textures[index];
+        }
+
+        entt::entity create_entity();
+
+        template <typename T, typename ...TArgs>
+        void add_component(const entt::entity& entity, TArgs ...args) {
+            registry.emplace<T>(entity, std::forward<TArgs>(args)...);
+        }
 };
 
 #endif

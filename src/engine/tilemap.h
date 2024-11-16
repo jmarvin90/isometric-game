@@ -11,7 +11,7 @@ class TileMap {
     public:
         TileMap(entt::registry& registry);
         ~TileMap();
-        entt::entity at(const int x, const int y);
+        entt::entity at(const int x, const int y) const;
         glm::ivec2 grid_to_pixel(const int x, const int y) const;
 };
 

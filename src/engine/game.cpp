@@ -8,12 +8,12 @@
 #include "constants.h"
 #include "game.h"
 
-#include "../components/transform.h"
-#include "../components/sprite.h"
-#include "../components/rigid_body.h"
+#include "components/transform.h"
+#include "components/sprite.h"
+#include "components/rigid_body.h"
 
-#include "../systems/movement.h"
-#include "../systems/render.h"
+#include "systems/movement.h"
+#include "systems/render.h"
 
 Game::Game(): 
     registry{entt::registry()}, 
@@ -27,25 +27,7 @@ Game::~Game() {
     spdlog::info("Game destuctor called.");
 }
 
-void Game::load_textures(){
-    std::vector<std::string> tile_paths {
-        "./assets/road.png",                        // 0
-        "./assets/green.png",                       // 1
-        "./assets/blue.png",                        // 2
-        "./assets/pink.png",                        // 3
-        "./assets/tallest_tile.png",                // 4
-        "./assets/tall_tile.png",                   // 5
-        "./assets/taller_tile.png",                 // 6
-        "./assets/BLBR.png",                        // 7
-        "./assets/BLTL.png",                        // 8
-        "./assets/BLTR.png",                        // 9
-        "./assets/BRTR.png",                        // 10
-        "./assets/TLBR.png",                        // 11
-        "./assets/TLTR.png",                        // 12
-        "./assets/BLBRTR.png",                      // 13
-        "./assets/moveable_sprite_test.png",        // 14
-        "./assets/moveable_sprite_tall_test.png",   // 15
-    };
+void Game::load_textures(const std::vector<std::string>& tile_paths){
 
     for (unsigned int texture_id=0; texture_id<tile_paths.size(); texture_id++) {
         SDL_Surface* surface {IMG_Load(tile_paths.at(texture_id).c_str())};
@@ -100,39 +82,13 @@ void Game::load_tilemap() {
             );
         }
     }
-
-    for (int n=0; n<3; n++) {
-        entt::entity entity_1 {tilemap.at(n, 3)};
-        entt::entity entity_2 {tilemap.at(n, 1)};
-
-        int height_px;
-        int width_px;
-
-        SDL_QueryTexture(
-            textures[n+4], NULL, NULL, &width_px, &height_px
-        );
-
-        registry.emplace<VerticalSprite>(
-            entity_1,
-            height_px,
-            width_px,
-            n+4,
-            constants::TILE_HEIGHT - height_px,
-            constants::TILE_WIDTH - width_px
-        );
-
-        registry.emplace<VerticalSprite>(
-            entity_2,
-            height_px,
-            width_px,
-            n+4,
-            constants::TILE_HEIGHT - height_px,
-            constants::TILE_WIDTH - width_px
-        );
-    }
 }
 
-void Game::initialise() {
+entt::entity Game::create_entity() {
+    return registry.create();
+}
+
+void Game::initialise(const std::vector<std::string>& tile_paths) {
     SDL_Init(SDL_INIT_EVERYTHING);
 
     // Create the SDL Window
@@ -160,7 +116,7 @@ void Game::initialise() {
         spdlog::error("Could not initialise the SDL Renderer.");
     }
 
-    load_textures();
+    load_textures(tile_paths);
     load_tilemap();
 
     int height_px;
@@ -170,17 +126,7 @@ void Game::initialise() {
         textures[15], NULL, NULL, &width_px, &height_px
     );
 
-    SDL_RenderSetClipRect(renderer, &render_rect);
-
-    // TODO: remove
-    entt::entity entity {registry.create()};
-    glm::vec2 position {tilemap.grid_to_pixel(5, 2)};
-    position.x += (constants::TILE_WIDTH_HALF - (width_px / 2));
-    position.y -= (constants::TILE_HEIGHT_HALF);
-    registry.emplace<Transform>(entity, position, 0.0);
-    registry.emplace<VerticalSprite>(entity, height_px, width_px, 15, constants::TILE_HEIGHT-height_px, 0);
-    registry.emplace<RigidBody>(entity, glm::vec2(-60, -30));
-    
+    SDL_RenderSetClipRect(renderer, &render_rect);    
     // TODO: initialise ImGui
 }
 

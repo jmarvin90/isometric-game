@@ -7,7 +7,7 @@
 
 #include "../components/transform.h"
 #include "../components/sprite.h"
-#include "../game/constants.h"
+#include "../constants.h"
 
 
 void render_sprite(
