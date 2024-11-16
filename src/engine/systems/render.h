@@ -5,9 +5,9 @@
 #include <unordered_map>
 #include <spdlog/spdlog.h>
 
-#include "../components/transform.h"
-#include "../components/sprite.h"
-#include "../constants.h"
+#include "transform.h"
+#include "sprite.h"
+#include "constants.h"
 
 
 void render_sprite(
