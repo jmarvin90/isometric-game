@@ -252,7 +252,7 @@ void Game::render() {
     }
 
     if (debug_mode) {
-        render_imgui_gui(renderer);
+        render_imgui_gui(renderer, registry, textures[15], mouse);
     }
 
     SDL_RenderPresent(renderer);
