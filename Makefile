@@ -5,12 +5,15 @@ COMPILER_FLAGS =		-Werror \
 						-pedantic-errors
 LANG_STD = 				-std=c++17
 SRC_FILES = 			./src/*.cpp \
-						./src/engine/*.cpp
+						./src/engine/*.cpp \
+						./libs/imgui/*.cpp \
+						./libs/imgui/backends/imgui_impl_sdl2.cpp \
+						./libs/imgui/backends/imgui_impl_sdlrenderer2.cpp
 LINKER_FLAGS = 			-lSDL2 \
 						-lSDL2_image \
 						-lspdlog \
 						-lfmt
-INCLUDE_PATH = 			-isystem"./libs/"
+INCLUDE_PATH = 			-isystem"./libs/" -isystem"./libs/imgui" -isystem"/usr/include/SDL2/"
 ADDITIONAL_INCLUDES =	-I"./src/engine/components/" -I"./src/engine/"
 OUTPUT = isometric-game
 

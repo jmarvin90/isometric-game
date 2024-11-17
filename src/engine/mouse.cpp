@@ -146,7 +146,7 @@ glm::ivec2 Mouse::pixel_to_grid() const {
 void Mouse::update(const SDL_Rect& camera) {
     // Update the current & previous window position
     window_previous_position = window_current_position;
-    SDL_GetMouseState(&window_current_position.x, &window_current_position.y);
+    mouse_state = SDL_GetMouseState(&window_current_position.x, &window_current_position.y);
 
     // Update the world position
     world_position.x = window_current_position.x + camera.x;
@@ -174,4 +174,8 @@ const bool Mouse::has_moved_this_frame() const {
 
 const bool Mouse::is_on_world_grid() const {
     return grid_position.x >= 0 && grid_position.y >= 0;
+}
+
+const uint32_t Mouse::get_mouse_state() const {
+    return mouse_state;
 }
