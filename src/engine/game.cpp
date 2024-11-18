@@ -126,13 +126,6 @@ void Game::initialise(const std::vector<std::string>& tile_paths) {
     load_textures(tile_paths);
     load_tilemap();
 
-    int height_px;
-    int width_px;
-
-    SDL_QueryTexture(
-        textures[15], NULL, NULL, &width_px, &height_px
-    );
-
     render_rect = {
         20, 
         20,
