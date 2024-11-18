@@ -26,13 +26,6 @@ void render_imgui_gui(
     static glm::ivec2 position;
     static glm::ivec2 velocity;
 
-    int height_px;
-    int width_px;
-
-    SDL_QueryTexture(sprite_texture, NULL, NULL, &width_px, &height_px);
-    int vertical_offset_px {constants::TILE_HEIGHT - height_px};
-    // int horizontal_offset_px {constants::TILE_WIDTH - width_px};
-
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
@@ -70,7 +63,7 @@ void render_imgui_gui(
         spdlog::info("Creating a new entity!");
         entt::entity new_entity {registry.create()};
         registry.emplace<Transform>(new_entity, position, 0.0f);
-        registry.emplace<VerticalSprite>(new_entity, height_px, width_px, 15, vertical_offset_px, 0);
+        registry.emplace<VerticalSprite>(new_entity, sprite_texture);
         registry.emplace<RigidBody>(new_entity, velocity);
     }
     

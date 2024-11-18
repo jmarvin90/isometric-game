@@ -63,27 +63,10 @@ void Game::load_tilemap() {
             glm::ivec2 position {tilemap.grid_to_pixel(x, y)};
             int texture_id {1};
 
-            int height_px;
-            int width_px;
-
-            SDL_QueryTexture(
-                textures[texture_id], NULL, NULL, &width_px, &height_px
-            );
-
-            int vertical_offset_px {constants::TILE_HEIGHT - height_px};
-            int horizontal_offset_px {constants::TILE_WIDTH - width_px};
-
             entt::entity entity {tilemap.at(x, y)};
             
             registry.emplace<Transform>(entity, position, 0.0);
-            registry.emplace<TerrainSprite>(
-                entity,
-                height_px,
-                width_px,
-                texture_id,
-                vertical_offset_px,
-                horizontal_offset_px
-            );
+            registry.emplace<TerrainSprite>(entity, textures[texture_id]);
         }
     }
 }
