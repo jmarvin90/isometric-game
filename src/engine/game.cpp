@@ -4,9 +4,9 @@
 #include <SDL2/SDL_image.h>
 #include <entt/entt.hpp>
 #include <spdlog/spdlog.h>
-#include <imgui/imgui.h>
-#include <imgui/backends/imgui_impl_sdl2.h>
-#include <imgui/backends/imgui_impl_sdlrenderer2.h>
+#include <imgui.h>
+#include <backends/imgui_impl_sdl2.h>
+#include <backends/imgui_impl_sdlrenderer2.h>
 
 #include "constants.h"
 #include "game.h"

@@ -13,7 +13,7 @@ LINKER_FLAGS = 			-lSDL2 \
 						-lSDL2_image \
 						-lspdlog \
 						-lfmt
-INCLUDE_PATH = 			-isystem"./libs/" -isystem"./libs/imgui" -isystem"/usr/include/SDL2/"
+INCLUDE_PATH = 			-isystem"./libs/entt/src/" -isystem"./libs/imgui" -isystem"/usr/include/SDL2/"
 ADDITIONAL_INCLUDES =	-I"./src/engine/components/" -I"./src/engine/"
 OUTPUT = isometric-game
 

@@ -4,9 +4,9 @@
 #include <SDL2/SDL.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
-#include <imgui/imgui.h>
-#include <imgui/backends/imgui_impl_sdl2.h>
-#include <imgui/backends/imgui_impl_sdlrenderer2.h>
+#include <imgui.h>
+#include <backends/imgui_impl_sdl2.h>
+#include <backends/imgui_impl_sdlrenderer2.h>
 #include <spdlog/spdlog.h>
 
 #include <mouse.h>
