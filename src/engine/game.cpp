@@ -18,7 +18,6 @@
 #include "systems/movement.h"
 #include "systems/render.h"
 #include "systems/imgui_render.h"
-#include "systems/bounding_box_render.h"
 
 Game::Game(): 
     registry{entt::registry()}, 
