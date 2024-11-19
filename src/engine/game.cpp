@@ -18,11 +18,13 @@
 #include "systems/movement.h"
 #include "systems/render.h"
 #include "systems/imgui_render.h"
+#include "systems/bounding_box_render.h"
 
 Game::Game(): 
     registry{entt::registry()}, 
     tilemap{registry},
-    mouse{"./assets/mousemap.png"}
+    mousemap{"./assets/mousemap.png"},
+    mouse{mousemap}
 {
     spdlog::info("Game constructor called.");
 }
@@ -174,27 +176,11 @@ void Game::update() {
     // Update the mouse position
     mouse.update(camera->get_position());
 
-    if (mouse.has_moved_this_frame() && mouse.is_on_world_grid()) {
-        const glm::ivec2& grid_position {mouse.get_grid_position()};
-        spdlog::info(
-            "Mouse position: " + 
-            std::to_string(grid_position.x) + ", " +
-            std::to_string(grid_position.y)
-        );
-    }
-
     // Update the camera position
     camera->update(display_mode, mouse.get_window_position());
 
     // To be extracted to its own function call - movement logic
-    auto entities_in_motion {registry.view<RigidBody, Transform>()};
-    for (auto entity: entities_in_motion) {
-        apply_velocity(
-            entities_in_motion.get<Transform>(entity), 
-            entities_in_motion.get<RigidBody>(entity),
-            delta_time
-        );
-    }
+    movement_update(registry, mousemap, delta_time);
 
     // Update the member to indicate the time the last update was run
     millis_previous_frame = SDL_GetTicks();
@@ -229,6 +215,7 @@ void Game::render() {
 
     if (debug_mode) {
         render_imgui_gui(renderer, registry, textures[15], mouse);
+        render_bounding_box(registry, camera_position, renderer);
     }
 
     SDL_RenderPresent(renderer);

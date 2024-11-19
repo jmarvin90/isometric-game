@@ -30,6 +30,7 @@ class Game {
 
     // TileMap and Mouse can be initialised during game construction
     TileMap tilemap;
+    MouseMap mousemap;
     Mouse mouse;
 
     // Investigate whether this is redundant!
