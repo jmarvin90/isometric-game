@@ -2,7 +2,8 @@
 #include <cmath>
 #include <SDL2/SDL_image.h>
 #include <glm/glm.hpp>
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
+#include <imgui.h>
 
 #include "mouse.h"
 #include "constants.h"
@@ -50,4 +51,10 @@ const bool Mouse::is_on_world_grid() const {
 
 const uint32_t Mouse::get_mouse_state() const {
     return mouse_state;
+}
+
+void Mouse::update_imgui_io(ImGuiIO& io) const {
+    io.MousePos = ImVec2(window_current_position.x, window_current_position.y);
+    io.MouseDown[0] = mouse_state & SDL_BUTTON(SDL_BUTTON_LEFT);
+    io.MouseDown[1] = mouse_state & SDL_BUTTON(SDL_BUTTON_RIGHT);
 }

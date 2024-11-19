@@ -127,17 +127,11 @@ void Game::initialise(const std::vector<std::string>& tile_paths) {
 }
 
 void Game::process_input() {
-    ImGuiIO& io = ImGui::GetIO();
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        const glm::ivec2& mouse_window_position {mouse.get_window_position()};
-        const uint32_t mouse_state {mouse.get_mouse_state()};
-
+        mouse.update_imgui_io(ImGui::GetIO());
         ImGui_ImplSDL2_ProcessEvent(&event);
-        io.MousePos = ImVec2(mouse_window_position.x, mouse_window_position.y);
-        io.MouseDown[0] = mouse_state & SDL_BUTTON(SDL_BUTTON_LEFT);
-        io.MouseDown[1] = mouse_state & SDL_BUTTON(SDL_BUTTON_RIGHT);
 
         switch (event.type) {
             case SDL_KEYDOWN:
@@ -147,7 +141,6 @@ void Game::process_input() {
 
                 if (event.key.keysym.sym == SDLK_d) {
                     debug_mode = !debug_mode;
-                    spdlog::info("Debug mode: ", debug_mode);
                 }
 
                 break;

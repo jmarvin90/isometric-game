@@ -6,6 +6,7 @@
 #include <string>
 #include "SDL2/SDL.h"
 #include <glm/glm.hpp>
+#include <imgui.h>
 
 class Mouse {
     uint32_t mouse_state;
@@ -28,6 +29,7 @@ class Mouse {
         const uint32_t get_mouse_state() const;
         const bool has_moved_this_frame() const;
         const bool is_on_world_grid() const;
+        void update_imgui_io(ImGuiIO& io) const;
 };
 
 #endif
