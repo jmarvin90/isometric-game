@@ -62,7 +62,7 @@ class Game {
             return tilemap;
         }
 
-        SDL_Texture* fetch_texture(int index) {
+        SDL_Texture* const fetch_texture(int index) {
             return textures[index];
         }
 
