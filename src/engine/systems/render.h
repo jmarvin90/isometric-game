@@ -14,7 +14,6 @@ void render_sprite(
     SDL_Renderer* renderer,
     const SDL_Rect& camera,
     const SDL_Rect& render_rect,
-    const std::unordered_map<int, SDL_Texture*>& textures,
     const Transform& transform, 
     const Sprite& sprite
 ) {

@@ -202,7 +202,7 @@ void Game::render() {
     for (auto entity: terrain_tiles) {
         auto& transform {terrain_tiles.get<Transform>(entity)};
         auto& sprite {terrain_tiles.get<TerrainSprite>(entity)};
-        render_sprite(renderer, camera_position, render_rect, textures, transform, sprite);
+        render_sprite(renderer, camera_position, render_rect, transform, sprite);
     }
 
     auto vertical_tiles = registry.view<Transform, VerticalSprite>();
@@ -210,7 +210,7 @@ void Game::render() {
     for (auto entity: vertical_tiles) {
         auto& transform {vertical_tiles.get<Transform>(entity)};
         auto& sprite {vertical_tiles.get<VerticalSprite>(entity)};
-        render_sprite(renderer, camera_position, render_rect, textures, transform, sprite);
+        render_sprite(renderer, camera_position, render_rect, transform, sprite);
     }
 
     if (debug_mode) {
