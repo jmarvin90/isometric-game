@@ -110,12 +110,7 @@ void Game::initialise(const std::vector<std::string>& tile_paths) {
     load_textures(tile_paths);
     load_tilemap();
 
-    render_rect = {
-        20, 
-        20,
-        display_mode.w - 40,
-        display_mode.h - 40
-    };
+    render_rect = {20, 20, display_mode.w - 40, display_mode.h - 40};
 
     SDL_RenderSetClipRect(renderer, &render_rect);    
 
@@ -190,24 +185,11 @@ void Game::render() {
 
     registry.sort<Transform>(transform_y_comparison);
 
-    auto terrain_tiles = registry.view<Transform, TerrainSprite>();
-    for (auto entity: terrain_tiles) {
-        auto& transform {terrain_tiles.get<Transform>(entity)};
-        auto& sprite {terrain_tiles.get<TerrainSprite>(entity)};
-        render_sprite(renderer, camera_position, render_rect, transform, sprite);
-    }
-
-    auto vertical_tiles = registry.view<Transform, VerticalSprite>();
-    vertical_tiles.use<Transform>();
-    for (auto entity: vertical_tiles) {
-        auto& transform {vertical_tiles.get<Transform>(entity)};
-        auto& sprite {vertical_tiles.get<VerticalSprite>(entity)};
-        render_sprite(renderer, camera_position, render_rect, transform, sprite);
-    }
+    render_sprites<TerrainSprite>(registry, camera_position, renderer, render_rect, false);
+    render_sprites<VerticalSprite>(registry, camera_position, renderer, render_rect, debug_mode);
 
     if (debug_mode) {
         render_imgui_gui(renderer, registry, textures[15], mouse);
-        render_bounding_box(registry, camera_position, renderer);
     }
 
     SDL_RenderPresent(renderer);

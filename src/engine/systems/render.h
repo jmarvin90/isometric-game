@@ -18,27 +18,13 @@ SDL_Rect get_render_target(const Transform& transform, const Sprite& sprite, con
     };
 }
 
-void render_bounding_box(const entt::registry& registry, const SDL_Rect& camera, SDL_Renderer* renderer) {
-    auto vertical_tiles = registry.view<Transform, VerticalSprite>();
-    vertical_tiles.use<Transform>();
-    for (auto entity: vertical_tiles) {
-
-        const Transform& transform {vertical_tiles.get<Transform>(entity)};
-        const VerticalSprite& sprite {vertical_tiles.get<VerticalSprite>(entity)};
-
-        SDL_Rect bounding_box {get_render_target(transform, sprite, camera)};
-                
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        SDL_RenderDrawRect(renderer, &bounding_box);
-    }
-}
-
 void render_sprite(
     SDL_Renderer* renderer,
     const SDL_Rect& camera,
     const SDL_Rect& render_rect,
     const Transform& transform, 
-    const Sprite& sprite
+    const Sprite& sprite,
+    bool render_bounding_box
 ) {
 
     SDL_Rect source_rect {0, 0, sprite.width_px, sprite.height_px};
@@ -54,6 +40,28 @@ void render_sprite(
             NULL,
             SDL_FLIP_NONE
         );
+    }
+
+    if (render_bounding_box) {
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_RenderDrawRect(renderer, &dest_rect);
+    }
+}
+
+template <typename SpriteType>
+void render_sprites(
+    entt::registry& registry, 
+    const SDL_Rect& camera, 
+    SDL_Renderer* renderer, 
+    const SDL_Rect& render_clip_rect, 
+    bool render_bounding_box
+) {
+    auto sprites = registry.view<Transform, SpriteType>();
+    sprites.template use<Transform>();
+    for (auto entity: sprites) {
+        const auto& transform {sprites.template get<Transform>(entity)};
+        const auto& sprite {sprites.template get<SpriteType>(entity)};
+        render_sprite(renderer, camera, render_clip_rect, transform, sprite, render_bounding_box);
     }
 }
 
