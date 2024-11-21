@@ -30,6 +30,7 @@ class Game {
 
     // TileMap and Mouse can be initialised during game construction
     TileMap tilemap;
+    MouseMap mousemap;
     Mouse mouse;
 
     // Investigate whether this is redundant!
@@ -62,7 +63,7 @@ class Game {
             return tilemap;
         }
 
-        SDL_Texture* fetch_texture(int index) {
+        SDL_Texture* const fetch_texture(int index) {
             return textures[index];
         }
 

@@ -22,7 +22,8 @@
 Game::Game(): 
     registry{entt::registry()}, 
     tilemap{registry},
-    mouse{"./assets/mousemap.png"}
+    mousemap{"./assets/mousemap.png"},
+    mouse{mousemap}
 {
     spdlog::info("Game constructor called.");
 }
@@ -109,12 +110,7 @@ void Game::initialise(const std::vector<std::string>& tile_paths) {
     load_textures(tile_paths);
     load_tilemap();
 
-    render_rect = {
-        20, 
-        20,
-        display_mode.w - 40,
-        display_mode.h - 40
-    };
+    render_rect = {20, 20, display_mode.w - 40, display_mode.h - 40};
 
     SDL_RenderSetClipRect(renderer, &render_rect);    
 
@@ -125,17 +121,11 @@ void Game::initialise(const std::vector<std::string>& tile_paths) {
 }
 
 void Game::process_input() {
-    ImGuiIO& io = ImGui::GetIO();
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        const glm::ivec2& mouse_window_position {mouse.get_window_position()};
-        const uint32_t mouse_state {mouse.get_mouse_state()};
-
+        mouse.update_imgui_io(ImGui::GetIO());
         ImGui_ImplSDL2_ProcessEvent(&event);
-        io.MousePos = ImVec2(mouse_window_position.x, mouse_window_position.y);
-        io.MouseDown[0] = mouse_state & SDL_BUTTON(SDL_BUTTON_LEFT);
-        io.MouseDown[1] = mouse_state & SDL_BUTTON(SDL_BUTTON_RIGHT);
 
         switch (event.type) {
             case SDL_KEYDOWN:
@@ -145,7 +135,6 @@ void Game::process_input() {
 
                 if (event.key.keysym.sym == SDLK_d) {
                     debug_mode = !debug_mode;
-                    spdlog::info("Debug mode: ", debug_mode);
                 }
 
                 break;
@@ -174,27 +163,11 @@ void Game::update() {
     // Update the mouse position
     mouse.update(camera->get_position());
 
-    if (mouse.has_moved_this_frame() && mouse.is_on_world_grid()) {
-        const glm::ivec2& grid_position {mouse.get_grid_position()};
-        spdlog::info(
-            "Mouse position: " + 
-            std::to_string(grid_position.x) + ", " +
-            std::to_string(grid_position.y)
-        );
-    }
-
     // Update the camera position
     camera->update(display_mode, mouse.get_window_position());
 
     // To be extracted to its own function call - movement logic
-    auto entities_in_motion {registry.view<RigidBody, Transform>()};
-    for (auto entity: entities_in_motion) {
-        apply_velocity(
-            entities_in_motion.get<Transform>(entity), 
-            entities_in_motion.get<RigidBody>(entity),
-            delta_time
-        );
-    }
+    movement_update(registry, mousemap, delta_time);
 
     // Update the member to indicate the time the last update was run
     millis_previous_frame = SDL_GetTicks();
@@ -212,20 +185,8 @@ void Game::render() {
 
     registry.sort<Transform>(transform_y_comparison);
 
-    auto terrain_tiles = registry.view<Transform, TerrainSprite>();
-    for (auto entity: terrain_tiles) {
-        auto& transform {terrain_tiles.get<Transform>(entity)};
-        auto& sprite {terrain_tiles.get<TerrainSprite>(entity)};
-        render_sprite(renderer, camera_position, render_rect, textures, transform, sprite);
-    }
-
-    auto vertical_tiles = registry.view<Transform, VerticalSprite>();
-    vertical_tiles.use<Transform>();
-    for (auto entity: vertical_tiles) {
-        auto& transform {vertical_tiles.get<Transform>(entity)};
-        auto& sprite {vertical_tiles.get<VerticalSprite>(entity)};
-        render_sprite(renderer, camera_position, render_rect, textures, transform, sprite);
-    }
+    render_sprites<TerrainSprite>(registry, camera_position, renderer, render_rect, false);
+    render_sprites<VerticalSprite>(registry, camera_position, renderer, render_rect, debug_mode);
 
     if (debug_mode) {
         render_imgui_gui(renderer, registry, textures[15], mouse);
