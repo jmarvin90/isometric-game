@@ -66,8 +66,8 @@ void Game::load_tilemap() {
 
             entt::entity entity {tilemap.at(x, y)};
             
-            registry.emplace<Transform>(entity, position, 0.0);
-            registry.emplace<TerrainSprite>(entity, textures[texture_id]);
+            registry.emplace<Transform>(entity, position, 0, 0.0);
+            registry.emplace<Sprite>(entity, textures[texture_id]);
         }
     }
 }
@@ -173,8 +173,14 @@ void Game::update() {
     millis_previous_frame = SDL_GetTicks();
 }
 
-bool transform_y_comparison(const Transform& lhs, const Transform& rhs) {
-    return lhs.position.y < rhs.position.y;
+bool transform_comparison(const Transform& lhs, const Transform& rhs) {
+    if (
+        lhs.z_index < rhs.z_index ||
+        (lhs.z_index == rhs.z_index && lhs.position.y < rhs.position.y)
+    ) {
+        return true;
+    }
+    return false;
 }
 
 void Game::render() {
@@ -183,10 +189,9 @@ void Game::render() {
 
     const SDL_Rect& camera_position {camera->get_position()};
 
-    registry.sort<Transform>(transform_y_comparison);
+    registry.sort<Transform>(transform_comparison);
 
-    render_sprites<TerrainSprite>(registry, camera_position, renderer, render_rect, false);
-    render_sprites<VerticalSprite>(registry, camera_position, renderer, render_rect, debug_mode);
+    render_sprites(registry, camera_position, renderer, render_rect, debug_mode);
 
     if (debug_mode) {
         render_imgui_gui(renderer, registry, textures[15], mouse);

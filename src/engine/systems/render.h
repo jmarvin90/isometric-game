@@ -42,13 +42,12 @@ void render_sprite(
         );
     }
 
-    if (render_bounding_box) {
+    if (render_bounding_box && transform.z_index != 0) {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_RenderDrawRect(renderer, &dest_rect);
     }
 }
 
-template <typename SpriteType>
 void render_sprites(
     entt::registry& registry, 
     const SDL_Rect& camera, 
@@ -56,11 +55,11 @@ void render_sprites(
     const SDL_Rect& render_clip_rect, 
     bool render_bounding_box
 ) {
-    auto sprites = registry.view<Transform, SpriteType>();
-    sprites.template use<Transform>();
+    auto sprites = registry.view<Transform, Sprite>();
+    sprites.use<Transform>();
     for (auto entity: sprites) {
-        const auto& transform {sprites.template get<Transform>(entity)};
-        const auto& sprite {sprites.template get<SpriteType>(entity)};
+        const auto& transform {sprites.get<Transform>(entity)};
+        const auto& sprite {sprites.get<Sprite>(entity)};
         render_sprite(renderer, camera, render_clip_rect, transform, sprite, render_bounding_box);
     }
 }
