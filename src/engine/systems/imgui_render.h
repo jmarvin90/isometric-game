@@ -62,8 +62,8 @@ void render_imgui_gui(
     if (ImGui::Button("Create sprite")) {
         spdlog::info("Creating a new entity!");
         entt::entity new_entity {registry.create()};
-        registry.emplace<Transform>(new_entity, position, 0.0f);
-        registry.emplace<VerticalSprite>(new_entity, sprite_texture);
+        registry.emplace<Transform>(new_entity, position, 1, 0.0f);
+        registry.emplace<Sprite>(new_entity, sprite_texture);
         registry.emplace<RigidBody>(new_entity, velocity);
     }
     

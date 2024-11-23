@@ -73,6 +73,11 @@ class Game {
         void add_component(const entt::entity& entity, TArgs ...args) {
             registry.emplace<T>(entity, std::forward<TArgs>(args)...);
         }
+
+        template <typename T>
+        T get_component(const entt::entity& entity) {
+            return registry.get<T>(entity);
+        }
 };
 
 #endif

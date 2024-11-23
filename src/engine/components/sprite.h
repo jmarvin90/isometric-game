@@ -20,10 +20,4 @@ struct Sprite {
         }
 };
 
-struct TerrainSprite: public Sprite {   
-};
-
-struct VerticalSprite: public Sprite {
-};
-
 #endif
