@@ -197,7 +197,7 @@ void Game::render() {
     render_sprites(registry, camera_position, renderer, render_rect, debug_mode);
 
     if (debug_mode) {
-        render_imgui_gui(renderer, registry, textures["moveable_sprite_tall_test.png"], mouse);
+        render_imgui_gui(renderer, registry, textures, mouse);
     }
 
     SDL_RenderPresent(renderer);
