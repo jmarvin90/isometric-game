@@ -37,9 +37,9 @@ class Game {
     SDL_Rect render_rect;
     
     // Todo: read re. asset stores
-    std::unordered_map<int, SDL_Texture*> textures;
+    std::unordered_map<std::string, SDL_Texture*> textures;
 
-    void load_textures(const std::vector<std::string>& tile_paths);
+    void load_textures(const std::string& directory);
     void load_tilemap();
     void process_input();
     void update();
@@ -55,7 +55,7 @@ class Game {
         // TODO: define operator= method to enable -Weffc++
         // ...operator=(const Game&) ...;
 
-        void initialise(const std::vector<std::string>& tile_paths);
+        void initialise(const std::string textures_path);
         void run();
         void destroy();
 
@@ -63,7 +63,7 @@ class Game {
             return tilemap;
         }
 
-        SDL_Texture* const fetch_texture(int index) {
+        SDL_Texture* const fetch_texture(const std::string& index) {
             return textures[index];
         }
 

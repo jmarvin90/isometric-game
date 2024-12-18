@@ -1,4 +1,5 @@
 #include <string>
+#include <filesystem>
 
 #include <glm/glm.hpp>
 #include <SDL2/SDL_image.h>
@@ -32,14 +33,17 @@ Game::~Game() {
     spdlog::info("Game destuctor called.");
 }
 
-void Game::load_textures(const std::vector<std::string>& tile_paths){
+void Game::load_textures(const std::string& directory){
 
-    for (unsigned int texture_id=0; texture_id<tile_paths.size(); texture_id++) {
-        SDL_Surface* surface {IMG_Load(tile_paths.at(texture_id).c_str())};
+    std::filesystem::path textures_dir{directory};
+
+    for (auto const& entry: std::filesystem::directory_iterator{textures_dir}) {
+
+        SDL_Surface* surface {IMG_Load(entry.path().c_str())};
         if (!surface) {
             spdlog::info(
-                "Could not load texture from path: " +
-                tile_paths.at(texture_id)
+                "Could not load texture from path: " + 
+                entry.path().string()
             );
         }
 
@@ -47,12 +51,12 @@ void Game::load_textures(const std::vector<std::string>& tile_paths){
         if (!texture) {
             spdlog::info(
                 "Could not load texture from surface using image: " +
-                tile_paths.at(texture_id)
+                entry.path().string()
             );
         }
 
         SDL_FreeSurface(surface);
-        textures.emplace(texture_id, texture);
+        textures.emplace(entry.path().filename().string(), texture);
     }
 }
 
@@ -62,12 +66,11 @@ void Game::load_tilemap() {
         for (int x=0; x<constants::MAP_SIZE_N_TILES; x++) {
 
             glm::ivec2 position {tilemap.grid_to_pixel(x, y)};
-            int texture_id {1};
 
             entt::entity entity {tilemap.at(x, y)};
             
             registry.emplace<Transform>(entity, position, 0, 0.0);
-            registry.emplace<Sprite>(entity, textures[texture_id]);
+            registry.emplace<Sprite>(entity, textures["green.png"]);
         }
     }
 }
@@ -76,7 +79,7 @@ entt::entity Game::create_entity() {
     return registry.create();
 }
 
-void Game::initialise(const std::vector<std::string>& tile_paths) {
+void Game::initialise(const std::string textures_path) {
     SDL_Init(SDL_INIT_EVERYTHING);
 
     SDL_GetDesktopDisplayMode(0, &display_mode);
@@ -107,7 +110,7 @@ void Game::initialise(const std::vector<std::string>& tile_paths) {
         spdlog::error("Could not initialise the SDL Renderer.");
     }
 
-    load_textures(tile_paths);
+    load_textures(textures_path);
     load_tilemap();
 
     render_rect = {20, 20, display_mode.w - 40, display_mode.h - 40};
@@ -194,7 +197,7 @@ void Game::render() {
     render_sprites(registry, camera_position, renderer, render_rect, debug_mode);
 
     if (debug_mode) {
-        render_imgui_gui(renderer, registry, textures[15], mouse);
+        render_imgui_gui(renderer, registry, textures, mouse);
     }
 
     SDL_RenderPresent(renderer);
