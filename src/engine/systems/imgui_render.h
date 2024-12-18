@@ -59,21 +59,6 @@ void render_imgui_gui(
     // Velocity Y
     ImGui::InputInt("Y velocity", &velocity.y);
 
-    // if (ImGui::BeginCombo("combo 1", combo_preview_value, flags))
-    // {
-    //     for (int n = 0; n < IM_ARRAYSIZE(items); n++)
-    //     {
-    //         const bool is_selected = (item_selected_idx == n);
-    //         if (ImGui::Selectable(items[n], is_selected))
-    //             item_selected_idx = n;
-
-    //         // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-    //         if (is_selected)
-    //             ImGui::SetItemDefaultFocus();
-    //     }
-    //     ImGui::EndCombo();
-    // }
-
     static std::string selected_sprite_texture{"moveable_sprite_tall_test.png"};
 
     if(ImGui::BeginCombo("Sprite image", selected_sprite_texture.c_str())) {
