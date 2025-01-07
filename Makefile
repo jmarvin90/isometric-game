@@ -3,6 +3,7 @@ COMPILER_FLAGS =		-Werror \
 						-Wall \
 						-Wno-system-headers \
 						-pedantic-errors
+DEBUG_FLAG = 			-ggdb
 LANG_STD = 				-std=c++17
 SRC_FILES = 			./src/*.cpp \
 						./src/engine/*.cpp \
@@ -19,6 +20,7 @@ OUTPUT = isometric-game
 
 build:
 	g++ \
+		${DEBUG_FLAG} \
 		${COMPILER_FLAGS} \
 		${LANG_STD}  \
 		${SRC_FILES} \
