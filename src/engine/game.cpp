@@ -23,7 +23,7 @@
 Game::Game(): 
     registry{entt::registry()}, 
     tilemap{registry},
-    mousemap{"./assets/mousemap.png"},
+    mousemap{"/home/marv/Documents/Projects/isometric-game/assets/mousemap.png"},
     mouse{mousemap}
 {
     spdlog::info("Game constructor called.");
