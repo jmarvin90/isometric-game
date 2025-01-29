@@ -44,20 +44,20 @@ void render_imgui_gui(
 
     // bool show_demo_window {true};
 
-    static glm::ivec2 position;
-    static glm::ivec2 velocity;    
+    static glm::vec2 position;
+    static glm::vec2 velocity;    
 
     // Input for X
-    ImGui::InputInt("X postion", &position.x);
+    ImGui::InputFloat("X postion", &position.x);
 
     // Input for Y
-    ImGui::InputInt("Y position", &position.y);
+    ImGui::InputFloat("Y position", &position.y);
 
     // Velocity X
-    ImGui::InputInt("X velocity", &velocity.x);
+    ImGui::InputFloat("X velocity", &velocity.x);
 
     // Velocity Y
-    ImGui::InputInt("Y velocity", &velocity.y);
+    ImGui::InputFloat("Y velocity", &velocity.y);
 
     static std::string selected_sprite_texture{"moveable_sprite_tall_test.png"};
 
