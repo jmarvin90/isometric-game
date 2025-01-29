@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <glm/glm.hpp>
+
 namespace constants {
     inline constexpr int FPS                    {60};
     inline constexpr float MILLIS_PER_FRAME     {1'000.f/FPS};
@@ -23,6 +25,22 @@ namespace constants {
     inline constexpr int TILEMAP_X_START        {(RENDER_SPACE_WIDTH_PX / 2) - (TILE_WIDTH / 2)};
     inline constexpr int TILEMAP_Y_START        {MAP_BORDER_PX};
     inline constexpr int CAMERA_BORDER_PX       {80};
+
+    enum Directions {
+        NO_DIRECTION,
+        LEFT,
+        UP,
+        RIGHT,
+        DOWN
+    };
+
+    inline constexpr glm::ivec2 directions[5] {
+        glm::ivec2{0, 0},                       // NO_DIRECTION
+        glm::ivec2{-1, 0},                      // LEFT
+        glm::ivec2{0, -1},                      // UP
+        glm::ivec2{1, 0},                       // RIGHT
+        glm::ivec2{0, 1}                        // DOWN
+    };
 }
 
 #endif
