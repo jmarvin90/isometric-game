@@ -4,17 +4,27 @@
 #include <SDL2/SDL.h>
 #include <unordered_map>
 #include <spdlog/spdlog.h>
+#include <glm/glm.hpp>
 
 #include "transform.h"
 #include "sprite.h"
 #include "constants.h"
 
-SDL_Rect get_render_target(const Transform& transform, const Sprite& sprite, const SDL_Rect& camera) {
-    return SDL_Rect {
-        (static_cast<int>(transform.position.x) + sprite.horizontal_offset_px) - camera.x, 
-        (static_cast<int>(transform.position.y) + sprite.vertical_offset_px) - camera.y, 
-        sprite.width_px,
-        sprite.height_px
+// Allow us to perform substraction with a vec2 and an SDL_Rect
+glm::vec2& operator-(glm::vec2& lhs, const SDL_Rect& rhs) {
+    lhs.x -= rhs.x;
+    lhs.y -= rhs.y;
+    return lhs;
+}
+
+SDL_FRect get_render_target(const Transform& transform, const Sprite& sprite, const SDL_Rect& camera) {
+    glm::vec2 position {transform.position + sprite.offset};
+    position - camera;
+    return SDL_FRect {
+        position.x,
+        position.y,
+        static_cast<float>(sprite.width_px),
+        static_cast<float>(sprite.height_px)
     };
 }
 
@@ -28,23 +38,21 @@ void render_sprite(
 ) {
 
     SDL_Rect source_rect {0, 0, sprite.width_px, sprite.height_px};
-    SDL_Rect dest_rect {get_render_target(transform, sprite, camera)};
+    SDL_FRect dest_rect {get_render_target(transform, sprite, camera)};
 
-    if (SDL_HasIntersection(&dest_rect, &render_rect)) {
-        SDL_RenderCopyEx(
-            renderer,
-            sprite.texture,
-            &source_rect,
-            &dest_rect,
-            transform.rotation,
-            NULL,
-            SDL_FLIP_NONE
-        );
-    }
+    SDL_RenderCopyExF(
+        renderer,
+        sprite.texture,
+        &source_rect,
+        &dest_rect,
+        transform.rotation,
+        NULL,
+        SDL_FLIP_NONE
+    );
 
     if (render_bounding_box && transform.z_index != 0) {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        SDL_RenderDrawRect(renderer, &dest_rect);
+        SDL_RenderDrawRectF(renderer, &dest_rect);
     }
 }
 

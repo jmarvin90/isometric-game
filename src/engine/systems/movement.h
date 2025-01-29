@@ -17,23 +17,14 @@ bool is_out_of_bounds(const Transform& transform, const MouseMap& mousemap) {
     );
 }
 
-void apply_velocity(
-    Transform& transform, 
-    const RigidBody& rigid_body, 
-    const double delta_time
-) {
-    transform.position.x += (rigid_body.velocity.x * delta_time);
-    transform.position.y += (rigid_body.velocity.y * delta_time);
-}
-
-void movement_update(entt::registry& registry, const MouseMap& mousemap, const double delta_time) {
+void movement_update(entt::registry& registry, const MouseMap& mousemap, const float delta_time) {
     auto entities_in_motion {registry.view<RigidBody, Transform>()};
     for (auto entity: entities_in_motion) {
         Transform& transform {entities_in_motion.get<Transform>(entity)};
         const RigidBody& rigid_body {entities_in_motion.get<RigidBody>(entity)};
 
         if (!is_out_of_bounds(transform, mousemap)) {
-            apply_velocity(transform, rigid_body, delta_time);
+            transform.position += rigid_body.velocity * delta_time;
         } else {
             registry.destroy(entity);
         }

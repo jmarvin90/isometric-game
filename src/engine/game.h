@@ -19,6 +19,7 @@ class Game {
 
     // Has to be default initialised because it's referenced in Game::update()
     int millis_previous_frame{};    
+    uint64_t _last_time{0};
 
     entt::registry registry;
     SDL_Renderer* renderer;
