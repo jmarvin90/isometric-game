@@ -3,7 +3,7 @@
 
 namespace constants {
     inline constexpr int FPS                    {60};
-    inline constexpr int MILLIS_PER_FRAME       {1'000/FPS};
+    inline constexpr float MILLIS_PER_FRAME     {1'000.f/FPS};
     inline constexpr int WINDOW_HEIGHT          {768};
     inline constexpr int WINDOW_WIDTH           {1024};
 

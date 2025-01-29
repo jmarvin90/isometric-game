@@ -146,22 +146,13 @@ void Game::process_input() {
 }
 
 void Game::update() {
-    // Calculate the amount of time to delay (assuming positive)
-    int time_to_delay {
-        constants::MILLIS_PER_FRAME - (
-            static_cast<int>(SDL_GetTicks()) - millis_previous_frame
-        )
-    };
 
-    // Check the delay period is positive and delay if so
-    if (time_to_delay > 0 && time_to_delay <= constants::MILLIS_PER_FRAME) {
-        SDL_Delay(time_to_delay);
-    }
+    // The start point, in ticks
+    const uint64_t start {SDL_GetTicks64()};
+    const uint64_t since_last_frame {start - _last_time};
 
-    // May be unsused until movement logic is implemented
-    [[maybe_unused]] double delta_time {
-        (SDL_GetTicks() - millis_previous_frame) / 1'000.f
-    };
+    // Time since the last frame
+    const float delta_time = {since_last_frame / 1'000.f};
 
     // Update the mouse position
     mouse.update(camera->get_position());
@@ -169,11 +160,20 @@ void Game::update() {
     // Update the camera position
     camera->update(display_mode, mouse.get_window_position());
 
-    // To be extracted to its own function call - movement logic
+    // Move relevant entities
     movement_update(registry, mousemap, delta_time);
 
-    // Update the member to indicate the time the last update was run
-    millis_previous_frame = SDL_GetTicks();
+    // How many millis have elapsed this frame
+    const uint64_t elapsed_this_frame {SDL_GetTicks64() - start};
+
+    // Delay until the START of the next frame
+    const float time_to_delay {constants::MILLIS_PER_FRAME - elapsed_this_frame};
+
+    if (time_to_delay > 0 && time_to_delay <= constants::MILLIS_PER_FRAME) {
+        SDL_Delay(time_to_delay);
+    }
+
+    _last_time = start;
 }
 
 bool transform_comparison(const Transform& lhs, const Transform& rhs) {
