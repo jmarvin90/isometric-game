@@ -41,7 +41,11 @@ namespace constants {
     };
 
     inline constexpr glm::ivec2 directions[5] {
-        _no_direction, _left, _up, _right, _down
+        glm::ivec2{0, 0},                       // NO_DIRECTION
+        glm::ivec2{-1, 0},                      // LEFT
+        glm::ivec2{0, -1},                      // UP
+        glm::ivec2{1, 0},                       // RIGHT
+        glm::ivec2{0, 1}                        // DOWN
     };
 }
 
