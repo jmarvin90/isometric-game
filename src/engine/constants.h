@@ -26,12 +26,6 @@ namespace constants {
     inline constexpr int TILEMAP_Y_START        {MAP_BORDER_PX};
     inline constexpr int CAMERA_BORDER_PX       {80};
 
-    inline constexpr glm::ivec2 _no_direction   {0, 0}; 
-    inline constexpr glm::ivec2 _left           {-1, 0};
-    inline constexpr glm::ivec2 _up             {0, -1};
-    inline constexpr glm::ivec2 _right          {1, 0};
-    inline constexpr glm::ivec2 _down           {0, 1};
-
     enum Directions {
         NO_DIRECTION,
         LEFT,
