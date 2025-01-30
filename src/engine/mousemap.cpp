@@ -119,7 +119,7 @@ glm::ivec2 MouseMap::pixel_to_grid(const glm::ivec2& pixel_coordinate) const {
         remainder_y = screen_offset.y % constants::TILE_SIZE.y;
     }
 
-    // Get a rough grid location based whole tiles to tilemap start
+    // Get a rough grid location based on whole tiles to tilemap start
     glm::ivec2 coarse {tile_walk(tile_offset)};
 
     // Get an adjustment vector from the mousemap using the remaining pixels
