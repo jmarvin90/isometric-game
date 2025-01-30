@@ -94,7 +94,19 @@ glm::ivec2 MouseMap::pixel_to_grid(const glm::ivec2& pixel_coordinate) const {
     glm::ivec2 screen_offset{pixel_coordinate - constants::TILEMAP_START};
     
     // How many whole tiles between us and the tilemap start
-    glm::ivec2 tile_offset {screen_offset / constants::TILE_SIZE};
+    // The casting is necessary because of quirks re. division & negative nums
+    glm::ivec2 tile_offset {
+        static_cast<int>(
+            floor(
+                screen_offset.x / static_cast<double>(constants::TILE_SIZE.x)
+            )
+        ),
+        static_cast<int>(
+            floor(
+                screen_offset.y / static_cast<double>(constants::TILE_SIZE.y)
+            )
+        )
+    };
 
     int remainder_x{0};
     int remainder_y{0};
