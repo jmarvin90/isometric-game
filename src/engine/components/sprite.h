@@ -14,7 +14,7 @@ struct Sprite {
     Sprite(SDL_Texture* texture):
         texture{texture} {
             SDL_QueryTexture(texture, NULL, NULL, &width_px, &height_px);
-            offset = {0, constants::TILE_HEIGHT - height_px};
+            offset = {0, constants::TILE_SIZE.y - height_px};
         }
 };
 

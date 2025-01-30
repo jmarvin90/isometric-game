@@ -90,22 +90,20 @@ glm::ivec2 MouseMap::tile_walk(const glm::ivec2& tile_offset) const {
 
 // Public function converting x, y screen coordinates into tilemap coordinates
 glm::ivec2 MouseMap::pixel_to_grid(const glm::ivec2& pixel_coordinate) const {
-    // Coarse coordinates
-    int screen_offset_x {pixel_coordinate.x - constants::TILEMAP_X_START};
-    int screen_offset_y {pixel_coordinate.y - constants::TILEMAP_Y_START};
-
-    int tile_offset_x {
+    // Where we are in relation to the tilemap start (0th tile, top left)
+    glm::ivec2 screen_offset{pixel_coordinate - constants::TILEMAP_START};
+    
+    // How many whole tiles between us and the tilemap start
+    // The casting is necessary because of quirks re. division & negative nums
+    glm::ivec2 tile_offset {
         static_cast<int>(
             floor(
-                screen_offset_x / static_cast<double>(constants::TILE_WIDTH)
+                screen_offset.x / static_cast<double>(constants::TILE_SIZE.x)
             )
-        )
-    };
-
-    int tile_offset_y {
+        ),
         static_cast<int>(
             floor(
-                screen_offset_y / static_cast<double>(constants::TILE_HEIGHT)
+                screen_offset.y / static_cast<double>(constants::TILE_SIZE.y)
             )
         )
     };
@@ -113,29 +111,34 @@ glm::ivec2 MouseMap::pixel_to_grid(const glm::ivec2& pixel_coordinate) const {
     int remainder_x{0};
     int remainder_y{0};
     
-    if (screen_offset_x < 0) {
+    // How many horizontal pixels between us and the nearest whole tile
+    if (screen_offset.x < 0) {
         remainder_x = (
-            constants::TILE_WIDTH + 
-            (screen_offset_x % constants::TILE_WIDTH)
+            constants::TILE_SIZE.x + 
+            (screen_offset.x % constants::TILE_SIZE.x)
         );
     } else {
-        remainder_x = screen_offset_x % constants::TILE_WIDTH;
+        remainder_x = screen_offset.x % constants::TILE_SIZE.x;
     }
 
-    if (screen_offset_y < 0) {
+    // How many vertical pixels between us and the nearest whole tile
+    if (screen_offset.y < 0) {
         remainder_y = (
-            constants::TILE_HEIGHT +
-            (screen_offset_y % constants::TILE_HEIGHT)
+            constants::TILE_SIZE.y +
+            (screen_offset.y % constants::TILE_SIZE.y)
         );
     } else {
-        remainder_y = screen_offset_y % constants::TILE_HEIGHT;
+        remainder_y = screen_offset.y % constants::TILE_SIZE.y;
     }
 
-    glm::ivec2 coarse {tile_walk({tile_offset_x, tile_offset_y})};
+    // Get a rough grid location based on whole tiles to tilemap start
+    glm::ivec2 coarse {tile_walk(tile_offset)};
 
+    // Get an adjustment vector from the mousemap using the remaining pixels
     SDL_Color pixel_colour = mousemap_pixel_colour(
         glm::ivec2{remainder_x, remainder_y}
     );
 
+    // Return the mouse-map adjusted (fine) grid location
     return coarse + pixel_colour_vector(pixel_colour);
 }

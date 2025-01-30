@@ -38,7 +38,8 @@ glm::ivec2 TileMap::grid_to_pixel(const int x, const int y) const {
     int x_offset {x-y};
     int y_offset {y+x};
     return glm::ivec2 {
-        constants::TILEMAP_X_START + (x_offset * constants::TILE_WIDTH_HALF),
-        constants::TILEMAP_Y_START + (y_offset * constants::TILE_HEIGHT_HALF)
+        // TODO: investigate streamlining this into a glm::vec2 op
+        constants::TILEMAP_START.x + (x_offset * constants::TILE_SIZE_HALF.x),
+        constants::TILEMAP_START.y + (y_offset * constants::TILE_SIZE_HALF.y)
     };
 }
