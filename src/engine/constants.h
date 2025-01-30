@@ -6,8 +6,6 @@
 namespace constants {
     inline constexpr int FPS                            {60};
     inline constexpr float MILLIS_PER_FRAME             {1'000.f/FPS};
-    inline constexpr int WINDOW_HEIGHT                  {768};
-    inline constexpr int WINDOW_WIDTH                   {1024};
 
     inline constexpr glm::ivec2 TILE_SIZE               {120, 60};
     inline constexpr glm::ivec2 TILE_SIZE_HALF          {TILE_SIZE / 2};
