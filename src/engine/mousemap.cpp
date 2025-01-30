@@ -90,13 +90,16 @@ glm::ivec2 MouseMap::tile_walk(const glm::ivec2& tile_offset) const {
 
 // Public function converting x, y screen coordinates into tilemap coordinates
 glm::ivec2 MouseMap::pixel_to_grid(const glm::ivec2& pixel_coordinate) const {
-    // Coarse coordinates
+    // Where we are in relation to the tilemap start (0th tile, top left)
     glm::ivec2 screen_offset{pixel_coordinate - constants::TILEMAP_START};
+    
+    // How many whole tiles between us and the tilemap start
     glm::ivec2 tile_offset {screen_offset / constants::TILE_SIZE};
 
     int remainder_x{0};
     int remainder_y{0};
     
+    // How many horizontal pixels between us and the nearest whole tile
     if (screen_offset.x < 0) {
         remainder_x = (
             constants::TILE_SIZE.x + 
@@ -106,6 +109,7 @@ glm::ivec2 MouseMap::pixel_to_grid(const glm::ivec2& pixel_coordinate) const {
         remainder_x = screen_offset.x % constants::TILE_SIZE.x;
     }
 
+    // How many vertical pixels between us and the nearest whole tile
     if (screen_offset.y < 0) {
         remainder_y = (
             constants::TILE_SIZE.y +
@@ -115,11 +119,14 @@ glm::ivec2 MouseMap::pixel_to_grid(const glm::ivec2& pixel_coordinate) const {
         remainder_y = screen_offset.y % constants::TILE_SIZE.y;
     }
 
+    // Get a rough grid location based whole tiles to tilemap start
     glm::ivec2 coarse {tile_walk(tile_offset)};
 
+    // Get an adjustment vector from the mousemap using the remaining pixels
     SDL_Color pixel_colour = mousemap_pixel_colour(
         glm::ivec2{remainder_x, remainder_y}
     );
 
+    // Return the mouse-map adjusted (fine) grid location
     return coarse + pixel_colour_vector(pixel_colour);
 }
