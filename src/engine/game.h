@@ -43,7 +43,7 @@ class Game {
     void load_textures(const std::string& directory);
     void load_tilemap();
     void process_input();
-    void update();
+    void update(const float delta_time);
     void render();
 
     public:

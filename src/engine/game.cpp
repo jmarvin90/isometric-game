@@ -145,14 +145,7 @@ void Game::process_input() {
     }
 }
 
-void Game::update() {
-
-    // The start point, in ticks
-    const uint64_t start {SDL_GetTicks64()};
-    const uint64_t since_last_frame {start - _last_time};
-
-    // Time since the last frame
-    const float delta_time = {since_last_frame / 1'000.f};
+void Game::update(const float delta_time) {
 
     // Update the mouse position
     mouse.update(camera->get_position());
@@ -162,18 +155,6 @@ void Game::update() {
 
     // Move relevant entities
     movement_update(registry, mousemap, delta_time);
-
-    // How many millis have elapsed this frame
-    const uint64_t elapsed_this_frame {SDL_GetTicks64() - start};
-
-    // Delay until the START of the next frame
-    const float time_to_delay {constants::MILLIS_PER_FRAME - elapsed_this_frame};
-
-    if (time_to_delay > 0 && time_to_delay <= constants::MILLIS_PER_FRAME) {
-        SDL_Delay(time_to_delay);
-    }
-
-    _last_time = start;
 }
 
 bool transform_comparison(const Transform& lhs, const Transform& rhs) {
@@ -206,9 +187,26 @@ void Game::render() {
 void Game::run() {
     is_running = true;
     while (is_running) {
+        // The start point (in ticks), the delta to the last frame in s/ms 
+        const uint64_t start {SDL_GetTicks64()};
+        const uint64_t since_last_frame {start - _last_time};
+        const float delta_time = {since_last_frame / 1'000.f};
+
         process_input();
-        update();
+        update(delta_time);
         render();
+
+        // How many millis have elapsed this frame
+        const uint64_t elapsed_this_frame {SDL_GetTicks64() - start};
+
+        // Delay until the START of the next frame
+        const float time_to_delay {constants::MILLIS_PER_FRAME - elapsed_this_frame};
+
+        if (time_to_delay > 0 && time_to_delay <= constants::MILLIS_PER_FRAME) {
+            SDL_Delay(time_to_delay);
+        }
+
+        _last_time = start;
     }
 }
 
