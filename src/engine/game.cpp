@@ -83,7 +83,7 @@ void Game::initialise(const std::string textures_path) {
     SDL_Init(SDL_INIT_EVERYTHING);
 
     SDL_GetDesktopDisplayMode(0, &display_mode);
-    camera = std::make_unique<Camera>(display_mode);
+    camera = Camera(display_mode);
 
     // Create the SDL Window
     window = SDL_CreateWindow(

@@ -5,6 +5,7 @@
 #include <entt/entt.hpp>
 #include <unordered_map>
 #include <memory>
+#include <optional>
 
 #include "components/transform.h"
 #include "components/sprite.h"
@@ -27,7 +28,7 @@ class Game {
     SDL_DisplayMode display_mode;
 
     // Camera is smart pointer to allow late initialisation
-    std::unique_ptr<Camera> camera;
+    std::optional<Camera> camera;
 
     // TileMap and Mouse can be initialised during game construction
     TileMap tilemap;
