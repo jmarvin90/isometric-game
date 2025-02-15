@@ -69,16 +69,15 @@ void Game::load_tilemap() {
 
             glm::ivec2 position {tilemap.grid_to_pixel(x, y)};
 
-            [[maybe_unused]] entt::entity entity {tilemap.at(x, y)};
+            entt::entity entity {tilemap.at(x, y)};
             
             registry.emplace<Transform>(entity, position, 0, 0.0);
 
-            [[maybe_unused]] SDL_Texture* texture {sprite_sheets.at("city_tiles").spritesheet};
-            [[maybe_unused]] SDL_Rect& source_rect {sprite_sheets.at("city_tiles").sprites.at("cityTiles_072.png")};
-            [[maybe_unused]] glm::vec2 offset {0,0};
-
             registry.emplace<Sprite>(
-                entity, texture, source_rect, offset
+                entity, 
+                sprite_sheets.at("city_tiles").spritesheet,
+                sprite_sheets.at("city_tiles").sprites.at("cityTiles_072.png"), 
+                glm::vec2{0,0}
             );
         }
     }
