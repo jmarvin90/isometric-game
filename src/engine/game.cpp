@@ -1,8 +1,14 @@
 #include <string>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <utility>
 
 #include <glm/glm.hpp>
 #include <SDL2/SDL_image.h>
+#include <rapidxml/rapidxml.hpp>
+#include <rapidxml/rapidxml_utils.hpp>
+#include <rapidxml/rapidxml_print.hpp>
 #include <entt/entt.hpp>
 #include <spdlog/spdlog.h>
 #include <imgui.h>
@@ -11,6 +17,7 @@
 
 #include "constants.h"
 #include "game.h"
+#include "spritesheet.h"
 
 #include "components/transform.h"
 #include "components/sprite.h"
@@ -33,31 +40,24 @@ Game::~Game() {
     spdlog::info("Game destuctor called.");
 }
 
-void Game::load_textures(const std::string& directory){
+void Game::load_spritesheets(){
+    const std::string map_tile_png_path = "/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-city/Spritesheet/cityTiles_sheet.png";
+    const std::string map_atlas_path = "/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-city/Spritesheet/cityTiles_sheet.xml";
 
-    std::filesystem::path textures_dir{directory};
+    const std::string building_tile_png_path = "/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.png";
+    const std::string building_atlas_path = "/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.xml";
 
-    for (auto const& entry: std::filesystem::directory_iterator{textures_dir}) {
+    sprite_sheets.emplace(
+        std::piecewise_construct,
+        std::forward_as_tuple("city_tiles"),
+        std::forward_as_tuple(map_tile_png_path, map_atlas_path, renderer)
+    );
 
-        SDL_Surface* surface {IMG_Load(entry.path().c_str())};
-        if (!surface) {
-            spdlog::info(
-                "Could not load texture from path: " + 
-                entry.path().string()
-            );
-        }
-
-        SDL_Texture* texture {SDL_CreateTextureFromSurface(renderer, surface)};
-        if (!texture) {
-            spdlog::info(
-                "Could not load texture from surface using image: " +
-                entry.path().string()
-            );
-        }
-
-        SDL_FreeSurface(surface);
-        textures.emplace(entry.path().filename().string(), texture);
-    }
+    sprite_sheets.emplace(
+        std::piecewise_construct,
+        std::forward_as_tuple("buillding_tiles"),
+        std::forward_as_tuple(building_tile_png_path, building_atlas_path, renderer)
+    );
 }
 
 void Game::load_tilemap() {
@@ -67,7 +67,7 @@ void Game::load_tilemap() {
 
             glm::ivec2 position {tilemap.grid_to_pixel(x, y)};
 
-            entt::entity entity {tilemap.at(x, y)};
+            [[maybe_unused]] entt::entity entity {tilemap.at(x, y)};
             
             registry.emplace<Transform>(entity, position, 0, 0.0);
             registry.emplace<Sprite>(entity, textures["green.png"]);
@@ -110,7 +110,7 @@ void Game::initialise(const std::string textures_path) {
         spdlog::error("Could not initialise the SDL Renderer.");
     }
 
-    load_textures(textures_path);
+    load_spritesheets();
     load_tilemap();
 
     render_rect = {20, 20, display_mode.w - 40, display_mode.h - 40};
@@ -177,9 +177,10 @@ void Game::render() {
 
     render_sprites(registry, camera_position, renderer, render_rect, debug_mode);
 
-    if (debug_mode) {
-        render_imgui_gui(renderer, registry, textures, mouse);
-    }
+    // TODO: Update
+    // if (debug_mode) {
+    //     render_imgui_gui(renderer, registry, textures, mouse);
+    // }
 
     SDL_RenderPresent(renderer);
 }

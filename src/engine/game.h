@@ -13,6 +13,7 @@
 #include "mouse.h"
 #include "camera.h"
 #include "constants.h"
+#include "spritesheet.h"
 
 class Game {
     bool is_running {false};
@@ -39,9 +40,9 @@ class Game {
     SDL_Rect render_rect;
     
     // Todo: read re. asset stores
-    std::unordered_map<std::string, SDL_Texture*> textures;
+    std::unordered_map<std::string, SpriteSheet> sprite_sheets;
 
-    void load_textures(const std::string& directory);
+    void load_spritesheets();
     void load_tilemap();
     void process_input();
     void update(const float delta_time);
@@ -63,10 +64,6 @@ class Game {
 
         const TileMap& get_tilemap() {
             return tilemap;
-        }
-
-        SDL_Texture* const fetch_texture(const std::string& index) {
-            return textures[index];
         }
 
         entt::entity create_entity();

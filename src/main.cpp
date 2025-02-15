@@ -17,18 +17,18 @@ int main() {
         };
 
         entt::entity entity_1 {game.get_tilemap().at(n, 3)};
-        Transform entity_1_transform {game.get_component<Transform>(entity_1)};
+        [[maybe_unused]] Transform entity_1_transform {game.get_component<Transform>(entity_1)};
 
         entt::entity entity_2 {game.get_tilemap().at(n, 1)};
-        Transform entity_2_transform {game.get_component<Transform>(entity_2)};
+        [[maybe_unused]] Transform entity_2_transform {game.get_component<Transform>(entity_2)};
 
-        entt::entity new_entity {game.create_entity()};
-        game.add_component<Transform>(new_entity, entity_1_transform.position, 1, entity_2_transform.rotation);
-        game.add_component<Sprite>(new_entity, game.fetch_texture(building_textures[n]));
+        // entt::entity new_entity {game.create_entity()};
+        // game.add_component<Transform>(new_entity, entity_1_transform.position, 1, entity_2_transform.rotation);
+        // game.add_component<Sprite>(new_entity, game.fetch_texture(building_textures[n]));
 
-        entt::entity new_entity_2 {game.create_entity()};
-        game.add_component<Transform>(new_entity_2, entity_2_transform.position, 1, entity_2_transform.rotation);
-        game.add_component<Sprite>(new_entity_2, game.fetch_texture(building_textures[n]));
+        // entt::entity new_entity_2 {game.create_entity()};
+        // game.add_component<Transform>(new_entity_2, entity_2_transform.position, 1, entity_2_transform.rotation);
+        // game.add_component<Sprite>(new_entity_2, game.fetch_texture(building_textures[n]));
     }
 
 
