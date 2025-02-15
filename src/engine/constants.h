@@ -7,11 +7,11 @@ namespace constants {
     inline constexpr int FPS                            {60};
     inline constexpr float MILLIS_PER_FRAME             {1'000.f/FPS};
 
-    inline constexpr glm::ivec2 TILE_SIZE               {120, 60};
+    inline constexpr glm::ivec2 TILE_SIZE               {132, 66};
     inline constexpr glm::ivec2 TILE_SIZE_HALF          {TILE_SIZE / 2};
     
     inline constexpr int MAP_BORDER_PX                  {100};
-    inline constexpr int MAP_SIZE_N_TILES               {60};
+    inline constexpr int MAP_SIZE_N_TILES               {20};
     inline constexpr glm::ivec2 MAP_SIZE_PX             {TILE_SIZE * MAP_SIZE_N_TILES};
 
     inline constexpr glm::ivec2 RENDER_SPACE_SIZE_PX    {MAP_SIZE_PX + (MAP_BORDER_PX * 2)};

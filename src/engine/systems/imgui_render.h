@@ -18,7 +18,6 @@
 void render_imgui_gui(
     SDL_Renderer* renderer,
     entt::registry& registry,
-    const std::unordered_map<std::string, SDL_Texture*>& textures,
     const Mouse& mouse
 ) {
     ImGui_ImplSDLRenderer2_NewFrame();
@@ -44,46 +43,46 @@ void render_imgui_gui(
 
     // bool show_demo_window {true};
 
-    static glm::vec2 position;
-    static glm::vec2 velocity;    
+    // static glm::vec2 position;
+    // static glm::vec2 velocity;    
 
-    // Input for X
-    ImGui::InputFloat("X postion", &position.x);
+    // // Input for X
+    // ImGui::InputFloat("X postion", &position.x);
 
-    // Input for Y
-    ImGui::InputFloat("Y position", &position.y);
+    // // Input for Y
+    // ImGui::InputFloat("Y position", &position.y);
 
-    // Velocity X
-    ImGui::InputFloat("X velocity", &velocity.x);
+    // // Velocity X
+    // ImGui::InputFloat("X velocity", &velocity.x);
 
-    // Velocity Y
-    ImGui::InputFloat("Y velocity", &velocity.y);
+    // // Velocity Y
+    // ImGui::InputFloat("Y velocity", &velocity.y);
 
-    static std::string selected_sprite_texture{"moveable_sprite_tall_test.png"};
+    // static std::string selected_sprite_texture{"moveable_sprite_tall_test.png"};
 
-    if(ImGui::BeginCombo("Sprite image", selected_sprite_texture.c_str())) {
-        for (std::pair<std::string, SDL_Texture*> item: textures)
-        {
-            const bool is_selected = (selected_sprite_texture == item.first);
+    // if(ImGui::BeginCombo("Sprite image", selected_sprite_texture.c_str())) {
+    //     for (std::pair<std::string, SDL_Texture*> item: textures)
+    //     {
+    //         const bool is_selected = (selected_sprite_texture == item.first);
 
-            if (ImGui::Selectable(item.first.c_str(), is_selected)) {
-                selected_sprite_texture = item.first;
-            };
+    //         if (ImGui::Selectable(item.first.c_str(), is_selected)) {
+    //             selected_sprite_texture = item.first;
+    //         };
 
-            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
-        }
-        ImGui::EndCombo();
-    }
+    //         // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+    //         if (is_selected)
+    //             ImGui::SetItemDefaultFocus();
+    //     }
+    //     ImGui::EndCombo();
+    // }
 
-    if (ImGui::Button("Create sprite")) {
-        spdlog::info("Creating a new entity!");
-        entt::entity new_entity {registry.create()};
-        registry.emplace<Transform>(new_entity, position, 1, 0.0f);
-        registry.emplace<Sprite>(new_entity, textures.at(selected_sprite_texture));
-        registry.emplace<RigidBody>(new_entity, velocity);
-    }
+    // if (ImGui::Button("Create sprite")) {
+    //     spdlog::info("Creating a new entity!");
+    //     entt::entity new_entity {registry.create()};
+    //     registry.emplace<Transform>(new_entity, position, 1, 0.0f);
+    //     registry.emplace<Sprite>(new_entity, textures.at(selected_sprite_texture));
+    //     registry.emplace<RigidBody>(new_entity, velocity);
+    // }
     
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);

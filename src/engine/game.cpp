@@ -40,7 +40,8 @@ Game::~Game() {
     spdlog::info("Game destuctor called.");
 }
 
-void Game::load_spritesheets(){
+void Game::load_spritesheets() {
+    spdlog::info("Loading spritesheets");
     const std::string map_tile_png_path = "/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-city/Spritesheet/cityTiles_sheet.png";
     const std::string map_atlas_path = "/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-city/Spritesheet/cityTiles_sheet.xml";
 
@@ -55,9 +56,10 @@ void Game::load_spritesheets(){
 
     sprite_sheets.emplace(
         std::piecewise_construct,
-        std::forward_as_tuple("buillding_tiles"),
+        std::forward_as_tuple("building_tiles"),
         std::forward_as_tuple(building_tile_png_path, building_atlas_path, renderer)
     );
+    spdlog::info("Sprites loaded");
 }
 
 void Game::load_tilemap() {
@@ -70,7 +72,14 @@ void Game::load_tilemap() {
             [[maybe_unused]] entt::entity entity {tilemap.at(x, y)};
             
             registry.emplace<Transform>(entity, position, 0, 0.0);
-            registry.emplace<Sprite>(entity, textures["green.png"]);
+
+            [[maybe_unused]] SDL_Texture* texture {sprite_sheets.at("city_tiles").spritesheet};
+            [[maybe_unused]] SDL_Rect& source_rect {sprite_sheets.at("city_tiles").sprites.at("cityTiles_072.png")};
+            [[maybe_unused]] glm::vec2 offset {0,0};
+
+            registry.emplace<Sprite>(
+                entity, texture, source_rect, offset
+            );
         }
     }
 }
@@ -178,9 +187,9 @@ void Game::render() {
     render_sprites(registry, camera_position, renderer, render_rect, debug_mode);
 
     // TODO: Update
-    // if (debug_mode) {
-    //     render_imgui_gui(renderer, registry, textures, mouse);
-    // }
+    if (debug_mode) {
+        render_imgui_gui(renderer, registry, mouse);
+    }
 
     SDL_RenderPresent(renderer);
 }
