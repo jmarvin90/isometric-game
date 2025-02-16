@@ -73,11 +73,20 @@ void Game::load_tilemap() {
             
             registry.emplace<Transform>(entity, position, 0, 0.0);
 
+            std::string tilepng;
+
+            if (x == 8 && y == 1) {
+                tilepng = "cityTiles_119.png";
+            } else if (y==1) {
+                tilepng = "cityTiles_036.png";
+            } else {
+                tilepng = "cityTiles_072.png";
+            }
+
             registry.emplace<Sprite>(
                 entity, 
                 sprite_sheets.at("city_tiles").spritesheet,
-                sprite_sheets.at("city_tiles").sprites.at("cityTiles_072.png"), 
-                glm::vec2{0,0}
+                sprite_sheets.at("city_tiles").sprites.at(tilepng)
             );
         }
     }

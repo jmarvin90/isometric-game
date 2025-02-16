@@ -48,7 +48,7 @@ void render_sprite(
         SDL_FLIP_NONE
     );
 
-    if (render_bounding_box) { //  && transform.z_index != 0) {
+    if (render_bounding_box && transform.z_index != 0) {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_RenderDrawRectF(renderer, &dest_rect);
     }
