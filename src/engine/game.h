@@ -59,7 +59,7 @@ class Game {
         // TODO: define operator= method to enable -Weffc++
         // ...operator=(const Game&) ...;
 
-        void initialise(const std::string textures_path);
+        void initialise();
         void run();
         void destroy();
 

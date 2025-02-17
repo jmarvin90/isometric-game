@@ -66,7 +66,7 @@ void Game::load_tilemap() {
             registry.emplace<Transform>(entity, position, 0, 0.0);
 
             std::string tilepng;
-            
+
             if (x == 8 && y == 1) {
                 tilepng = "cityTiles_119.png";
             } else if (y==1) {
@@ -88,7 +88,7 @@ entt::entity Game::create_entity() {
     return registry.create();
 }
 
-void Game::initialise(const std::string textures_path) {
+void Game::initialise() {
     SDL_Init(SDL_INIT_EVERYTHING);
 
     SDL_GetDesktopDisplayMode(0, &display_mode);
