@@ -180,7 +180,7 @@ void Game::render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
-    const SDL_Rect& camera_position {camera->get_position()};
+    const glm::ivec2 camera_position {camera->get_position()};
 
     registry.sort<Transform>(transform_comparison);
 

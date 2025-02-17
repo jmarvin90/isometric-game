@@ -17,9 +17,9 @@ glm::vec2& operator-(glm::vec2& lhs, const SDL_Rect& rhs) {
     return lhs;
 }
 
-SDL_FRect get_render_target(const Transform& transform, const Sprite& sprite, const SDL_Rect& camera) {
+SDL_FRect get_render_target(const Transform& transform, const Sprite& sprite, const glm::ivec2& camera) {
     glm::vec2 position {transform.position + sprite.offset};
-    position - camera;
+    position -= camera;
     return SDL_FRect {
         position.x,
         position.y,
@@ -30,13 +30,13 @@ SDL_FRect get_render_target(const Transform& transform, const Sprite& sprite, co
 
 void render_sprite(
     SDL_Renderer* renderer,
-    const SDL_Rect& camera,
+    const glm::ivec2& camera_position,
     const SDL_Rect& render_rect,
     const Transform& transform, 
     const Sprite& sprite,
     bool render_bounding_box
 ) {
-    SDL_FRect dest_rect {get_render_target(transform, sprite, camera)};
+    SDL_FRect dest_rect {get_render_target(transform, sprite, camera_position)};
 
     SDL_RenderCopyExF(
         renderer,
@@ -56,7 +56,7 @@ void render_sprite(
 
 void render_sprites(
     entt::registry& registry, 
-    const SDL_Rect& camera, 
+    const glm::ivec2& camera_position, 
     SDL_Renderer* renderer, 
     const SDL_Rect& render_clip_rect, 
     bool render_bounding_box
@@ -66,7 +66,7 @@ void render_sprites(
     for (auto entity: sprites) {
         const auto& transform {sprites.get<Transform>(entity)};
         const auto& sprite {sprites.get<Sprite>(entity)};
-        render_sprite(renderer, camera, render_clip_rect, transform, sprite, render_bounding_box);
+        render_sprite(renderer, camera_position, render_clip_rect, transform, sprite, render_bounding_box);
     }
 }
 
