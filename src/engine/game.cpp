@@ -59,7 +59,7 @@ void Game::load_tilemap() {
     for (int y=0; y<constants::MAP_SIZE_N_TILES; y++) {
         for (int x=0; x<constants::MAP_SIZE_N_TILES; x++) {
 
-            glm::ivec2 position {tilemap.grid_to_pixel(x, y)};
+            glm::ivec2 position {tilemap.grid_to_pixel({x, y})};
 
             entt::entity entity {tilemap.at(x, y)};
             
@@ -189,6 +189,49 @@ void Game::render() {
     // TODO: Update
     if (debug_mode) {
         render_imgui_gui(renderer, registry, mouse);
+
+        if (mouse.is_on_world_grid()) {
+            glm::ivec2 start_point {
+                tilemap.grid_to_pixel(mouse.get_grid_position())
+            };
+
+            start_point.x -= camera_position.x;
+            start_point.y -= (camera_position.y + constants::MIN_TILE_DEPTH);
+
+            SDL_Point my_points[] = {
+                SDL_Point{
+                    start_point.x, start_point.y + constants::TILE_SIZE_HALF.y
+                },
+                SDL_Point{
+                    start_point.x + constants::TILE_SIZE_HALF.x, 
+                    start_point.y
+                },
+                SDL_Point{
+                    start_point.x + constants::TILE_SIZE.x, 
+                    start_point.y + constants::TILE_SIZE_HALF.y
+                },
+                SDL_Point{
+                    start_point.x + constants::TILE_SIZE_HALF.x, 
+                    start_point.y + constants::TILE_SIZE.y
+                },
+                SDL_Point{
+                    start_point.x,
+                    start_point.y + constants::TILE_SIZE_HALF.y
+                }
+            };
+        
+            SDL_SetRenderDrawColor(
+                renderer,
+                255, 0, 0, 255
+            ); 
+        
+            SDL_RenderDrawLines(
+                renderer,
+                &my_points[0],
+                5
+                // sizeof(my_points)
+            );
+        }
     }
 
     SDL_RenderPresent(renderer);

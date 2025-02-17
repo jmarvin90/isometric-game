@@ -46,7 +46,11 @@ const bool Mouse::has_moved_this_frame() const {
 }
 
 const bool Mouse::is_on_world_grid() const {
-    return grid_position.x >= 0 && grid_position.y >= 0;
+    return 
+        grid_position.x >= 0 && 
+        grid_position.y >= 0 && 
+        grid_position.x < constants::MAP_SIZE_N_TILES &&
+        grid_position.y < constants::MAP_SIZE_N_TILES;
 }
 
 const uint32_t Mouse::get_mouse_state() const {

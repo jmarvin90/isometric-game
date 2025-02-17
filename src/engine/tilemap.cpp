@@ -34,12 +34,15 @@ entt::entity TileMap::at(const int x, const int y) const {
 }
 
 // Public function converting x, y tilemap coordinates to screen coordinates
-glm::ivec2 TileMap::grid_to_pixel(const int x, const int y) const {
-    int x_offset {x-y};
-    int y_offset {y+x};
+glm::ivec2 TileMap::grid_to_pixel(const glm::ivec2& grid_pos) const {
+    
+    glm::ivec2 offset {
+        (grid_pos.x - grid_pos.y) * constants::TILE_SIZE_HALF.x, 
+        (grid_pos.y + grid_pos.x) * constants::TILE_SIZE_HALF.y
+    };
+
     return glm::ivec2 {
         // TODO: investigate streamlining this into a glm::vec2 op
-        constants::TILEMAP_START.x + (x_offset * constants::TILE_SIZE_HALF.x),
-        constants::TILEMAP_START.y + (y_offset * constants::TILE_SIZE_HALF.y)
+        constants::TILEMAP_START + offset
     };
 }
