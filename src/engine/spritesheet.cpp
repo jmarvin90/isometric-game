@@ -69,3 +69,7 @@ SpriteSheet::SpriteSheet(
         );
     }    
 }
+
+SpriteSheet::~SpriteSheet() {
+    SDL_DestroyTexture(spritesheet);
+}
