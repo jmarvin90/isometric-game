@@ -66,7 +66,7 @@ void Game::load_tilemap() {
             registry.emplace<Transform>(entity, position, 0, 0.0);
 
             std::string tilepng;
-
+            
             if (x == 8 && y == 1) {
                 tilepng = "cityTiles_119.png";
             } else if (y==1) {
