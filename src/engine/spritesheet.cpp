@@ -71,6 +71,7 @@ SpriteSheet::SpriteSheet(
 }
 
 SpriteSheet::~SpriteSheet() {
+    spdlog::info("SpriteSheet destructor called.");
     SDL_DestroyTexture(spritesheet);
 }
 
