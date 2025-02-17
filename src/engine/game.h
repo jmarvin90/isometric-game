@@ -40,7 +40,8 @@ class Game {
     SDL_Rect render_rect;
     
     // Todo: read re. asset stores
-    std::unordered_map<std::string, SpriteSheet> sprite_sheets;
+    std::optional<SpriteSheet> city_tiles;
+    std::optional<SpriteSheet> building_tiles;
 
     void load_spritesheets();
     void load_tilemap();

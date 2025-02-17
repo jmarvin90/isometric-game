@@ -42,23 +42,15 @@ Game::~Game() {
 
 void Game::load_spritesheets() {
     spdlog::info("Loading spritesheets");
-    const std::string map_tile_png_path = "/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-city/Spritesheet/cityTiles_sheet.png";
-    const std::string map_atlas_path = "/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-city/Spritesheet/cityTiles_sheet.xml";
 
-    const std::string building_tile_png_path = "/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.png";
-    const std::string building_atlas_path = "/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.xml";
-
-    sprite_sheets.emplace(
-        std::piecewise_construct,
-        std::forward_as_tuple("city_tiles"),
-        std::forward_as_tuple(map_tile_png_path, map_atlas_path, renderer)
+    city_tiles.emplace(
+        constants::map_tile_png_path, constants::map_atlas_path, renderer
     );
 
-    sprite_sheets.emplace(
-        std::piecewise_construct,
-        std::forward_as_tuple("building_tiles"),
-        std::forward_as_tuple(building_tile_png_path, building_atlas_path, renderer)
+    building_tiles.emplace(
+        constants::building_tile_png_path, constants::building_atlas_path, renderer
     );
+
     spdlog::info("Sprites loaded");
 }
 
@@ -85,8 +77,8 @@ void Game::load_tilemap() {
 
             registry.emplace<Sprite>(
                 entity, 
-                sprite_sheets.at("city_tiles").spritesheet,
-                sprite_sheets.at("city_tiles").sprites.at(tilepng)
+                city_tiles->get_spritesheet_texture(),
+                city_tiles->get_sprite_rect(tilepng)
             );
         }
     }
@@ -100,7 +92,7 @@ void Game::initialise(const std::string textures_path) {
     SDL_Init(SDL_INIT_EVERYTHING);
 
     SDL_GetDesktopDisplayMode(0, &display_mode);
-    camera = Camera(display_mode);
+    camera.emplace(display_mode);
 
     // Create the SDL Window
     window = SDL_CreateWindow(

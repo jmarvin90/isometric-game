@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <string>
+
 #include <glm/glm.hpp>
 
 namespace constants {
@@ -32,6 +34,12 @@ namespace constants {
     inline constexpr glm::ivec2 OFFSET_TILEMAP_START    {TILEMAP_START - glm::ivec2{0, MIN_TILE_DEPTH}};
 
     inline constexpr int CAMERA_BORDER_PX               {80};
+
+    const std::string map_tile_png_path {"/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-city/Spritesheet/cityTiles_sheet.png"};
+    const std::string map_atlas_path {"/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-city/Spritesheet/cityTiles_sheet.xml"};
+
+    const std::string building_tile_png_path {"/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.png"};
+    const std::string building_atlas_path {"/home/marv/Documents/Projects/isometric-game/assets/kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.xml"};
 
     enum Directions {
         NO_DIRECTION,
