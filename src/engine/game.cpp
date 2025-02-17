@@ -1,8 +1,14 @@
 #include <string>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <utility>
 
 #include <glm/glm.hpp>
 #include <SDL2/SDL_image.h>
+#include <rapidxml/rapidxml.hpp>
+#include <rapidxml/rapidxml_utils.hpp>
+#include <rapidxml/rapidxml_print.hpp>
 #include <entt/entt.hpp>
 #include <spdlog/spdlog.h>
 #include <imgui.h>
@@ -11,6 +17,7 @@
 
 #include "constants.h"
 #include "game.h"
+#include "spritesheet.h"
 
 #include "components/transform.h"
 #include "components/sprite.h"
@@ -33,31 +40,18 @@ Game::~Game() {
     spdlog::info("Game destuctor called.");
 }
 
-void Game::load_textures(const std::string& directory){
+void Game::load_spritesheets() {
+    spdlog::info("Loading spritesheets");
 
-    std::filesystem::path textures_dir{directory};
+    city_tiles.emplace(
+        constants::map_tile_png_path, constants::map_atlas_path, renderer
+    );
 
-    for (auto const& entry: std::filesystem::directory_iterator{textures_dir}) {
+    building_tiles.emplace(
+        constants::building_tile_png_path, constants::building_atlas_path, renderer
+    );
 
-        SDL_Surface* surface {IMG_Load(entry.path().c_str())};
-        if (!surface) {
-            spdlog::info(
-                "Could not load texture from path: " + 
-                entry.path().string()
-            );
-        }
-
-        SDL_Texture* texture {SDL_CreateTextureFromSurface(renderer, surface)};
-        if (!texture) {
-            spdlog::info(
-                "Could not load texture from surface using image: " +
-                entry.path().string()
-            );
-        }
-
-        SDL_FreeSurface(surface);
-        textures.emplace(entry.path().filename().string(), texture);
-    }
+    spdlog::info("Sprites loaded");
 }
 
 void Game::load_tilemap() {
@@ -70,7 +64,22 @@ void Game::load_tilemap() {
             entt::entity entity {tilemap.at(x, y)};
             
             registry.emplace<Transform>(entity, position, 0, 0.0);
-            registry.emplace<Sprite>(entity, textures["green.png"]);
+
+            std::string tilepng;
+
+            if (x == 8 && y == 1) {
+                tilepng = "cityTiles_119.png";
+            } else if (y==1) {
+                tilepng = "cityTiles_036.png";
+            } else {
+                tilepng = "cityTiles_072.png";
+            }
+
+            registry.emplace<Sprite>(
+                entity, 
+                city_tiles->get_spritesheet_texture(),
+                city_tiles->get_sprite_rect(tilepng)
+            );
         }
     }
 }
@@ -79,11 +88,11 @@ entt::entity Game::create_entity() {
     return registry.create();
 }
 
-void Game::initialise(const std::string textures_path) {
+void Game::initialise() {
     SDL_Init(SDL_INIT_EVERYTHING);
 
     SDL_GetDesktopDisplayMode(0, &display_mode);
-    camera = Camera(display_mode);
+    camera.emplace(display_mode);
 
     // Create the SDL Window
     window = SDL_CreateWindow(
@@ -110,7 +119,7 @@ void Game::initialise(const std::string textures_path) {
         spdlog::error("Could not initialise the SDL Renderer.");
     }
 
-    load_textures(textures_path);
+    load_spritesheets();
     load_tilemap();
 
     render_rect = {20, 20, display_mode.w - 40, display_mode.h - 40};
@@ -177,8 +186,9 @@ void Game::render() {
 
     render_sprites(registry, camera_position, renderer, render_rect, debug_mode);
 
+    // TODO: Update
     if (debug_mode) {
-        render_imgui_gui(renderer, registry, textures, mouse);
+        render_imgui_gui(renderer, registry, mouse);
     }
 
     SDL_RenderPresent(renderer);

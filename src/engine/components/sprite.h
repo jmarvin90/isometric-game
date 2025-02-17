@@ -7,15 +7,21 @@
 #include "constants.h"
 
 struct Sprite {
+    // to be replaced with an asset identifier?
     SDL_Texture* texture;
-    int height_px;
-    int width_px;
+    SDL_Rect& source_rect;
     glm::vec2 offset;
-    Sprite(SDL_Texture* texture):
-        texture{texture} {
-            SDL_QueryTexture(texture, NULL, NULL, &width_px, &height_px);
-            offset = {0, constants::TILE_SIZE.y - height_px};
-        }
+
+    Sprite(
+        SDL_Texture* texture,
+        SDL_Rect& source_rect
+    ): 
+        texture{texture}, 
+        source_rect{source_rect},
+        offset{
+            constants::TILE_SIZE.x - source_rect.w, 
+            constants::TILE_SIZE.y - source_rect.h
+        } {}
 };
 
 #endif

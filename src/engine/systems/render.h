@@ -23,8 +23,8 @@ SDL_FRect get_render_target(const Transform& transform, const Sprite& sprite, co
     return SDL_FRect {
         position.x,
         position.y,
-        static_cast<float>(sprite.width_px),
-        static_cast<float>(sprite.height_px)
+        static_cast<float>(sprite.source_rect.w),
+        static_cast<float>(sprite.source_rect.h)
     };
 }
 
@@ -36,14 +36,12 @@ void render_sprite(
     const Sprite& sprite,
     bool render_bounding_box
 ) {
-
-    SDL_Rect source_rect {0, 0, sprite.width_px, sprite.height_px};
     SDL_FRect dest_rect {get_render_target(transform, sprite, camera)};
 
     SDL_RenderCopyExF(
         renderer,
         sprite.texture,
-        &source_rect,
+        &sprite.source_rect,
         &dest_rect,
         transform.rotation,
         NULL,

@@ -13,6 +13,7 @@
 #include "mouse.h"
 #include "camera.h"
 #include "constants.h"
+#include "spritesheet.h"
 
 class Game {
     bool is_running {false};
@@ -39,9 +40,10 @@ class Game {
     SDL_Rect render_rect;
     
     // Todo: read re. asset stores
-    std::unordered_map<std::string, SDL_Texture*> textures;
+    std::optional<SpriteSheet> city_tiles;
+    std::optional<SpriteSheet> building_tiles;
 
-    void load_textures(const std::string& directory);
+    void load_spritesheets();
     void load_tilemap();
     void process_input();
     void update(const float delta_time);
@@ -57,16 +59,12 @@ class Game {
         // TODO: define operator= method to enable -Weffc++
         // ...operator=(const Game&) ...;
 
-        void initialise(const std::string textures_path);
+        void initialise();
         void run();
         void destroy();
 
         const TileMap& get_tilemap() {
             return tilemap;
-        }
-
-        SDL_Texture* const fetch_texture(const std::string& index) {
-            return textures[index];
         }
 
         entt::entity create_entity();
