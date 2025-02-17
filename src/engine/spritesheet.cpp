@@ -75,10 +75,10 @@ SpriteSheet::~SpriteSheet() {
     SDL_DestroyTexture(spritesheet);
 }
 
-SDL_Rect& SpriteSheet::get_sprite_rect(const std::string& sprite_name) {
+const SDL_Rect& SpriteSheet::get_sprite_rect(const std::string& sprite_name) const {
     return sprites.at(sprite_name);
 }
 
-SDL_Texture* SpriteSheet::get_spritesheet_texture() {
+SDL_Texture* SpriteSheet::get_spritesheet_texture() const {
     return spritesheet;
 }
