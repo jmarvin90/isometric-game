@@ -9,12 +9,12 @@
 struct Sprite {
     // to be replaced with an asset identifier?
     SDL_Texture* texture;
-    SDL_Rect& source_rect;
-    glm::vec2 offset;
+    const SDL_Rect& source_rect;
+    const glm::vec2 offset;
 
     Sprite(
         SDL_Texture* texture,
-        SDL_Rect& source_rect
+        const SDL_Rect& source_rect
     ): 
         texture{texture}, 
         source_rect{source_rect},

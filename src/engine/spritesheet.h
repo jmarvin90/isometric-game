@@ -7,11 +7,11 @@
 
 
 class SpriteSheet {
-    std::string image_path;
-    std::string atlas_path;
+    const std::string image_path;
+    const std::string atlas_path;
 
     /* TODO: the attributes perhaps should be private! */
-    std::unordered_map<std::string, SDL_Rect> sprites;
+    std::unordered_map<std::string, const SDL_Rect> sprites;
     SDL_Texture* spritesheet;
 
     public:
@@ -20,8 +20,8 @@ class SpriteSheet {
         ~SpriteSheet();
         
         // Not yet implemented/used
-        SDL_Rect& get_sprite_rect(const std::string& sprite_name);
-        SDL_Texture* get_spritesheet_texture();
+        const SDL_Rect& get_sprite_rect(const std::string& sprite_name) const;
+        SDL_Texture* get_spritesheet_texture() const;
 };
 
 #endif
