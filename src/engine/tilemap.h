@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 
 class TileMap {
-    std::vector<std::vector<entt::entity>> tilemap;
+    std::vector<entt::entity> tilemap;
     
     public:
         TileMap(entt::registry& registry);
