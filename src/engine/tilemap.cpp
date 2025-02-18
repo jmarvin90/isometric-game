@@ -14,12 +14,8 @@ TileMap::TileMap(entt::registry& registry) {
     spdlog::info("TileMap constructor called.");
 
     // Create the entities associated with the map
-    for (int x=0; x<constants::MAP_SIZE_N_TILES; x++) {
-        std::vector<entt::entity> row;
-        for (int y=0; y<constants::MAP_SIZE_N_TILES; y++) {
-            row.push_back(registry.create());
-        }
-        tilemap.push_back(row);
+    for (int cell=0; cell<pow(constants::MAP_SIZE_N_TILES, 2); cell++) {
+        tilemap.emplace_back(registry.create());
     }
 }
 
@@ -30,7 +26,7 @@ TileMap::~TileMap() {
 
 // Get an entity from tilemap position x, y
 entt::entity TileMap::at(const int x, const int y) const {
-    return tilemap.at(x).at(y);
+    return tilemap.at((y * constants::MAP_SIZE_N_TILES) + x);
 }
 
 // Public function converting x, y tilemap coordinates to screen coordinates
