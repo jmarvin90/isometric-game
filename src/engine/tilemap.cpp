@@ -10,7 +10,9 @@
 
 
 // Create the vector of tile entities and load the mousemap surface.
-TileMap::TileMap(entt::registry& registry) {
+TileMap::TileMap(entt::registry& registry): 
+    tilemap(pow(constants::MAP_SIZE_N_TILES, 2)) 
+{
     spdlog::info("TileMap constructor called.");
 
     // Create the entities associated with the map
