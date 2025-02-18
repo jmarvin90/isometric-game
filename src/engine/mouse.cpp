@@ -19,11 +19,13 @@ Mouse::~Mouse() {
 void Mouse::update(const glm::ivec2& camera_position) {
     // Update the current & previous window position
     window_previous_position = window_current_position;
-    mouse_state = SDL_GetMouseState(&window_current_position.x, &window_current_position.y);
+    mouse_state = SDL_GetMouseState(
+        &window_current_position.x, 
+        &window_current_position.y
+    );
 
     // Update the world position
-    world_position.x = window_current_position.x + camera_position.x;
-    world_position.y = window_current_position.y + camera_position.y;
+    world_position = window_current_position + camera_position;
 
     // Update the current grid position
     grid_position = mousemap.pixel_to_grid(world_position);

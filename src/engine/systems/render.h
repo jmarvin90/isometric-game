@@ -10,13 +10,6 @@
 #include "sprite.h"
 #include "constants.h"
 
-// Allow us to perform substraction with a vec2 and an SDL_Rect
-glm::vec2& operator-(glm::vec2& lhs, const SDL_Rect& rhs) {
-    lhs.x -= rhs.x;
-    lhs.y -= rhs.y;
-    return lhs;
-}
-
 SDL_FRect get_render_target(const Transform& transform, const Sprite& sprite, const glm::ivec2& camera) {
     glm::vec2 position {transform.position + sprite.offset};
     position -= camera;

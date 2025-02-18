@@ -2,7 +2,10 @@
 #define CONSTANTS_H
 
 #include <string>
+#include <vector>
+#include <array>
 
+#include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 
 namespace constants {
@@ -69,6 +72,46 @@ namespace constants {
         glm::ivec2{0, -1},                      // UP
         glm::ivec2{1, 0},                       // RIGHT
         glm::ivec2{0, 1}                        // DOWN
+    };
+
+    enum PointsOnTile {
+        TOP_LEFT,
+        LEFT_MIDDLE,
+        BOTTOM_LEFT,
+        TOP_MIDDLE,
+        BOTTOM_MIDDLE,
+        TOP_RIGHT,
+        RIGHT_MIDDLE,
+        BOTTOM_RIGHT,
+    };
+
+    constexpr std::array<glm::ivec2, 8> points_on_tile = [](){
+        int count{};
+        std::array<glm::ivec2, 8> points = {};
+
+        for (int x=0; x<3; x++) {
+            for (int y=0; y<3; y++) {
+
+                if (x == 1 && y == 1) {
+                    continue;
+                }
+
+                points[count] = glm::ivec2{
+                    constants::TILE_SIZE_HALF * glm::ivec2{x, y}
+                };
+
+                count++;
+            }
+        }
+        return points;
+    }();
+
+    constexpr std::array<glm::ivec2, 5> tile_edge_points {
+        points_on_tile[constants::TOP_MIDDLE],
+        points_on_tile[constants::RIGHT_MIDDLE],
+        points_on_tile[constants::BOTTOM_MIDDLE],
+        points_on_tile[constants::LEFT_MIDDLE],
+        points_on_tile[constants::TOP_MIDDLE]
     };
 }
 

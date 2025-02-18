@@ -191,43 +191,32 @@ void Game::render() {
         render_imgui_gui(renderer, registry, mouse);
 
         if (mouse.is_on_world_grid()) {
+
             glm::ivec2 start_point {
-                tilemap.grid_to_pixel(mouse.get_grid_position())
+                tilemap.grid_to_pixel(mouse.get_grid_position()) - 
+                camera_position
             };
 
-            start_point.x -= camera_position.x;
-            start_point.y -= (camera_position.y + constants::MIN_TILE_DEPTH);
-
-            SDL_Point my_points[] = {
-                SDL_Point{
-                    start_point.x, start_point.y + constants::TILE_SIZE_HALF.y
-                },
-                SDL_Point{
-                    start_point.x + constants::TILE_SIZE_HALF.x, 
-                    start_point.y
-                },
-                SDL_Point{
-                    start_point.x + constants::TILE_SIZE.x, 
-                    start_point.y + constants::TILE_SIZE_HALF.y
-                },
-                SDL_Point{
-                    start_point.x + constants::TILE_SIZE_HALF.x, 
-                    start_point.y + constants::TILE_SIZE.y
-                },
-                SDL_Point{
-                    start_point.x,
-                    start_point.y + constants::TILE_SIZE_HALF.y
-                }
-            };
+            start_point.y -= constants::MIN_TILE_DEPTH;
         
             SDL_SetRenderDrawColor(
                 renderer,
                 255, 0, 0, 255
             ); 
+
+            SDL_Point points_to_draw[5] {};
+
+            for (int i=0; i<5; i++) {
+                glm::ivec2 point {
+                    (constants::tile_edge_points[i] + start_point)
+                    //  + glm::ivec2{0, constants::MIN_TILE_DEPTH} 
+                };
+                points_to_draw[i] = SDL_Point{point.x, point.y}; 
+            }
         
             SDL_RenderDrawLines(
                 renderer,
-                &my_points[0],
+                &points_to_draw[0],
                 5
                 // sizeof(my_points)
             );
