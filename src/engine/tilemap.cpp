@@ -10,11 +10,12 @@
 
 
 // Create the vector of tile entities and load the mousemap surface.
-TileMap::TileMap(entt::registry& registry): 
-    tilemap(pow(constants::MAP_SIZE_N_TILES, 2)) 
+TileMap::TileMap(entt::registry& registry)
+    // : tilemap(pow(constants::MAP_SIZE_N_TILES, 2)) 
 {
     spdlog::info("TileMap constructor called.");
 
+    // TODO - can I do this in the constructor initialiser list
     // Create the entities associated with the map
     for (int cell=0; cell<pow(constants::MAP_SIZE_N_TILES, 2); cell++) {
         tilemap.emplace_back(registry.create());
@@ -33,14 +34,10 @@ entt::entity TileMap::at(const int x, const int y) const {
 
 // Public function converting x, y tilemap coordinates to screen coordinates
 glm::ivec2 TileMap::grid_to_pixel(const glm::ivec2& grid_pos) const {
-    
-    glm::ivec2 offset {
-        (grid_pos.x - grid_pos.y) * constants::TILE_SIZE_HALF.x, 
-        (grid_pos.y + grid_pos.x) * constants::TILE_SIZE_HALF.y
-    };
-
     return glm::ivec2 {
-        // TODO: investigate streamlining this into a glm::vec2 op
-        constants::TILEMAP_START + offset
+        constants::TILEMAP_START + (
+            glm::ivec2(grid_pos.x - grid_pos.y, grid_pos.y + grid_pos.x) * 
+            constants::TILE_SIZE_HALF
+        )
     };
 }
