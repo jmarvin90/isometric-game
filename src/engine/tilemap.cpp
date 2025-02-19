@@ -15,6 +15,9 @@ TileMap::TileMap(entt::registry& registry)
 {
     spdlog::info("TileMap constructor called.");
 
+    // Reserve exactly the right amount of memory for the tilemap
+    tilemap.reserve(pow(constants::MAP_SIZE_N_TILES, 2));
+
     // TODO - can I do this in the constructor initialiser list
     // Create the entities associated with the map
     for (int cell=0; cell<pow(constants::MAP_SIZE_N_TILES, 2); cell++) {
