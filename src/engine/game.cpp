@@ -44,11 +44,11 @@ void Game::load_spritesheets() {
     spdlog::info("Loading spritesheets");
 
     city_tiles.emplace(
-        constants::map_tile_png_path, constants::map_atlas_path, renderer
+        constants::MAP_TILE_PNG_PATH, constants::MAP_ATLAS_PATH, renderer
     );
 
     building_tiles.emplace(
-        constants::building_tile_png_path, constants::building_atlas_path, renderer
+        constants::BUILDING_TILE_PNG_PATH, constants::BUILDING_ATLAS_PATH, renderer
     );
 
     spdlog::info("Sprites loaded");
@@ -91,7 +91,7 @@ void Game::load_tilemap() {
 
     entt::entity building_level {registry.create()};
     glm::ivec2 building_level_position {tilemap.grid_to_pixel({8, 0})};
-    building_level_position -= glm::ivec2{-1, (constants::MIN_TILE_DEPTH * 2) + 11};
+    building_level_position -= glm::ivec2{0, constants::GROUND_FLOOR_BUILDING_OFFSET};
     registry.emplace<Transform>(
         building_level, building_level_position, 1, 0.0
     );
@@ -103,8 +103,9 @@ void Game::load_tilemap() {
     );
 
     entt::entity second_building_level {registry.create()};
-    glm::ivec2 second_building_level_position {tilemap.grid_to_pixel({8, 0})};
-    second_building_level_position -= glm::ivec2{-1, (constants::MIN_TILE_DEPTH * 3) + 13};
+    glm::ivec2 second_building_level_position {
+        building_level_position -= glm::ivec2{0, constants::MAX_TILE_DEPTH}
+    };
     registry.emplace<Transform>(
         second_building_level, second_building_level_position, 2, 0.0
     );
@@ -116,8 +117,9 @@ void Game::load_tilemap() {
     );
 
     entt::entity final_building_level {registry.create()};
-    glm::ivec2 final_building_level_position {tilemap.grid_to_pixel({8, 0})};
-    final_building_level_position -= glm::ivec2{-1, (constants::MIN_TILE_DEPTH * 4) + 11};
+    glm::ivec2 final_building_level_position {
+        second_building_level_position -= glm::ivec2{0, constants::MAX_TILE_DEPTH}
+    };
     registry.emplace<Transform>(
         final_building_level, final_building_level_position, 3, 0.0
     );
@@ -253,7 +255,7 @@ void Game::render() {
 
             for (int i=0; i<5; i++) {
                 glm::ivec2 point {
-                    (constants::tile_edge_points[i] + start_point)
+                    (constants::TILE_EDGE_POINTS[i] + start_point)
                     //  + glm::ivec2{0, constants::MIN_TILE_DEPTH} 
                 };
                 points_to_draw[i] = SDL_Point{point.x, point.y}; 

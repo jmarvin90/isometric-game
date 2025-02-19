@@ -49,26 +49,26 @@ SDL_Color MouseMap::mousemap_pixel_colour(const glm::ivec2& pixel_offset) const 
 glm::ivec2 MouseMap::pixel_colour_vector(const SDL_Colour& colour) const {
 
     if (colour.r == 255 && colour.g == 255 && colour.b == 255) {
-        return constants::directions[constants::NO_DIRECTION];
+        return constants::DIRECTIONS[constants::NO_DIRECTION];
     }
 
     if (colour.r == 255) {
-        return constants::directions[constants::LEFT];
+        return constants::DIRECTIONS[constants::LEFT];
     }
 
     if (colour.g == 255) {
-        return constants::directions[constants::UP];
+        return constants::DIRECTIONS[constants::UP];
     }
 
     if (colour.b == 255) {
-        return constants::directions[constants::RIGHT];
+        return constants::DIRECTIONS[constants::RIGHT];
     }
 
     if (colour.r == 0 && colour.g == 0 && colour.b == 0) {
-        return constants::directions[constants::DOWN];
+        return constants::DIRECTIONS[constants::DOWN];
     }
 
-    return constants::directions[constants::NO_DIRECTION];
+    return constants::DIRECTIONS[constants::NO_DIRECTION];
 }
 
 // Calculate the 'coarse' grid position tile walk map

@@ -34,26 +34,28 @@ namespace constants {
         accounting for how tall the tiles are.
     */
     inline constexpr int MIN_TILE_DEPTH                 {33};
+    inline constexpr int MAX_TILE_DEPTH                 {34};
+    inline constexpr int GROUND_FLOOR_BUILDING_OFFSET   {77};
     inline constexpr glm::ivec2 OFFSET_TILEMAP_START    {TILEMAP_START - glm::ivec2{0, MIN_TILE_DEPTH}};
 
     inline constexpr int CAMERA_BORDER_PX               {80};
 
-    const std::string map_tile_png_path {
+    const std::string MAP_TILE_PNG_PATH {
         "/home/marv/Documents/Projects/isometric-game/assets/"
         "kenney_isometric-city/Spritesheet/cityTiles_sheet.png"
     };
 
-    const std::string map_atlas_path {
+    const std::string MAP_ATLAS_PATH {
         "/home/marv/Documents/Projects/isometric-game/assets/"
         "kenney_isometric-city/Spritesheet/cityTiles_sheet.xml"
     };
 
-    const std::string building_tile_png_path {
+    const std::string BUILDING_TILE_PNG_PATH {
         "/home/marv/Documents/Projects/isometric-game/assets/"
         "kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.png"
     };
 
-    const std::string building_atlas_path {
+    const std::string BUILDING_ATLAS_PATH {
         "/home/marv/Documents/Projects/isometric-game/assets/"
         "kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.xml"
     };
@@ -66,7 +68,7 @@ namespace constants {
         DOWN
     };
 
-    inline constexpr glm::ivec2 directions[5] {
+    inline constexpr glm::ivec2 DIRECTIONS[5] {
         glm::ivec2{0, 0},                       // NO_DIRECTION
         glm::ivec2{-1, 0},                      // LEFT
         glm::ivec2{0, -1},                      // UP
@@ -85,7 +87,7 @@ namespace constants {
         BOTTOM_RIGHT,
     };
 
-    constexpr std::array<glm::ivec2, 8> points_on_tile = [](){
+    constexpr std::array<glm::ivec2, 8> POINTS_ON_TILE = [](){
         int count{};
         std::array<glm::ivec2, 8> points = {};
 
@@ -106,12 +108,12 @@ namespace constants {
         return points;
     }();
 
-    constexpr std::array<glm::ivec2, 5> tile_edge_points {
-        points_on_tile[constants::TOP_MIDDLE],
-        points_on_tile[constants::RIGHT_MIDDLE],
-        points_on_tile[constants::BOTTOM_MIDDLE],
-        points_on_tile[constants::LEFT_MIDDLE],
-        points_on_tile[constants::TOP_MIDDLE]
+    constexpr std::array<glm::ivec2, 5> TILE_EDGE_POINTS {
+        POINTS_ON_TILE[constants::TOP_MIDDLE],
+        POINTS_ON_TILE[constants::RIGHT_MIDDLE],
+        POINTS_ON_TILE[constants::BOTTOM_MIDDLE],
+        POINTS_ON_TILE[constants::LEFT_MIDDLE],
+        POINTS_ON_TILE[constants::TOP_MIDDLE]
     };
 }
 
