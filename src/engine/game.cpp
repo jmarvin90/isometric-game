@@ -67,21 +67,66 @@ void Game::load_tilemap() {
 
             std::string tilepng;
 
-            if (x == 8 && y == 1) {
-                tilepng = "cityTiles_119.png";
+            if (x == 8 && y == 0) {
+                registry.emplace<Sprite>(
+                    entity, 
+                    building_tiles->get_spritesheet_texture(),
+                    building_tiles->get_sprite_rect("buildingTiles_014.png")
+                );
             } else if (y==1) {
-                tilepng = "cityTiles_036.png";
+                registry.emplace<Sprite>(
+                    entity, 
+                    city_tiles->get_spritesheet_texture(),
+                    city_tiles->get_sprite_rect("cityTiles_036.png")
+                );
             } else {
-                tilepng = "cityTiles_072.png";
+                registry.emplace<Sprite>(
+                    entity, 
+                    city_tiles->get_spritesheet_texture(),
+                    city_tiles->get_sprite_rect("cityTiles_072.png")
+                );
             }
-
-            registry.emplace<Sprite>(
-                entity, 
-                city_tiles->get_spritesheet_texture(),
-                city_tiles->get_sprite_rect(tilepng)
-            );
         }
     }
+
+    entt::entity building_level {registry.create()};
+    glm::ivec2 building_level_position {tilemap.grid_to_pixel({8, 0})};
+    building_level_position -= glm::ivec2{-1, (constants::MIN_TILE_DEPTH * 2) + 11};
+    registry.emplace<Transform>(
+        building_level, building_level_position, 1, 0.0
+    );
+
+    registry.emplace<Sprite>(
+        building_level, 
+        building_tiles->get_spritesheet_texture(),
+        building_tiles->get_sprite_rect("buildingTiles_043.png")
+    );
+
+    entt::entity second_building_level {registry.create()};
+    glm::ivec2 second_building_level_position {tilemap.grid_to_pixel({8, 0})};
+    second_building_level_position -= glm::ivec2{-1, (constants::MIN_TILE_DEPTH * 3) + 13};
+    registry.emplace<Transform>(
+        second_building_level, second_building_level_position, 2, 0.0
+    );
+
+    registry.emplace<Sprite>(
+        second_building_level, 
+        building_tiles->get_spritesheet_texture(),
+        building_tiles->get_sprite_rect("buildingTiles_043.png")
+    );
+
+    entt::entity final_building_level {registry.create()};
+    glm::ivec2 final_building_level_position {tilemap.grid_to_pixel({8, 0})};
+    final_building_level_position -= glm::ivec2{-1, (constants::MIN_TILE_DEPTH * 4) + 11};
+    registry.emplace<Transform>(
+        final_building_level, final_building_level_position, 3, 0.0
+    );
+
+    registry.emplace<Sprite>(
+        final_building_level, 
+        building_tiles->get_spritesheet_texture(),
+        building_tiles->get_sprite_rect("buildingTiles_058.png")
+    );
 }
 
 entt::entity Game::create_entity() {

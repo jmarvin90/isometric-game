@@ -18,8 +18,15 @@ struct Sprite {
     ): 
         texture{texture}, 
         source_rect{source_rect},
+        /* 
+            TODO: determine how the offset should work.
+
+            Here, we basically determine that the BOTTOM MIDDLE of the portion
+            of the texture we're rendering should be aligned to the BOTTOM MIDDLE
+            of the tile we're rendering it into.
+        */
         offset{
-            constants::TILE_SIZE.x - source_rect.w, 
+            (constants::TILE_SIZE.x - source_rect.w) / 2, 
             constants::TILE_SIZE.y - source_rect.h
         } {}
 };

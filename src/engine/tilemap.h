@@ -1,8 +1,6 @@
 #ifndef TILEMAP_H
 #define TILEMAP_H
 
-#include <cmath>
-
 #include <entt/entt.hpp>
 #include <vector>
 #include <glm/glm.hpp>
