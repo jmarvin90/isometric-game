@@ -6,14 +6,14 @@
 #include "constants.h"
 
 class Camera {
-    SDL_Rect camera_position;
+    SDL_Rect camera_area;
 
     public:
         Camera(const SDL_DisplayMode& display_mode);
         ~Camera() = default;
 
         void update(const SDL_DisplayMode& display_mode, const glm::ivec2& mouse_screen_position);
-        const SDL_Rect& get_position() const;
+        const glm::ivec2 get_position() const;
 };
 
 #endif

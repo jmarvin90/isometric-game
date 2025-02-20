@@ -9,8 +9,6 @@
 class SpriteSheet {
     const std::string image_path;
     const std::string atlas_path;
-
-    /* TODO: the attributes perhaps should be private! */
     std::unordered_map<std::string, const SDL_Rect> sprites;
     SDL_Texture* spritesheet;
 

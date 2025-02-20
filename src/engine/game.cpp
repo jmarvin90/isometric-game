@@ -44,11 +44,11 @@ void Game::load_spritesheets() {
     spdlog::info("Loading spritesheets");
 
     city_tiles.emplace(
-        constants::map_tile_png_path, constants::map_atlas_path, renderer
+        constants::MAP_TILE_PNG_PATH, constants::MAP_ATLAS_PATH, renderer
     );
 
     building_tiles.emplace(
-        constants::building_tile_png_path, constants::building_atlas_path, renderer
+        constants::BUILDING_TILE_PNG_PATH, constants::BUILDING_ATLAS_PATH, renderer
     );
 
     spdlog::info("Sprites loaded");
@@ -59,7 +59,7 @@ void Game::load_tilemap() {
     for (int y=0; y<constants::MAP_SIZE_N_TILES; y++) {
         for (int x=0; x<constants::MAP_SIZE_N_TILES; x++) {
 
-            glm::ivec2 position {tilemap.grid_to_pixel(x, y)};
+            glm::ivec2 position {tilemap.grid_to_pixel({x, y})};
 
             entt::entity entity {tilemap.at(x, y)};
             
@@ -67,21 +67,68 @@ void Game::load_tilemap() {
 
             std::string tilepng;
 
-            if (x == 8 && y == 1) {
-                tilepng = "cityTiles_119.png";
+            if (x == 8 && y == 0) {
+                registry.emplace<Sprite>(
+                    entity, 
+                    building_tiles->get_spritesheet_texture(),
+                    building_tiles->get_sprite_rect("buildingTiles_014.png")
+                );
             } else if (y==1) {
-                tilepng = "cityTiles_036.png";
+                registry.emplace<Sprite>(
+                    entity, 
+                    city_tiles->get_spritesheet_texture(),
+                    city_tiles->get_sprite_rect("cityTiles_036.png")
+                );
             } else {
-                tilepng = "cityTiles_072.png";
+                registry.emplace<Sprite>(
+                    entity, 
+                    city_tiles->get_spritesheet_texture(),
+                    city_tiles->get_sprite_rect("cityTiles_072.png")
+                );
             }
-
-            registry.emplace<Sprite>(
-                entity, 
-                city_tiles->get_spritesheet_texture(),
-                city_tiles->get_sprite_rect(tilepng)
-            );
         }
     }
+
+    entt::entity building_level {registry.create()};
+    glm::ivec2 building_level_position {tilemap.grid_to_pixel({8, 0})};
+    building_level_position -= glm::ivec2{0, constants::GROUND_FLOOR_BUILDING_OFFSET};
+    registry.emplace<Transform>(
+        building_level, building_level_position, 1, 0.0
+    );
+
+    registry.emplace<Sprite>(
+        building_level, 
+        building_tiles->get_spritesheet_texture(),
+        building_tiles->get_sprite_rect("buildingTiles_043.png")
+    );
+
+    entt::entity second_building_level {registry.create()};
+    glm::ivec2 second_building_level_position {
+        building_level_position -= glm::ivec2{0, constants::MAX_TILE_DEPTH}
+    };
+    registry.emplace<Transform>(
+        second_building_level, second_building_level_position, 2, 0.0
+    );
+
+    registry.emplace<Sprite>(
+        second_building_level, 
+        building_tiles->get_spritesheet_texture(),
+        building_tiles->get_sprite_rect("buildingTiles_043.png")
+    );
+
+    entt::entity final_building_level {registry.create()};
+    glm::ivec2 final_building_level_position {
+        second_building_level_position -= glm::ivec2{0, constants::MAX_TILE_DEPTH}
+    };
+    registry.emplace<Transform>(
+        final_building_level, final_building_level_position, 3, 0.0
+    );
+
+    registry.emplace<Sprite>(
+        final_building_level, 
+        building_tiles->get_spritesheet_texture(),
+        building_tiles->get_sprite_rect("buildingTiles_058.png")
+    );
 }
 
 entt::entity Game::create_entity() {
@@ -180,7 +227,7 @@ void Game::render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
-    const SDL_Rect& camera_position {camera->get_position()};
+    const glm::ivec2 camera_position {camera->get_position()};
 
     registry.sort<Transform>(transform_comparison);
 
@@ -189,6 +236,38 @@ void Game::render() {
     // TODO: Update
     if (debug_mode) {
         render_imgui_gui(renderer, registry, mouse);
+
+        if (mouse.is_on_world_grid()) {
+
+            glm::ivec2 start_point {
+                tilemap.grid_to_pixel(mouse.get_grid_position()) - 
+                camera_position
+            };
+
+            start_point.y -= constants::MIN_TILE_DEPTH;
+        
+            SDL_SetRenderDrawColor(
+                renderer,
+                255, 0, 0, 255
+            ); 
+
+            SDL_Point points_to_draw[5] {};
+
+            for (int i=0; i<5; i++) {
+                glm::ivec2 point {
+                    (constants::TILE_EDGE_POINTS[i] + start_point)
+                    //  + glm::ivec2{0, constants::MIN_TILE_DEPTH} 
+                };
+                points_to_draw[i] = SDL_Point{point.x, point.y}; 
+            }
+        
+            SDL_RenderDrawLines(
+                renderer,
+                &points_to_draw[0],
+                5
+                // sizeof(my_points)
+            );
+        }
     }
 
     SDL_RenderPresent(renderer);

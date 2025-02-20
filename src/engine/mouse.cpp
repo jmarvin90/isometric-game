@@ -16,14 +16,16 @@ Mouse::~Mouse() {
     spdlog::info("Mouse destructor called.");
 }
 
-void Mouse::update(const SDL_Rect& camera) {
+void Mouse::update(const glm::ivec2& camera_position) {
     // Update the current & previous window position
     window_previous_position = window_current_position;
-    mouse_state = SDL_GetMouseState(&window_current_position.x, &window_current_position.y);
+    mouse_state = SDL_GetMouseState(
+        &window_current_position.x, 
+        &window_current_position.y
+    );
 
     // Update the world position
-    world_position.x = window_current_position.x + camera.x;
-    world_position.y = window_current_position.y + camera.y;
+    world_position = window_current_position + camera_position;
 
     // Update the current grid position
     grid_position = mousemap.pixel_to_grid(world_position);
@@ -46,7 +48,11 @@ const bool Mouse::has_moved_this_frame() const {
 }
 
 const bool Mouse::is_on_world_grid() const {
-    return grid_position.x >= 0 && grid_position.y >= 0;
+    return 
+        grid_position.x >= 0 && 
+        grid_position.y >= 0 && 
+        grid_position.x < constants::MAP_SIZE_N_TILES &&
+        grid_position.y < constants::MAP_SIZE_N_TILES;
 }
 
 const uint32_t Mouse::get_mouse_state() const {
