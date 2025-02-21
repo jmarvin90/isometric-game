@@ -38,10 +38,6 @@ class Game {
 
     // Investigate whether this is redundant!
     SDL_Rect render_rect;
-    
-    // Todo: read re. asset stores
-    std::optional<SpriteSheet> city_tiles;
-    std::optional<SpriteSheet> building_tiles;
 
     void load_spritesheets();
     void load_tilemap();
@@ -50,6 +46,11 @@ class Game {
     void render();
 
     public:
+
+        // Todo: read re. asset stores; make private if necessary
+        std::optional<SpriteSheet> city_tiles;
+        std::optional<SpriteSheet> building_tiles;
+
         Game();
         ~Game();
 

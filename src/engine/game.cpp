@@ -60,7 +60,6 @@ void Game::load_tilemap() {
         for (int x=0; x<constants::MAP_SIZE_N_TILES; x++) {
 
             glm::ivec2 position {tilemap.at(x, y).world_position()};
-            // glm::ivec2 position {tilemap.grid_to_pixel({x, y})};
 
             entt::entity entity {tilemap.at(x, y).get_entity()};
             
@@ -68,12 +67,18 @@ void Game::load_tilemap() {
 
             std::string tilepng;
 
-            if (x == 8 && y == 0) {
+            if ((x == 8 || x == 7) && y == 0) {
                 registry.emplace<Sprite>(
                     entity, 
                     building_tiles->get_spritesheet_texture(),
                     building_tiles->get_sprite_rect("buildingTiles_014.png")
                 );
+            } else if (x == 6 && y == 2) {
+                registry.emplace<Sprite>(
+                    entity, 
+                    building_tiles->get_spritesheet_texture(),
+                    building_tiles->get_sprite_rect("buildingTiles_028.png")
+                );  
             } else if (y==1) {
                 registry.emplace<Sprite>(
                     entity, 
@@ -89,32 +94,6 @@ void Game::load_tilemap() {
             }
         }
     }
-
-    tilemap.at(8, 0).add_building_level(
-        building_tiles->get_spritesheet_texture(),
-        building_tiles->get_sprite_rect("buildingTiles_043.png")
-    );
-
-    tilemap.at(8, 0).add_building_level(
-        building_tiles->get_spritesheet_texture(),
-        building_tiles->get_sprite_rect("buildingTiles_043.png")
-    );
-
-    tilemap.at(8, 0).add_building_level(
-        building_tiles->get_spritesheet_texture(),
-        building_tiles->get_sprite_rect("buildingTiles_043.png")
-    );
-
-    tilemap.at(8, 0).add_building_level(
-        building_tiles->get_spritesheet_texture(),
-        building_tiles->get_sprite_rect("buildingTiles_043.png")
-    );
-
-    tilemap.at(8, 0).add_building_level(
-        building_tiles->get_spritesheet_texture(),
-        building_tiles->get_sprite_rect("buildingTiles_043.png")
-    );
-
 }
 
 entt::entity Game::create_entity() {
