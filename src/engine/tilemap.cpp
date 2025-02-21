@@ -30,6 +30,10 @@ const glm::ivec2 Tile::world_position() const {
     };
 }
 
+Tile::~Tile() {
+    registry.destroy(entity);
+}
+
 entt::entity Tile::add_building_level(SDL_Texture* texture, SDL_Rect sprite_rect) {
 
     // Create the entity and get the 'z-index'

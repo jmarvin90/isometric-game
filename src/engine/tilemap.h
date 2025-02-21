@@ -15,6 +15,7 @@ class Tile {
 
     public:
         Tile(entt::registry& registry, const glm::ivec2 grid_position);
+        ~Tile();
         const glm::ivec2 world_position() const;
         entt::entity add_building_level(SDL_Texture* texture, SDL_Rect sprite_rect);
         entt::entity get_entity() { return entity; }
