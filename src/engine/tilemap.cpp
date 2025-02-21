@@ -31,34 +31,27 @@ const glm::ivec2 Tile::world_position() const {
 }
 
 entt::entity Tile::add_building_level(SDL_Texture* texture, SDL_Rect sprite_rect) {
+
+    // Create the entity and get the 'z-index'
     entt::entity& level {building_levels.emplace_back(registry.create())};
     auto vertical_level {building_levels.size()};
 
-    [[maybe_unused]] Transform my_transform {
-            registry.emplace<Transform>(
-            level, world_position(), vertical_level, 0.0
-        )
-    };
+    // Determine the vertical offset based on the building 'level'
+    int offset = constants::GROUND_FLOOR_BUILDING_OFFSET + (
+        (vertical_level == 1) ? 0 : constants::MAX_TILE_DEPTH * (vertical_level -1)
+    );
 
-    [[maybe_unused]]int offset{};
+    // Create the necessary components
+    registry.emplace<Transform>(
+        level, world_position(), vertical_level, 0.0
+    );
 
-    if (vertical_level == 1) {
-        offset = constants::GROUND_FLOOR_BUILDING_OFFSET;
-    } else {
-        offset = (
-            constants::GROUND_FLOOR_BUILDING_OFFSET + 
-            (constants::MAX_TILE_DEPTH * (vertical_level - 1))
-        );
-    }
-
-    Sprite my_sprite{
-        registry.emplace<Sprite>(
-            level,
-            texture,
-            sprite_rect,
-            glm::vec2{0, offset}
-        )
-    };
+    registry.emplace<Sprite>(
+        level,
+        texture,
+        sprite_rect,
+        glm::vec2{0, offset}
+    );
 
     return level;
 }
