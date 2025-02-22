@@ -16,7 +16,7 @@ namespace constants {
     inline constexpr glm::ivec2 TILE_SIZE_HALF          {TILE_SIZE / 2};
     
     inline constexpr int MAP_BORDER_PX                  {100};
-    inline constexpr int MAP_SIZE_N_TILES               {20};
+    inline constexpr int MAP_SIZE_N_TILES               {10};
     inline constexpr glm::ivec2 MAP_SIZE_PX             {TILE_SIZE * MAP_SIZE_N_TILES};
 
     inline constexpr glm::ivec2 RENDER_SPACE_SIZE_PX    {MAP_SIZE_PX + (MAP_BORDER_PX * 2)};
@@ -58,6 +58,10 @@ namespace constants {
     const std::string BUILDING_ATLAS_PATH {
         "/home/marv/Documents/Projects/isometric-game/assets/"
         "kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.xml"
+    };
+
+    const std::string MOUSE_MAP_PNG_PATH {
+        "/home/marv/Documents/Projects/isometric-game/assets/mousemap.png"
     };
 
     enum Directions {

@@ -30,7 +30,7 @@
 Game::Game(): 
     registry{entt::registry()}, 
     tilemap{registry},
-    mousemap{"/home/marv/Documents/Projects/isometric-game/assets/mousemap.png"},
+    mousemap{constants::MOUSE_MAP_PNG_PATH},
     mouse{mousemap}
 {
     spdlog::info("Game constructor called.");
@@ -59,20 +59,26 @@ void Game::load_tilemap() {
     for (int y=0; y<constants::MAP_SIZE_N_TILES; y++) {
         for (int x=0; x<constants::MAP_SIZE_N_TILES; x++) {
 
-            glm::ivec2 position {tilemap.grid_to_pixel({x, y})};
+            glm::ivec2 position {tilemap.at(x, y).world_position()};
 
-            entt::entity entity {tilemap.at(x, y)};
+            entt::entity entity {tilemap.at(x, y).get_entity()};
             
             registry.emplace<Transform>(entity, position, 0, 0.0);
 
             std::string tilepng;
 
-            if (x == 8 && y == 0) {
+            if ((x == 8 || x == 7) && y == 0) {
                 registry.emplace<Sprite>(
                     entity, 
                     building_tiles->get_spritesheet_texture(),
                     building_tiles->get_sprite_rect("buildingTiles_014.png")
                 );
+            } else if (x == 6 && y == 2) {
+                registry.emplace<Sprite>(
+                    entity, 
+                    building_tiles->get_spritesheet_texture(),
+                    building_tiles->get_sprite_rect("buildingTiles_028.png")
+                );  
             } else if (y==1) {
                 registry.emplace<Sprite>(
                     entity, 
@@ -88,47 +94,6 @@ void Game::load_tilemap() {
             }
         }
     }
-
-    entt::entity building_level {registry.create()};
-    glm::ivec2 building_level_position {tilemap.grid_to_pixel({8, 0})};
-    building_level_position -= glm::ivec2{0, constants::GROUND_FLOOR_BUILDING_OFFSET};
-    registry.emplace<Transform>(
-        building_level, building_level_position, 1, 0.0
-    );
-
-    registry.emplace<Sprite>(
-        building_level, 
-        building_tiles->get_spritesheet_texture(),
-        building_tiles->get_sprite_rect("buildingTiles_043.png")
-    );
-
-    entt::entity second_building_level {registry.create()};
-    glm::ivec2 second_building_level_position {
-        building_level_position -= glm::ivec2{0, constants::MAX_TILE_DEPTH}
-    };
-    registry.emplace<Transform>(
-        second_building_level, second_building_level_position, 2, 0.0
-    );
-
-    registry.emplace<Sprite>(
-        second_building_level, 
-        building_tiles->get_spritesheet_texture(),
-        building_tiles->get_sprite_rect("buildingTiles_043.png")
-    );
-
-    entt::entity final_building_level {registry.create()};
-    glm::ivec2 final_building_level_position {
-        second_building_level_position -= glm::ivec2{0, constants::MAX_TILE_DEPTH}
-    };
-    registry.emplace<Transform>(
-        final_building_level, final_building_level_position, 3, 0.0
-    );
-
-    registry.emplace<Sprite>(
-        final_building_level, 
-        building_tiles->get_spritesheet_texture(),
-        building_tiles->get_sprite_rect("buildingTiles_058.png")
-    );
 }
 
 entt::entity Game::create_entity() {

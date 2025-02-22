@@ -6,18 +6,33 @@
 
 #include "constants.h"
 
+/*
+    TODO: understand the implication/options re. inline function definition
+    in the header file
+*/
+
+inline glm::vec2 get_offset(const SDL_Rect& source_rect) {
+    return glm::vec2{
+        ((constants::TILE_SIZE.x - source_rect.w) / 2)
+        + ((constants::TILE_SIZE.x - source_rect.w) % 2 != 0),
+        constants::TILE_SIZE.y - source_rect.h    
+    };
+}
+
 struct Sprite {
     // to be replaced with an asset identifier?
     SDL_Texture* texture;
-    const SDL_Rect& source_rect;
+    const SDL_Rect source_rect;
     const glm::vec2 offset;
 
     Sprite(
         SDL_Texture* texture,
-        const SDL_Rect& source_rect
+        const SDL_Rect& source_rect,
+        const glm::vec2 in_offset = {0,0}
     ): 
         texture{texture}, 
         source_rect{source_rect},
+        
         /* 
             TODO: determine how the offset should work.
 
@@ -36,11 +51,8 @@ struct Sprite {
             Will leave for now since we don't have any scenarios where that's the
             case.
         */
-        offset{
-            ((constants::TILE_SIZE.x - source_rect.w) / 2)
-            + ((constants::TILE_SIZE.x - source_rect.w) % 2 != 0),
-            constants::TILE_SIZE.y - source_rect.h
-        } {}
+
+        offset{get_offset(source_rect) - in_offset} {}
 };
 
 #endif
