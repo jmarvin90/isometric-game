@@ -22,7 +22,7 @@ inline glm::vec2 get_offset(const SDL_Rect& source_rect) {
 struct Sprite {
     // to be replaced with an asset identifier?
     SDL_Texture* texture;
-    const SDL_Rect source_rect;
+    const SDL_Rect source_rect;     // using a ref. as input breaks - why?
     const glm::vec2 offset;
 
     Sprite(
