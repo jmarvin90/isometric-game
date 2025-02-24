@@ -213,13 +213,11 @@ void Game::render() {
         render_imgui_gui(renderer, registry, mouse);
 
         if (tilemap.selected_tile || mouse.is_on_world_grid()) {
-            glm::ivec2 start_point {};
-            start_point = (tilemap.selected_tile) ? 
-                tilemap.selected_tile->world_position():
-                tilemap.grid_to_pixel(mouse.get_grid_position());
 
-            start_point -= camera_position;
-            start_point.y -= constants::MIN_TILE_DEPTH;
+            Tile& focus_tile {(tilemap.selected_tile) ? 
+                *tilemap.selected_tile:
+                tilemap.at(mouse.get_grid_position())
+            };
 
             if (!tilemap.selected_tile) {
                 SDL_SetRenderDrawColor(
@@ -233,21 +231,13 @@ void Game::render() {
                 );
             }
 
-            SDL_Point points_to_draw[5] {};
-
-            for (int i=0; i<5; i++) {
-                glm::ivec2 point {
-                    (constants::TILE_EDGE_POINTS[i] + start_point)
-                    //  + glm::ivec2{0, constants::MIN_TILE_DEPTH} 
-                };
-                points_to_draw[i] = SDL_Point{point.x, point.y}; 
-            }
-        
+            SDL_Point points_to_draw[5];
+            focus_tile.get_tile_iso_points(points_to_draw, camera_position);
+            
             SDL_RenderDrawLines(
                 renderer,
                 &points_to_draw[0],
                 5
-                // sizeof(my_points)
             );
         }
     }

@@ -23,11 +23,18 @@ class Tile {
         glm::ivec2 get_grid_position() const { return grid_position; }
 
         entt::entity add_building_level(SDL_Texture* texture, const SDL_Rect sprite_rect);
-        entt::entity get_entity() { return entity; }
+        entt::entity get_entity() const { return entity; }
 
         // Awaiting definition
-        entt::entity topmost_building_level() { return building_levels.back(); }
+        entt::entity topmost_building_level() const { return building_levels.back(); }
         void remove_building_level();
+
+        // Not sure on the use of an out-paramter here; what's the alternative?
+        // ... Can be pretty confident that caller has allocated 5 positions,
+        // but not 100%
+        void get_tile_iso_points(
+            SDL_Point* point_array, const glm::ivec2& camera_position
+        ) const;
 };
 
 class TileMap {
