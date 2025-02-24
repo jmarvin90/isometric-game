@@ -4,6 +4,7 @@
 #include <entt/entt.hpp>
 #include <vector>
 #include <glm/glm.hpp>
+#include <optional>
 
 #include "constants.h"
 
@@ -16,7 +17,11 @@ class Tile {
     public:
         Tile(entt::registry& registry, const glm::ivec2 grid_position);
         ~Tile();
-        const glm::ivec2 world_position() const;
+        
+        // Don't need to be const if we're returning a copy
+        glm::ivec2 world_position() const;
+        glm::ivec2 get_grid_position() const { return grid_position; }
+
         entt::entity add_building_level(SDL_Texture* texture, const SDL_Rect sprite_rect);
         entt::entity get_entity() { return entity; }
 
@@ -31,7 +36,10 @@ class TileMap {
     public: 
         TileMap(entt::registry& registry);
         ~TileMap();
-        Tile& at(int x, int y);
+
+        Tile* selected_tile {nullptr};
+
+        Tile& at(const glm::ivec2 position);
         glm::ivec2 grid_to_pixel(glm::ivec2 grid_pos);
 };
 
