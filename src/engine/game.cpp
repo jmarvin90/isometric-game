@@ -208,10 +208,10 @@ void Game::render() {
 
     render_sprites(registry, camera_position, renderer, render_rect, debug_mode);
 
-    // TODO: Update
     if (debug_mode) {
         render_imgui_gui(renderer, registry, mouse);
 
+        // Highlight tiles if relevant
         if (tilemap.selected_tile || mouse.is_on_world_grid()) {
 
             Tile& focus_tile {(tilemap.selected_tile) ? 

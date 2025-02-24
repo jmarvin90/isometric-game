@@ -4,7 +4,6 @@
 #include <entt/entt.hpp>
 #include <vector>
 #include <glm/glm.hpp>
-#include <optional>
 
 #include "constants.h"
 
