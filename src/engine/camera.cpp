@@ -4,7 +4,7 @@
 
 Camera::Camera(const SDL_DisplayMode& display_mode): camera_area {
     (constants::RENDER_SPACE_SIZE_PX.x / 2) - (display_mode.w / 2),             // Initial X
-    0,                                                                          // Initial Y
+    (constants::RENDER_SPACE_SIZE_PX.y / 2) - (display_mode.h / 2),             // Initial Y
     display_mode.w,                                                             // Width
     display_mode.h                                                              // Height
 } {}

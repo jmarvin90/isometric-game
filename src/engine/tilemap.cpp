@@ -18,7 +18,7 @@ Tile::Tile(entt::registry& registry, const glm::ivec2 grid_position):
     entity{registry.create()}
 {}
 
-const glm::ivec2 Tile::world_position() const {
+glm::ivec2 Tile::world_position() const {
     return glm::ivec2 {
         constants::TILEMAP_START + (
             glm::ivec2(
@@ -99,11 +99,29 @@ TileMap::~TileMap() {
 }
 
 // Get an entity from tilemap position x, y
-Tile& TileMap::at(const int x, const int y) {
-    return tilemap.at((y * constants::MAP_SIZE_N_TILES) + x);
+Tile& TileMap::at(const glm::ivec2 position) {
+    return tilemap.at(
+        (position.y * constants::MAP_SIZE_N_TILES) + position.x
+    );
 }
 
 // Public function converting x, y tilemap coordinates to screen coordinates
 glm::ivec2 TileMap::grid_to_pixel(glm::ivec2 grid_pos) {
-    return at(grid_pos.x, grid_pos.y).world_position();
+    return at({grid_pos.x, grid_pos.y}).world_position();
+}
+
+// Fill up an array with world-adjusted points used to highlight a tile
+void Tile::get_tile_iso_points(
+    SDL_Point* point_array, const glm::ivec2& camera_position
+) const {
+    glm::ivec2 start_point {world_position() -= camera_position};
+    start_point.y -= constants::MIN_TILE_DEPTH;
+    
+    for (int i=0; i<5; i++) {
+        glm::ivec2 point {
+            (constants::TILE_EDGE_POINTS[i] + start_point)
+            //  + glm::ivec2{0, constants::MIN_TILE_DEPTH} 
+        };
+        point_array[i] = SDL_Point{point.x, point.y}; 
+    }
 }
