@@ -20,6 +20,7 @@ include_directories(
 add_executable(
     isometric-game 
     src/main.cpp 
+    src/engine/utils.cpp
     src/engine/camera.cpp
     src/engine/game.cpp
     src/engine/mouse.cpp

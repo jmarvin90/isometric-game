@@ -5,25 +5,13 @@
 #include <glm/glm.hpp>
 
 #include "constants.h"
-
-/*
-    TODO: understand the implication/options re. inline function definition
-    in the header file
-*/
-
-inline glm::vec2 get_offset(const SDL_Rect& source_rect) {
-    return glm::vec2{
-        ((constants::TILE_SIZE.x - source_rect.w) / 2)
-        + ((constants::TILE_SIZE.x - source_rect.w) % 2 != 0),
-        constants::TILE_SIZE.y - source_rect.h    
-    };
-}
+#include "utils.h"
 
 struct Sprite {
     // to be replaced with an asset identifier?
     SDL_Texture* texture;
-    const SDL_Rect source_rect;
-    const glm::vec2 offset;
+    SDL_Rect source_rect;
+    glm::vec2 offset;
 
     Sprite(
         SDL_Texture* texture,

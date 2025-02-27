@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
+#include <optional>
 
 #include <rapidxml/rapidxml_utils.hpp>
 #include <rapidxml/rapidxml_print.hpp>
@@ -81,4 +82,25 @@ const SDL_Rect& SpriteSheet::get_sprite_rect(const std::string& sprite_name) con
 
 SDL_Texture* SpriteSheet::get_spritesheet_texture() const {
     return spritesheet;
+}
+
+bool operator==(const SDL_Rect& lhs, const SDL_Rect& rhs) {
+    return 
+        lhs.x == rhs.x &&
+        lhs.y == rhs.y &&
+        lhs.h == rhs.h &&
+        lhs.w == rhs.w;
+}
+
+const std::optional<std::string_view> SpriteSheet::reverse_lookup(const SDL_Rect& target_rect) const {
+    auto it = std::find_if(
+        std::begin(sprites), 
+        std::end(sprites), 
+        [&target_rect](auto&& p) { return p.second == target_rect; }
+    );
+
+    if (it == std::end(sprites))
+        return std::nullopt;
+
+    return it->first;
 }

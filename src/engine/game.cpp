@@ -148,10 +148,12 @@ void Game::process_input() {
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        mouse.update_imgui_io(ImGui::GetIO());
+        ImGuiIO& io = ImGui::GetIO();
+        mouse.update_imgui_io(io);
         ImGui_ImplSDL2_ProcessEvent(&event);
 
         switch (event.type) {
+
             case SDL_KEYDOWN:
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     is_running = false;
@@ -162,12 +164,15 @@ void Game::process_input() {
                 }
 
                 break;
+                
             case SDL_MOUSEBUTTONDOWN:        
-                if (tilemap.selected_tile) {
-                    tilemap.selected_tile = nullptr;
-                } else {         
-                    if (mouse.is_on_world_grid()) {
-                        tilemap.selected_tile = &tilemap.at(mouse.get_grid_position());
+                if (!io.WantCaptureMouse) {
+                    if (tilemap.selected_tile) {
+                        tilemap.selected_tile = nullptr;
+                    } else {         
+                        if (mouse.is_on_world_grid()) {
+                            tilemap.selected_tile = &tilemap.at(mouse.get_grid_position());
+                        }
                     }
                 }
 
@@ -209,7 +214,8 @@ void Game::render() {
     render_sprites(registry, camera_position, renderer, render_rect, debug_mode);
 
     if (debug_mode) {
-        render_imgui_gui(renderer, registry, mouse);
+        render_imgui_gui(
+            renderer, registry, mouse, tilemap, city_tiles.value(), building_tiles.value());
 
         // Highlight tiles if relevant
         if (tilemap.selected_tile || mouse.is_on_world_grid()) {
@@ -219,16 +225,17 @@ void Game::render() {
                 tilemap.at(mouse.get_grid_position())
             };
 
-            if (!tilemap.selected_tile) {
-                SDL_SetRenderDrawColor(
-                    renderer,
-                    255, 0, 0, 255
-                ); 
-            } else {
+            if (tilemap.selected_tile) {
                 SDL_SetRenderDrawColor(
                     renderer,
                     0, 0, 255, 255
                 );
+
+            } else {
+                SDL_SetRenderDrawColor(
+                    renderer,
+                    255, 0, 0, 255
+                ); 
             }
 
             SDL_Point points_to_draw[5];
