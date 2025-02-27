@@ -1,6 +1,9 @@
 #ifndef IMGUIRENDER_H
 #define IMGUIRENDER_H
 
+#include <algorithm>
+#include <iostream>
+
 #include <SDL2/SDL.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -14,75 +17,109 @@
 #include <sprite.h>
 #include <rigid_body.h>
 #include <constants.h>
+#include <spritesheet.h>
+#include <utils.h>
 
 void render_imgui_gui(
     SDL_Renderer* renderer,
     entt::registry& registry,
-    const Mouse& mouse
+    const Mouse& mouse,
+    const TileMap& tilemap,
+    const SpriteSheet& city_tiles,
+    const SpriteSheet& building_tiles
 ) {
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
-    // ImGui::ShowDemoWindow(&show_demo_window);
+    bool show_demo_window {true};
+    ImGui::ShowDemoWindow(&show_demo_window);
 
+    // The mouse and world positions
     const glm::ivec2 world_position {mouse.get_world_position()};
     const glm::ivec2 grid_position {mouse.get_grid_position()};
 
+    ImGui::SeparatorText("Mouse Position");
     ImGui::Text(
-        "World position: (%s) (%s)", 
+        "Mouse World position: (%s) (%s)", 
         std::to_string(world_position.x).c_str(), 
         std::to_string(world_position.y).c_str()
     );
 
     ImGui::Text(
-        "Grid position: (%s) (%s)",
+        "Mouse Grid position: (%s) (%s)",
         std::to_string(grid_position.x).c_str(),
         std::to_string(grid_position.y).c_str()
     );
 
-    // bool show_demo_window {true};
+    ImGui::SeparatorText("Selected Tile Position");
+    if (tilemap.selected_tile) {
 
-    // static glm::vec2 position;
-    // static glm::vec2 velocity;    
+        ImGui::Text(
+            "Selected Tile World position: (%s) (%s)", 
+            std::to_string(tilemap.selected_tile->world_position().x).c_str(), 
+            std::to_string(tilemap.selected_tile->world_position().y).c_str()
+        );
+    
+        ImGui::Text(
+            "Selected Tile Grid position: (%s) (%s)",
+            std::to_string(tilemap.selected_tile->get_grid_position().x).c_str(),
+            std::to_string(tilemap.selected_tile->get_grid_position().y).c_str()
+        );    
+    }
 
-    // // Input for X
-    // ImGui::InputFloat("X postion", &position.x);
+    // The sprite for the selected tile
+    ImGui::SeparatorText("Tile Sprite");
+    static std::string selected_sprite_texture;
+    static Sprite* selected_tile_sprite {nullptr};
 
-    // // Input for Y
-    // ImGui::InputFloat("Y position", &position.y);
+    std::vector<std::string> city_tile_keys;
+    city_tile_keys.reserve(city_tiles.sprites.size());
 
-    // // Velocity X
-    // ImGui::InputFloat("X velocity", &velocity.x);
+    std::vector<std::string> building_tile_keys;
+    building_tile_keys.reserve(building_tiles.sprites.size());
 
-    // // Velocity Y
-    // ImGui::InputFloat("Y velocity", &velocity.y);
+    for (auto kv: city_tiles.sprites) {
+        city_tile_keys.push_back(kv.first);
+    }
 
-    // static std::string selected_sprite_texture{"moveable_sprite_tall_test.png"};
+    for (auto kv: building_tiles.sprites) {
+        building_tile_keys.push_back(kv.first);
+    }
 
-    // if(ImGui::BeginCombo("Sprite image", selected_sprite_texture.c_str())) {
-    //     for (std::pair<std::string, SDL_Texture*> item: textures)
-    //     {
-    //         const bool is_selected = (selected_sprite_texture == item.first);
+    if (tilemap.selected_tile) {
+        entt::entity selected_tile {tilemap.selected_tile->get_entity()};
+        selected_tile_sprite = &registry.get<Sprite>(selected_tile);
 
-    //         if (ImGui::Selectable(item.first.c_str(), is_selected)) {
-    //             selected_sprite_texture = item.first;
-    //         };
+        if (selected_tile_sprite->texture == city_tiles.get_spritesheet_texture()) {
+            selected_sprite_texture = city_tiles.reverse_lookup(selected_tile_sprite->source_rect).value();
+        }
 
-    //         // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-    //         if (is_selected)
-    //             ImGui::SetItemDefaultFocus();
-    //     }
-    //     ImGui::EndCombo();
-    // }
+        if (selected_tile_sprite->texture == building_tiles.get_spritesheet_texture()) {
+            selected_sprite_texture = building_tiles.reverse_lookup(selected_tile_sprite->source_rect).value();
+        }
 
-    // if (ImGui::Button("Create sprite")) {
-    //     spdlog::info("Creating a new entity!");
-    //     entt::entity new_entity {registry.create()};
-    //     registry.emplace<Transform>(new_entity, position, 1, 0.0f);
-    //     registry.emplace<Sprite>(new_entity, textures.at(selected_sprite_texture));
-    //     registry.emplace<RigidBody>(new_entity, velocity);
-    // }
+        if(ImGui::BeginCombo("Sprite image", selected_sprite_texture.c_str())) {
+
+            std::sort(city_tile_keys.begin(), city_tile_keys.end());
+
+            for (auto tile_string: city_tile_keys)
+            {
+                const bool is_selected = (selected_sprite_texture == tile_string);
+
+                if (ImGui::Selectable(tile_string.c_str(), is_selected)) {
+                    selected_sprite_texture = tile_string;
+                    selected_tile_sprite->source_rect = city_tiles.get_sprite_rect(selected_sprite_texture);
+                    selected_tile_sprite->offset = get_offset(selected_tile_sprite->source_rect);
+                };
+
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+    }
     
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
