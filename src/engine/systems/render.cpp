@@ -11,6 +11,7 @@ Renderer::Renderer(SDL_Window* window, const SDL_DisplayMode& display_mode, uint
         
         if (!renderer) {
             spdlog::error("Could not initialise the SDL Renderer.");
+            // Realistically should exit here
         }
 
         SDL_RenderSetClipRect(renderer, &render_clip_rect);    
