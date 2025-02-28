@@ -44,11 +44,11 @@ void Game::load_spritesheets() {
     spdlog::info("Loading spritesheets");
 
     city_tiles.emplace(
-        constants::MAP_TILE_PNG_PATH, constants::MAP_ATLAS_PATH, renderer
+        constants::MAP_TILE_PNG_PATH, constants::MAP_ATLAS_PATH, renderer->renderer
     );
 
     building_tiles.emplace(
-        constants::BUILDING_TILE_PNG_PATH, constants::BUILDING_ATLAS_PATH, renderer
+        constants::BUILDING_TILE_PNG_PATH, constants::BUILDING_ATLAS_PATH, renderer->renderer
     );
 
     spdlog::info("Sprites loaded");
@@ -119,29 +119,16 @@ void Game::initialise() {
     if (!window) {
         spdlog::error("Could not initialise SDL Window.");
     }
-
-    // Create the SDL Renderer
-    renderer = SDL_CreateRenderer(
-        window,
-        -1,
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
-    );
-
-    if (!renderer) {
-        spdlog::error("Could not initialise the SDL Renderer.");
-    }
+    
+    renderer.emplace(window, display_mode, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC, -1);
 
     load_spritesheets();
     load_tilemap();
 
-    render_rect = {20, 20, display_mode.w - 40, display_mode.h - 40};
-
-    SDL_RenderSetClipRect(renderer, &render_rect);    
-
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
-    ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
-    ImGui_ImplSDLRenderer2_Init(renderer);
+    ImGui_ImplSDL2_InitForSDLRenderer(window, renderer->renderer);
+    ImGui_ImplSDLRenderer2_Init(renderer->renderer);
 }
 
 void Game::process_input() {
@@ -204,18 +191,15 @@ bool transform_comparison(const Transform& lhs, const Transform& rhs) {
 }
 
 void Game::render() {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_RenderClear(renderer);
-
     const glm::ivec2 camera_position {camera->get_position()};
-
     registry.sort<Transform>(transform_comparison);
 
-    render_sprites(registry, camera_position, renderer, render_rect, debug_mode);
+    renderer->render(registry, camera_position, debug_mode);
 
     if (debug_mode) {
         render_imgui_gui(
-            renderer, registry, mouse, tilemap, city_tiles.value(), building_tiles.value());
+            renderer->renderer, registry, mouse, tilemap, city_tiles.value(), building_tiles.value()
+        );
 
         // Highlight tiles if relevant
         if (tilemap.selected_tile || mouse.is_on_world_grid()) {
@@ -227,13 +211,13 @@ void Game::render() {
 
             if (tilemap.selected_tile) {
                 SDL_SetRenderDrawColor(
-                    renderer,
+                    renderer->renderer,
                     0, 0, 255, 255
                 );
 
             } else {
                 SDL_SetRenderDrawColor(
-                    renderer,
+                    renderer->renderer,
                     255, 0, 0, 255
                 ); 
             }
@@ -242,14 +226,14 @@ void Game::render() {
             focus_tile.get_tile_iso_points(points_to_draw, camera_position);
             
             SDL_RenderDrawLines(
-                renderer,
+                renderer->renderer,
                 &points_to_draw[0],
                 5
             );
         }
     }
 
-    SDL_RenderPresent(renderer);
+    SDL_RenderPresent(renderer->renderer);
 }
 
 void Game::run() {
@@ -282,7 +266,6 @@ void Game::destroy() {
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
-    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }

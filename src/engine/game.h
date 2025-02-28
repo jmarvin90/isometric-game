@@ -14,6 +14,7 @@
 #include "camera.h"
 #include "constants.h"
 #include "spritesheet.h"
+#include "systems/render.h"
 
 class Game {
     bool is_running {false};
@@ -24,20 +25,17 @@ class Game {
     uint64_t _last_time{0};
 
     entt::registry registry;
-    SDL_Renderer* renderer;
     SDL_Window* window;
     SDL_DisplayMode display_mode;
 
-    // Camera is smart pointer to allow late initialisation
+    // Camera, renderer are smart pointers to allow late initialisation
     std::optional<Camera> camera;
+    std::optional<Renderer> renderer;
 
     // TileMap and Mouse can be initialised during game construction
     TileMap tilemap;
     MouseMap mousemap;
     Mouse mouse;
-
-    // Investigate whether this is redundant!
-    SDL_Rect render_rect;
 
     void load_spritesheets();
     void load_tilemap();
