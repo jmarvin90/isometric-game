@@ -37,7 +37,7 @@ Game::Game():
 }
 
 Game::~Game() {
-    spdlog::info("Game destuctor called.");
+    spdlog::info("Game destructor called.");
 }
 
 void Game::load_spritesheets() {

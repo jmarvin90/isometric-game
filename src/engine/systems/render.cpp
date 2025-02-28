@@ -1,10 +1,13 @@
 #include <SDL2/SDL.h>
+#include <spdlog/spdlog.h>
 
 #include "render.h"
 
 Renderer::Renderer(SDL_Window* window, const SDL_DisplayMode& display_mode, uint32_t render_flags, int index): 
     renderer {SDL_CreateRenderer(window, index, render_flags)},
     render_clip_rect{20, 20, display_mode.w - 40, display_mode.h - 40} {
+
+        spdlog::info("Renderer constructor called.");
         
         if (!renderer) {
             spdlog::error("Could not initialise the SDL Renderer.");
@@ -14,18 +17,8 @@ Renderer::Renderer(SDL_Window* window, const SDL_DisplayMode& display_mode, uint
     }
 
 Renderer::~Renderer() {
+    spdlog::info("Renderer destructor called.");
     SDL_DestroyRenderer(renderer);
-}
-
-SDL_FRect get_render_target(const Transform& transform, const Sprite& sprite, const glm::ivec2& camera) {
-    glm::vec2 position {transform.position + sprite.offset};
-    position -= camera;
-    return SDL_FRect {
-        position.x,
-        position.y,
-        static_cast<float>(sprite.source_rect.w),
-        static_cast<float>(sprite.source_rect.h)
-    };
 }
 
 void Renderer::render_sprite(
@@ -34,7 +27,15 @@ void Renderer::render_sprite(
     const Sprite& sprite,
     bool render_bounding_box
 ) {
-    SDL_FRect dest_rect {get_render_target(transform, sprite, camera_position)};
+    glm::vec2 position {transform.position + sprite.offset};
+    position -= camera_position;
+
+    SDL_FRect dest_rect {
+        position.x,
+        position.y,
+        static_cast<float>(sprite.source_rect.w),
+        static_cast<float>(sprite.source_rect.h)   
+    };
 
     SDL_RenderCopyExF(
         renderer,
@@ -69,7 +70,5 @@ void Renderer::render_sprites(
 void Renderer::render(const entt::registry& registry, const glm::ivec2& camera_position, bool render_bounding_box) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
-
     render_sprites(registry, camera_position, render_bounding_box);
-
 }

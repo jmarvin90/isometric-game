@@ -37,6 +37,4 @@ class Renderer{
         void render(const entt::registry& registry, const glm::ivec2& camera_position, bool render_bounding_box);
 };
 
-SDL_FRect get_render_target(const Transform& transform, const Sprite& sprite, const glm::ivec2& camera);
-
 #endif
