@@ -202,6 +202,7 @@ void Game::render() {
         );
 
         // Highlight tiles if relevant
+        // TODO: move this somewhere more appropriate
         if (tilemap.selected_tile || mouse.is_on_world_grid()) {
 
             Tile& focus_tile {(tilemap.selected_tile) ? 
@@ -233,6 +234,7 @@ void Game::render() {
         }
     }
 
+    // TODO: RenderPresent should be called in Renderer::; can't atm because of IMGUI
     SDL_RenderPresent(renderer->renderer);
 }
 
