@@ -1,5 +1,5 @@
 from graph.geometry import Point
-from graph.constants import directions_dict
+from graph.constants import Directions, directions_dict
 
 class Tile:
     def __init__(self):
@@ -31,17 +31,18 @@ class TileMap:
     
     # TODO: think of a better name
     def connect(self, position: Point, directions: int) -> None:
-         direction = 8
+        direction = 8
 
-         tile = self[position]
-         tile.connect(directions)
+        tile = self[position]
+        tile.connect(directions)
 
-         while direction:
-             corresponding_position = position + directions_dict[direction]
-             corresponding_tile = self[corresponding_position]
-             opposite_direction = (direction >> 2 | direction << 2) & 15
-             connection = corresponding_tile.connections & opposite_direction
-             if bool(connection):
-                 # Tile in the direction in question has a receiving connection
-                 self.valid_connections += 1
-             direction = direction >> 1
+        while direction:
+            if bool(direction & directions):
+                corresponding_position = position + directions_dict[direction]
+                corresponding_tile = self[corresponding_position]
+                opposite_direction = (direction >> 2 | direction << 2) & 15
+                connection = corresponding_tile.connections & opposite_direction
+                if bool(connection):
+                    # Adjacent tile in question has a receiving connection
+                    self.valid_connections += 1
+            direction = direction >> 1
