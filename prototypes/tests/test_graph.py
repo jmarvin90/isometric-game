@@ -27,4 +27,4 @@ def test_valid_connections(
     tilemap.connect(from_position, from_directions)
     tilemap.connect(to_position, to_directions)
 
-    assert tilemap.valid_connections == 1
+    assert tilemap.valid_connections == 1 # and False
