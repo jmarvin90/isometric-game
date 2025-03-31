@@ -28,14 +28,17 @@ def test_valid_connections(
     tilemap.connect(from_position, from_directions)
     tilemap.connect(to_position, to_directions)
 
-    assert tilemap.valid_connections == 1
+    for edge in tilemap.graph.edges:
+        print(edge)
+    
+    assert len(tilemap.graph.edges) == 1
 
 @pytest.mark.parametrize(
     "from_position,from_directions,to_position,to_directions",
     [
-        (Point(4, 4), 14, Point(5, 4), 14),  # LHS: N,E,S; RHS: N,E,S   (E-/>W)
-        (Point(4, 4), 10, Point(4, 5), 6),   # LHS: N,S; RHS: E,S       (S-/>N)
-        (Point(4, 4), 6, Point(5, 4), 10)    # LHS: E,S; RHS: N,S       (E-/>W)     
+        (Point(5, 5), 14, Point(6, 5), 14),  # LHS: N,E,S; RHS: N,E,S   (E-/>W)
+        (Point(5, 5), 10, Point(5, 6), 6),   # LHS: N,S; RHS: E,S       (S-/>N)
+        (Point(5, 5), 6, Point(6, 5), 10)    # LHS: E,S; RHS: N,S       (E-/>W)     
     ]
 )
 def test_invalid_connections(
@@ -50,5 +53,7 @@ def test_invalid_connections(
     
     tilemap.connect(from_position, from_directions)
     tilemap.connect(to_position, to_directions)
+    for edge in tilemap.graph.edges:
+        print(edge)
 
-    assert tilemap.valid_connections == 0
+    assert len(tilemap.graph.edges) == 0
