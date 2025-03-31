@@ -90,7 +90,7 @@ class Graph:
 
         direction = 8
         
-        # Iterate through the directions to calculate the tilemap positions
+        # Iterate through relevant directions to calculate the tilemap positions
         while direction:
             if direction & tile.connections:
                 vector = directions_dict[direction]
