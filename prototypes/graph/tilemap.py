@@ -5,18 +5,22 @@ from graph.constants import Directions, directions_dict
 from graph.utils import count_set_bits
 
 class Tile:
+    """Represents a tile on the TileMap."""
     def __init__(self, position: Point):
-        self.position = position
-        self.connections = 0
+        self.position = position        # the position on the grid
+        self.connections = 0            # the connections bitmask - NESW
 
     def connect(self, directions: int) -> None:
+        """Update the tile's connections to connect in specified directions."""
         self.connections = self.connections | directions
 
     def clear_connections(self) -> None:
+        """Clear the tile's connections."""
         self.connections = 0
 
 
 class TileMap:
+    """Represents a (square) tilemap as a list of tiles."""
     def __init__(self, size: int):
         self.size = size
         self.graph = Graph()
@@ -26,39 +30,48 @@ class TileMap:
         ]
 
     def __getitem__(self, position: Point) -> Tile:
+        """Get the tile from a point (x,y) position on the tilemap."""
         return self.tiles[
             (position.y * self.size) + position.x
         ]
     
     def clear_connections(self) -> None:
+        """Clear connections for every tile, and reset the graph."""
         for tile in self.tiles:
             tile.clear_connections
-        self.graph.reset()
+        self.graph.reset()      
     
     # TODO: think of a better name
     def connect(self, position: Point, directions: int) -> None:
+        """Connect a tile at a given point/in specified directions."""
+        # Helpful to do this at the TileMap level to enable the graph logic
         tile = self[position]
         tile.connect(directions)
         self.graph.add_node(tile)
 
 
 class Edge:
+    """Represents an edge on the graph, between two Tiles."""
     def __init__(self, origin: Tile, termination: Tile):
         self.origin = origin
         self.termination = termination
 
     def __str__(self) -> str:
+        """Get a string representation of the edge as (start)->(end)."""
         return f"{self.origin.position} -> {self.termination.position}"
     
     @property
     def is_horizontal(self) -> bool:
+        """Whether the edge is horizontal."""
         return self.origin.position.x == self.termination.position.y
     
     @property
     def is_vertical(self) -> bool:
+        """Whether the edge is vertical."""
         return self.origin.position.y == self.termination.position.y
     
     def covers(self, point: Point) -> bool:
+        """Whether the edge 'covers' a given point."""
         if self.is_horizontal:
             smallest, largest = sorted(
                 (self.origin.position.x, self.termination.position.x)
@@ -74,8 +87,8 @@ class Edge:
         return False
     
     def __edge_and_tile(self, comparator: Tile) -> tuple[Edge]:
+        """Logic for intersecting an edge with a comparator Tile."""
         if not self.covers(comparator.position):
-            print("Does not cover")
             return ()
         
         directions_bitmask = 5 if self.is_horizontal else 10
@@ -88,6 +101,7 @@ class Edge:
         ):
             return (self)
 
+        # Return a series of edges as though the original edge has been split
         return (
             Edge(self.origin, comparator),
             Edge(comparator, self.termination)
@@ -99,15 +113,18 @@ class Edge:
 
 
 class Graph:
+    """Represent connections between Tiles on the TileMap."""
     def __init__(self):
         self.nodes = set()
         self.edges = set()
 
     def reset(self) -> None:
+        """Reset the graph by removing all nodes and edges."""
         self.nodes = set()
         self.edges = set()
 
     def add_node(self, tile: Tile) -> None:
+        """Logic to add a node to the graph - adding edges where needed."""
         # Skip if it's already been added
         if tile in self.nodes:
             return
@@ -149,6 +166,7 @@ class Graph:
         """
 
     def remove_node(self, tile: Tile) -> None:
+        """Remove a node from the graph, including any related edges."""
         # exit out if the tile isn't in the graph
         if not tile in self.nodes:
             return
@@ -156,7 +174,7 @@ class Graph:
         # remove the tile as a node
         self.nodes.remove(tile)
         
-        # if not, it was probably the start or end of an edge
+        # get any edges that the tile was part of
         affected_edges = {
             edge for edge in self.edges 
             if edge.origin == tile
