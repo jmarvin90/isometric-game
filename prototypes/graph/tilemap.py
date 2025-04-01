@@ -1,6 +1,8 @@
 from __future__ import annotations
+import typing
 from graph.geometry import Point
 from graph.constants import Directions, directions_dict
+from graph.utils import count_set_bits
 
 class Tile:
     def __init__(self, position: Point):
@@ -59,7 +61,7 @@ class Edge:
     def covers(self, point: Point) -> bool:
         if self.is_horizontal:
             smallest, largest = sorted(
-                (self.origin.position.x, self.termination.position.y)
+                (self.origin.position.x, self.termination.position.x)
             )
             return smallest <= point.x <= largest
 
@@ -70,6 +72,30 @@ class Edge:
             return smallest <= point.y <= largest
         
         return False
+    
+    def __edge_and_tile(self, comparator: Tile) -> tuple[Edge]:
+        if not self.covers(comparator.position):
+            print("Does not cover")
+            return ()
+        
+        directions_bitmask = 5 if self.is_horizontal else 10
+        comparator_n_directions = count_set_bits(comparator.connections)
+
+        # If the comparator only connects in the same direction
+        if (
+            comparator_n_directions == 2 and 
+            bool(directions_bitmask & comparator.connections)
+        ):
+            return (self)
+
+        return (
+            Edge(self.origin, comparator),
+            Edge(comparator, self.termination)
+        )
+
+    def __and__(self, comparator: typing.Any) -> tuple[Edge]:
+        if type(comparator) == Tile:
+            return self.__edge_and_tile(comparator)
 
 
 class Graph:
@@ -108,15 +134,18 @@ class Graph:
 
             direction = direction >> 1
 
-        # TODO: the rest of the logic
         """
-        Think about:
-            1. If it's adjacent to a node which only has connections in the same
-               direction; e.g. if the 'new' node extends an E->W connection only
-            2. If it's adjacent to a node has potential to connect in different
-               directions, but currently only connects in the same direction - 
-               e.g. E->W
-            3. If it's adjacent to a node that it can't connect to
+        1. The node is not adjacent to another node, and
+            a. is "on" an edge; and
+                i. connects along the edge only;
+                ii. connects along the edge and at least one more direction;
+                iii. does not connect along the edge
+            b. is not "on" an edge
+        2. The node is adjacent to another node, which: 
+            a. is not part of an edge, and
+                i. reciprocates the connection; or
+                ii. does not reciprocate the connection
+            b. is part of an edge, which:       
         """
 
     def remove_node(self, tile: Tile) -> None:

@@ -1,11 +1,15 @@
 import pytest
 
-from graph.tilemap import TileMap
+from graph.tilemap import TileMap, Edge
 from graph.geometry import Point
 
 @pytest.fixture
 def tilemap() -> TileMap:
     return TileMap(size=8)
+
+@pytest.fixture
+def example_edge(tilemap:TileMap) -> Edge:
+    return Edge(tilemap[Point(4, 4)], tilemap[Point(7, 4)])
 
 @pytest.mark.parametrize(
     "from_position,from_directions,to_position,to_directions",
@@ -33,6 +37,7 @@ def test_valid_connections(
     
     assert len(tilemap.graph.edges) == 1
 
+
 @pytest.mark.parametrize(
     "from_position,from_directions,to_position,to_directions",
     [
@@ -57,3 +62,11 @@ def test_invalid_connections(
         print(edge)
 
     assert len(tilemap.graph.edges) == 0
+
+
+def test_edge_intersection(tilemap:TileMap, example_edge: Edge):
+    intersecting_tile = tilemap[Point(6, 4)]
+    intersecting_tile.connect(7)
+    for edge in example_edge & intersecting_tile:
+        print(edge)
+    assert False
