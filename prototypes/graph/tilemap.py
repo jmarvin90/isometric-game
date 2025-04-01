@@ -69,6 +69,14 @@ class Edge:
     def is_vertical(self) -> bool:
         """Whether the edge is vertical."""
         return self.origin.position.y == self.termination.position.y
+
+    @property
+    def direction_bitmask(self) -> int:
+        if self.is_horizontal:
+            return 5
+
+        if self.is_vertical:
+            return 10
     
     def covers(self, point: Point) -> bool:
         """Whether the edge 'covers' a given point."""
@@ -85,31 +93,70 @@ class Edge:
             return smallest <= point.y <= largest
         
         return False
+
+    def __crossing_point(self, comparator: Edge) -> Point:
+        """Get the theoretical crossing point with the comparator."""
+        vert = self if self.is_vertical else comparator
+        horiz = self if self.is_horizontal else comparator
+        
+        # Get the theoretical crossing point
+        return Point(
+            vert.origin.position.x,
+            horiz.origin.position.y
+        )
     
+    def __intersects(self, comparator: Edge) -> bool:
+        """Check if the edge crossed the comparator."""
+        # Assume not, if the two lines are colinear 
+        if (
+            self.is_vertical == comparator.is_vertical and
+            self.is_horizontal == comparator.is_horizontal
+        ):
+            return False
+
+        crossing_point = self.__crossing_point(comparator)
+
+        # Lines cross if they both cover the theoretical crossing point
+        return (
+            self.covers(crossing_point) and 
+            comparator.covers(crossing_point)
+        )
+
     def __edge_and_tile(self, comparator: Tile) -> tuple[Edge]:
         """Logic for intersecting an edge with a comparator Tile."""
         if not self.covers(comparator.position):
             return ()
         
-        directions_bitmask = 5 if self.is_horizontal else 10
         comparator_n_directions = count_set_bits(comparator.connections)
 
-        # If the comparator only connects in the same direction
+        # If the comparator connects in the same direction ONLY
+        # the existing edge is valid
         if (
             comparator_n_directions == 2 and 
-            bool(directions_bitmask & comparator.connections)
+            bool(self.direction_bitmask & comparator.connections)
         ):
             return (self)
 
-        # Return a series of edges as though the original edge has been split
+        # Otherwise, return a series of edges as though the original edge has 
+        # been split
         return (
             Edge(self.origin, comparator),
             Edge(comparator, self.termination)
         )
 
+    def __edge_and_edge(self, comparator: Edge) -> tuple[Edge]:
+        if not self.__intersects(comparator):
+            return (self)
+
+        # I need access to the tile at the crossing point here
+        # lawd knows how I'll get that
+
     def __and__(self, comparator: typing.Any) -> tuple[Edge]:
         if type(comparator) == Tile:
             return self.__edge_and_tile(comparator)
+
+        if type(comparator) == Edge:
+            pass
 
 
 class Graph:
