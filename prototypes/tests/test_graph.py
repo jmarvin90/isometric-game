@@ -9,7 +9,11 @@ def tilemap() -> TileMap:
 
 @pytest.fixture
 def example_edge(tilemap:TileMap) -> Edge:
-    return Edge(tilemap[Point(4, 4)], tilemap[Point(7, 4)])
+    return Edge(tilemap[Point(4, 4)], tilemap[Point(7, 4)], tilemap)
+
+@pytest.fixture
+def example_intersecting_edge(tilemap:TileMap) -> Edge:
+    return Edge(tilemap[Point(5, 2)], tilemap[Point(5, 6)], tilemap)
 
 @pytest.mark.parametrize(
     "from_position,from_directions,to_position,to_directions",
@@ -64,9 +68,17 @@ def test_invalid_connections(
     assert len(tilemap.graph.edges) == 0
 
 
-def test_edge_intersection(tilemap:TileMap, example_edge: Edge):
-    intersecting_tile = tilemap[Point(6, 4)]
-    intersecting_tile.connect(7)
-    for edge in example_edge & intersecting_tile:
+def test_edge_intersection(
+    tilemap:TileMap,
+    example_edge: Edge,
+    example_intersecting_edge: Edge
+):
+    output = example_edge & example_intersecting_edge
+    for edge in output:
         print(edge)
     assert False
+    # intersecting_tile = tilemap[Point(6, 4)]
+    # intersecting_tile.connect(7)
+    # for edge in example_edge & intersecting_tile:
+    #     print(edge)
+    # assert False

@@ -23,7 +23,7 @@ class TileMap:
     """Represents a (square) tilemap as a list of tiles."""
     def __init__(self, size: int):
         self.size = size
-        self.graph = Graph()
+        self.graph = Graph(self)
         self.tiles = [
             Tile(Point(number % self.size, number // self.size)) 
             for number in range(0, self.size**2)
@@ -52,9 +52,10 @@ class TileMap:
 
 class Edge:
     """Represents an edge on the graph, between two Tiles."""
-    def __init__(self, origin: Tile, termination: Tile):
+    def __init__(self, origin: Tile, termination: Tile, tilemap: TileMap):
         self.origin = origin
         self.termination = termination
+        self.tilemap = tilemap
 
     def __str__(self) -> str:
         """Get a string representation of the edge as (start)->(end)."""
@@ -63,12 +64,12 @@ class Edge:
     @property
     def is_horizontal(self) -> bool:
         """Whether the edge is horizontal."""
-        return self.origin.position.x == self.termination.position.y
+        return self.origin.position.y == self.termination.position.y
     
     @property
     def is_vertical(self) -> bool:
         """Whether the edge is vertical."""
-        return self.origin.position.y == self.termination.position.y
+        return self.origin.position.x == self.termination.position.x
 
     @property
     def direction_bitmask(self) -> int:
@@ -88,7 +89,7 @@ class Edge:
 
         if self.is_vertical:
             smallest, largest = sorted(
-                self.origin.position.y, self.termination.position.y
+                (self.origin.position.y, self.termination.position.y)
             )
             return smallest <= point.y <= largest
         
@@ -122,10 +123,10 @@ class Edge:
             comparator.covers(crossing_point)
         )
 
-    def __edge_and_tile(self, comparator: Tile) -> tuple[Edge]:
+    def __edge_and_tile(self, comparator: Tile) -> set[Edge]:
         """Logic for intersecting an edge with a comparator Tile."""
         if not self.covers(comparator.position):
-            return ()
+            return set()
         
         comparator_n_directions = count_set_bits(comparator.connections)
 
@@ -135,40 +136,55 @@ class Edge:
             comparator_n_directions == 2 and 
             bool(self.direction_bitmask & comparator.connections)
         ):
-            return (self)
+            return {self}
 
         # Otherwise, return a series of edges as though the original edge has 
         # been split
-        return (
-            Edge(self.origin, comparator),
-            Edge(comparator, self.termination)
-        )
+        return {
+            Edge(self.origin, comparator, self.tilemap),
+            Edge(comparator, self.termination, self.tilemap)
+        }
 
-    def __edge_and_edge(self, comparator: Edge) -> tuple[Edge]:
+    def __edge_and_edge(self, comparator: Edge) -> set[Edge]:
         if not self.__intersects(comparator):
-            return (self)
+            return {self}
 
+        crossing_point_tile = self.tilemap[
+            self.__crossing_point(comparator)
+        ]
+
+        return {
+            Edge(self.origin, crossing_point_tile, self.tilemap),
+            Edge(crossing_point_tile, self.termination, self.tilemap),
+            Edge(comparator.origin, crossing_point_tile, self.tilemap),
+            Edge(crossing_point_tile, comparator.termination, self.tilemap)
+        }
         # I need access to the tile at the crossing point here
         # lawd knows how I'll get that
 
-    def __and__(self, comparator: typing.Any) -> tuple[Edge]:
+    def __and__(self, comparator: typing.Any) -> set[Edge]:
         if type(comparator) == Tile:
             return self.__edge_and_tile(comparator)
 
         if type(comparator) == Edge:
-            pass
+            return self.__edge_and_edge(comparator)
 
 
 class Graph:
     """Represent connections between Tiles on the TileMap."""
-    def __init__(self):
+    def __init__(self, tilemap: TileMap):
         self.nodes = set()
         self.edges = set()
+
+        self.__tilemap = tilemap
 
     def reset(self) -> None:
         """Reset the graph by removing all nodes and edges."""
         self.nodes = set()
         self.edges = set()
+
+    def add_edge(self, new_edge: Edge) -> None:
+        self.edges.add(new_edge)
 
     def add_node(self, tile: Tile) -> None:
         """Logic to add a node to the graph - adding edges where needed."""
@@ -194,7 +210,7 @@ class Graph:
                             (direction >> 2 | direction << 2) & 15
                         )
                         if node.connections & opposing_direction:
-                            self.edges.add(Edge(tile, node))
+                            self.add_edge(Edge(tile, node, self.__tilemap))
 
             direction = direction >> 1
 
@@ -210,6 +226,7 @@ class Graph:
                 i. reciprocates the connection; or
                 ii. does not reciprocate the connection
             b. is part of an edge, which:       
+        print(vert, horiz, sep="\t")
         """
 
     def remove_node(self, tile: Tile) -> None:
