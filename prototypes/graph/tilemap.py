@@ -123,64 +123,18 @@ class Edge:
             comparator.covers(crossing_point)
         )
 
-    def __edge_and_tile(self, comparator: Tile) -> set[Edge]:
-        """Logic for intersecting an edge with a comparator Tile."""
-        if not self.covers(comparator.position):
-            return set()
-        
-        comparator_n_directions = count_set_bits(comparator.connections)
-
-        # If the comparator connects in the same direction ONLY
-        # the existing edge is valid
-        if (
-            comparator_n_directions == 2 and 
-            bool(self.direction_bitmask & comparator.connections)
-        ):
-            return {self}
-
-        # Otherwise, return a series of edges as though the original edge has 
-        # been split
-        return {
-            Edge(self.origin, comparator, self.tilemap),
-            Edge(comparator, self.termination, self.tilemap)
-        }
-
-    def __edge_and_edge(self, comparator: Edge) -> set[Edge]:
-        if not self.__intersects(comparator):
-            return {self}
-
-        crossing_point_tile = self.tilemap[
-            self.__crossing_point(comparator)
-        ]
-
-        return {
-            Edge(self.origin, crossing_point_tile, self.tilemap),
-            Edge(crossing_point_tile, self.termination, self.tilemap),
-            Edge(comparator.origin, crossing_point_tile, self.tilemap),
-            Edge(crossing_point_tile, comparator.termination, self.tilemap)
-        }
-        # I need access to the tile at the crossing point here
-        # lawd knows how I'll get that
-
-    def __and__(self, comparator: typing.Any) -> set[Edge]:
-        if type(comparator) == Tile:
-            return self.__edge_and_tile(comparator)
-
-        if type(comparator) == Edge:
-            return self.__edge_and_edge(comparator)
-
 
 class Graph:
     """Represent connections between Tiles on the TileMap."""
     def __init__(self, tilemap: TileMap):
-        self.nodes = set()
-        self.edges = set()
+        self.reset()
 
         self.__tilemap = tilemap
 
     def reset(self) -> None:
         """Reset the graph by removing all nodes and edges."""
-        self.nodes = set()
+        self.connected_nodes = set()
+        self.orphan_nodes = set()
         self.edges = set()
 
     def add_edge(self, new_edge: Edge) -> None:
@@ -188,46 +142,44 @@ class Graph:
 
     def add_node(self, tile: Tile) -> None:
         """Logic to add a node to the graph - adding edges where needed."""
-        # Skip if it's already been added
-        if tile in self.nodes:
-            return
-        
-        self.nodes.add(tile)
+        # All the directions the new node connects in
+        directions = (
+            direction for direction in (1, 2, 4, 8)
+            if direction & tile.connections
+        )
 
-        direction = 8
-        
-        # Iterate through relevant directions to calculate the tilemap positions
-        while direction:
-            if direction & tile.connections:
-                vector = directions_dict[direction]
-                corresponding_position = tile.position + vector
-                
-                # Create a new edge if an adjacent node is already in the graph
-                # and reciprocates the connection 
-                for node in self.nodes:
-                    if node.position == corresponding_position:
-                        opposing_direction = (
-                            (direction >> 2 | direction << 2) & 15
-                        )
-                        if node.connections & opposing_direction:
-                            self.add_edge(Edge(tile, node, self.__tilemap))
+        # The new edges we're going to create
+        edges = set()
 
-            direction = direction >> 1
+        # Go in every direction
+        for direction in directions:
 
-        """
-        1. The node is not adjacent to another node, and
-            a. is "on" an edge; and
-                i. connects along the edge only;
-                ii. connects along the edge and at least one more direction;
-                iii. does not connect along the edge
-            b. is not "on" an edge
-        2. The node is adjacent to another node, which: 
-            a. is not part of an edge, and
-                i. reciprocates the connection; or
-                ii. does not reciprocate the connection
-            b. is part of an edge, which:       
-        print(vert, horiz, sep="\t")
-        """
+            valid = True
+
+            opposing_direction = (
+                (direction >> 2 | direction << 2) & 15
+            )
+
+            vector = directions_dict[direction]
+            current_tile = tile
+
+            while valid:
+                # Get the next tile in the same direction
+                next_tile = self.__tilemap[current_tile.position + vector]
+
+                # If that tile reciprocates the connection, keep going
+                if next_tile.connections & opposing_direction:
+                    current_tile = next_tile
+                # Otherwise, stop here
+                else:
+                    valid = False
+
+            # If we started and ended on a different tile
+            if current_tile != tile:
+                # Then create a new edge from start -> finish
+                edges.add(Edge(tile, current_tile, self.__tilemap))
+
+        self.edges = self.edges | edges
 
     def remove_node(self, tile: Tile) -> None:
         """Remove a node from the graph, including any related edges."""
