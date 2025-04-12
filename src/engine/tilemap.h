@@ -7,14 +7,19 @@
 
 #include "constants.h"
 
+class TileMap;
+
 class Tile {
     entt::registry& registry;
     const glm::ivec2 grid_position;
+    TileMap* tilemap;
+    char tile_connection_bitmask {0};
+    Tile* connections[4] {};
     entt::entity entity;
     std::vector<entt::entity> building_levels;
 
     public:
-        Tile(entt::registry& registry, const glm::ivec2 grid_position);
+        Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* tilemap);
         ~Tile();
         
         // Don't need to be const if we're returning a copy

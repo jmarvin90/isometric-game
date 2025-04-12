@@ -12,9 +12,10 @@
 #include "components/transform.h"
 #include "components/sprite.h"
 
-Tile::Tile(entt::registry& registry, const glm::ivec2 grid_position): 
+Tile::Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* tilemap): 
     registry{registry}, 
-    grid_position{grid_position}, 
+    grid_position{grid_position},
+    tilemap{tilemap},
     entity{registry.create()}
 {}
 
@@ -88,7 +89,8 @@ TileMap::TileMap(entt::registry& registry) {
 
         tilemap.emplace_back(
             registry, 
-            grid_position
+            grid_position,
+            this
         );
     }
 }
