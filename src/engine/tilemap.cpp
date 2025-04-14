@@ -101,7 +101,7 @@ TileMap::~TileMap() {
 }
 
 // Get an entity from tilemap position x, y
-Tile& TileMap::at(const glm::ivec2 position) {
+Tile& TileMap::operator[](const glm::ivec2 position) {
     return tilemap.at(
         (position.y * constants::MAP_SIZE_N_TILES) + position.x
     );
@@ -109,7 +109,7 @@ Tile& TileMap::at(const glm::ivec2 position) {
 
 // Public function converting x, y tilemap coordinates to screen coordinates
 glm::ivec2 TileMap::grid_to_pixel(glm::ivec2 grid_pos) {
-    return at({grid_pos.x, grid_pos.y}).world_position();
+    return (*this)[{grid_pos.x, grid_pos.y}].world_position();
 }
 
 // Fill up an array with world-adjusted points used to highlight a tile

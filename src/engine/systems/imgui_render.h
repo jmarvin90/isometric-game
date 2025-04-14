@@ -72,6 +72,7 @@ void render_imgui_gui(
     ImGui::SeparatorText("Tile Sprite");
     static std::string selected_sprite_texture;
     static Sprite* selected_tile_sprite {nullptr};
+    static const SpriteDefinition* sprite_definition {nullptr};
 
     std::vector<std::string> city_tile_keys;
     city_tile_keys.reserve(city_tiles.sprites.size());
@@ -109,8 +110,10 @@ void render_imgui_gui(
 
                 if (ImGui::Selectable(tile_string.c_str(), is_selected)) {
                     selected_sprite_texture = tile_string;
-                    selected_tile_sprite->source_rect = city_tiles.get_sprite_rect(selected_sprite_texture);
+                    sprite_definition = &city_tiles.get_sprite_definition(selected_sprite_texture);
+                    selected_tile_sprite->source_rect = sprite_definition->texture_rect;
                     selected_tile_sprite->offset = get_offset(selected_tile_sprite->source_rect);
+                    tilemap.selected_tile->set_connection_bitmask(sprite_definition->connection);
                 };
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -119,6 +122,13 @@ void render_imgui_gui(
             }
             ImGui::EndCombo();
         }
+
+        ImGui::SeparatorText("Tile Connection");
+        ImGui::Text(
+            "Tile connection: (%s)", 
+            std::to_string(tilemap.selected_tile->get_connection_bitmask()).c_str()
+        );
+    
     }
     
     ImGui::Render();

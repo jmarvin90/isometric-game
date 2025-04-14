@@ -39,6 +39,9 @@ class Tile {
         void get_tile_iso_points(
             SDL_Point* point_array, const glm::ivec2& camera_position
         ) const;
+
+        char get_connection_bitmask() const { return tile_connection_bitmask; }
+        void set_connection_bitmask(char connection_bitmask) { tile_connection_bitmask = connection_bitmask;}
 };
 
 class TileMap {
@@ -50,7 +53,7 @@ class TileMap {
 
         Tile* selected_tile {nullptr};
 
-        Tile& at(const glm::ivec2 position);
+        Tile& operator[](const glm::ivec2 position);
         glm::ivec2 grid_to_pixel(glm::ivec2 grid_pos);
 };
 

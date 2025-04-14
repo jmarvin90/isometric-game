@@ -61,11 +61,18 @@ SpriteSheet::SpriteSheet(
 
         sprites.emplace(
             _iternode->first_attribute("name")->value(),
-            SDL_Rect{
-                std::atoi(_iternode->first_attribute("x")->value()),
-                std::atoi(_iternode->first_attribute("y")->value()),
-                std::atoi(_iternode->first_attribute("width")->value()),
-                std::atoi(_iternode->first_attribute("height")->value())
+            SpriteDefinition{
+                SDL_Rect{
+                    std::atoi(_iternode->first_attribute("x")->value()),
+                    std::atoi(_iternode->first_attribute("y")->value()),
+                    std::atoi(_iternode->first_attribute("width")->value()),
+                    std::atoi(_iternode->first_attribute("height")->value())
+                },
+                char(
+                    std::atoi(
+                        _iternode->first_attribute("connection")->value()
+                    )
+                )
             }
         );
     }    
@@ -77,6 +84,10 @@ SpriteSheet::~SpriteSheet() {
 }
 
 const SDL_Rect& SpriteSheet::get_sprite_rect(const std::string& sprite_name) const {
+    return sprites.at(sprite_name).texture_rect;
+}
+
+const SpriteDefinition& SpriteSheet::get_sprite_definition(const std::string& sprite_name) const {
     return sprites.at(sprite_name);
 }
 
@@ -96,7 +107,7 @@ const std::optional<std::string_view> SpriteSheet::reverse_lookup(const SDL_Rect
     auto it = std::find_if(
         std::begin(sprites), 
         std::end(sprites), 
-        [&target_rect](auto&& p) { return p.second == target_rect; }
+        [&target_rect](auto&& p) { return p.second.texture_rect == target_rect; }
     );
 
     if (it == std::end(sprites))

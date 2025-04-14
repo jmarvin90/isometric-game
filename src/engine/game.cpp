@@ -59,39 +59,47 @@ void Game::load_tilemap() {
     for (int y=0; y<constants::MAP_SIZE_N_TILES; y++) {
         for (int x=0; x<constants::MAP_SIZE_N_TILES; x++) {
 
-            glm::ivec2 position {tilemap.at({x, y}).world_position()};
+            glm::ivec2 position {tilemap[{x, y}].world_position()};
 
-            entt::entity entity {tilemap.at({x, y}).get_entity()};
+            entt::entity entity {tilemap[{x, y}].get_entity()};
             
             registry.emplace<Transform>(entity, position, 0, 0.0);
 
-            std::string tilepng;
+            // TODO: probably memory issue for uninitialised members
+            SpriteDefinition sprite_def;
 
+            // TODO: sort this mess out
             if ((x == 8 || x == 7) && y == 0) {
+                sprite_def = building_tiles->get_sprite_definition("buildingTiles_014.png");
                 registry.emplace<Sprite>(
                     entity, 
                     building_tiles->get_spritesheet_texture(),
-                    building_tiles->get_sprite_rect("buildingTiles_014.png")
+                    sprite_def.texture_rect
                 );
             } else if (x == 6 && y == 2) {
+                sprite_def = building_tiles->get_sprite_definition("buildingTiles_028.png");
                 registry.emplace<Sprite>(
                     entity, 
                     building_tiles->get_spritesheet_texture(),
-                    building_tiles->get_sprite_rect("buildingTiles_028.png")
-                );  
+                    sprite_def.texture_rect
+                );
             } else if (y==1) {
+                sprite_def = city_tiles->get_sprite_definition("cityTiles_036.png");
                 registry.emplace<Sprite>(
                     entity, 
                     city_tiles->get_spritesheet_texture(),
-                    city_tiles->get_sprite_rect("cityTiles_036.png")
+                    sprite_def.texture_rect
                 );
             } else {
+                sprite_def = city_tiles->get_sprite_definition("cityTiles_072.png");
                 registry.emplace<Sprite>(
                     entity, 
                     city_tiles->get_spritesheet_texture(),
-                    city_tiles->get_sprite_rect("cityTiles_072.png")
+                    sprite_def.texture_rect
                 );
             }
+
+            tilemap[{x, y}].set_connection_bitmask(sprite_def.connection);
         }
     }
 }
@@ -158,7 +166,7 @@ void Game::process_input() {
                         tilemap.selected_tile = nullptr;
                     } else {         
                         if (mouse.is_on_world_grid()) {
-                            tilemap.selected_tile = &tilemap.at(mouse.get_grid_position());
+                            tilemap.selected_tile = &tilemap[mouse.get_grid_position()];
                         }
                     }
                 }
@@ -207,7 +215,7 @@ void Game::render() {
 
             Tile& focus_tile {(tilemap.selected_tile) ? 
                 *tilemap.selected_tile:
-                tilemap.at(mouse.get_grid_position())
+                tilemap[mouse.get_grid_position()]
             };
 
             if (tilemap.selected_tile) {
