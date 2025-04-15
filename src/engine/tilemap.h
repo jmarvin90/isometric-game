@@ -41,7 +41,7 @@ class Tile {
         ) const;
 
         char get_connection_bitmask() const { return tile_connection_bitmask; }
-        void set_connection_bitmask(char connection_bitmask) { tile_connection_bitmask = connection_bitmask;}
+        void set_connection_bitmask(char connection_bitmask) { tile_connection_bitmask = connection_bitmask; }
 };
 
 class TileMap {
