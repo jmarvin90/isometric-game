@@ -8,13 +8,24 @@
 #include "constants.h"
 
 class TileMap;
+class Tile;
+
+class ConnectionContainer {
+    public:
+        Tile* connections[4] {};
+        ConnectionContainer() = default;
+        ~ConnectionContainer() = default;
+        Tile*& operator[](const uint8_t direction) {
+            return connections[__builtin_ctz(direction)];
+        }
+};
 
 class Tile {
     entt::registry& registry;
     const glm::ivec2 grid_position;
     TileMap* tilemap;
     char tile_connection_bitmask {0};
-    Tile* connections[4] {};
+    ConnectionContainer connections;
     entt::entity entity;
     std::vector<entt::entity> building_levels;
 
