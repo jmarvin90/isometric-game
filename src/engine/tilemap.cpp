@@ -66,6 +66,48 @@ entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprit
     return level;
 }
 
+void Tile::connect(const uint8_t direction, Tile* tile) {
+    uint8_t opposite_direction {
+        uint8_t((direction >> 2 | direction << 2) & 15)
+    };
+    connections[direction] = tile;
+    tile->connections[opposite_direction] = this;
+}
+
+Tile* Tile::scan(const uint8_t direction) {
+    uint8_t opposite_direction {
+        uint8_t((direction >> 2 | direction << 2) & 15)
+    };
+
+    bool valid {true};
+    Tile* current_tile {this};
+
+    while (valid) {
+        Tile* next_tile = &(*tilemap)[
+            current_tile->get_grid_position() + constants::VECTORS.at(direction)
+        ];
+
+        Tile* connected_tile {next_tile->connections[direction]};
+
+        if (connected_tile) {
+            connected_tile->connections[opposite_direction] = nullptr;
+            connected_tile = nullptr;
+            return next_tile;
+        }
+
+        valid = next_tile->tile_connection_bitmask & opposite_direction;
+
+        if (valid) {
+            current_tile = next_tile;
+        }
+    }
+    return current_tile;
+}
+
+void Tile::set_connection_bitmask(const uint8_t connection_bitmask) {
+
+}
+
 
 // Create the vector of tile entities and load the mousemap surface.
 TileMap::TileMap(entt::registry& registry) {

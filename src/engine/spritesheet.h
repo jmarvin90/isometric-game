@@ -11,9 +11,9 @@
 class SpriteDefinition {
     public:
         SDL_Rect texture_rect;
-        char connection;
+        uint8_t connection;
         SpriteDefinition() = default;
-        SpriteDefinition(SDL_Rect texture_rect, char connection): texture_rect{texture_rect}, connection{connection} {};
+        SpriteDefinition(SDL_Rect texture_rect, uint8_t connection): texture_rect{texture_rect}, connection{connection} {};
         ~SpriteDefinition() = default;
 };
 

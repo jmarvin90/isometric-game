@@ -68,11 +68,7 @@ SpriteSheet::SpriteSheet(
                     std::atoi(_iternode->first_attribute("width")->value()),
                     std::atoi(_iternode->first_attribute("height")->value())
                 },
-                char(
-                    std::atoi(
-                        _iternode->first_attribute("connection")->value()
-                    )
-                )
+                uint8_t(std::atoi(_iternode->first_attribute("connection")->value()))
             }
         );
     }    

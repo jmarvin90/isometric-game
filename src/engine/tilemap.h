@@ -24,10 +24,15 @@ class Tile {
     entt::registry& registry;
     const glm::ivec2 grid_position;
     TileMap* tilemap;
-    char tile_connection_bitmask {0};
+    uint8_t tile_connection_bitmask {0};
     ConnectionContainer connections;
     entt::entity entity;
     std::vector<entt::entity> building_levels;
+
+    protected:
+        Tile* scan(const uint8_t direction);
+        void connect(const uint8_t direction, Tile* tile);
+        void disconnect(const uint8_t direction);
 
     public:
         Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* tilemap);
@@ -51,8 +56,8 @@ class Tile {
             SDL_Point* point_array, const glm::ivec2& camera_position
         ) const;
 
-        char get_connection_bitmask() const { return tile_connection_bitmask; }
-        void set_connection_bitmask(char connection_bitmask) { tile_connection_bitmask = connection_bitmask; }
+        uint8_t get_connection_bitmask() const { return tile_connection_bitmask; }
+        void set_connection_bitmask(const uint8_t connection_bitmask);
 };
 
 class TileMap {
