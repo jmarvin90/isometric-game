@@ -67,6 +67,18 @@ entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprit
 }
 
 void Tile::connect(const uint8_t direction, Tile* tile) {
+    glm::ivec2 this_position {get_grid_position()};
+    glm::ivec2 that_position {tile->get_grid_position()};
+    spdlog::info(
+        "Connecting tile at position " + 
+        std::to_string(this_position.x) + "," + 
+        std::to_string(this_position.y) + 
+        " to tile at position " +
+        std::to_string(that_position.x) + "," + 
+        std::to_string(that_position.y) + " (" +
+        std::to_string(direction) + ")"
+    );
+
     uint8_t opposite_direction {
         uint8_t((direction >> 2 | direction << 2) & 15)
     };
@@ -106,36 +118,40 @@ Tile* Tile::scan(const uint8_t direction) {
 }
 
 void Tile::set_connection_bitmask(const uint8_t connection_bitmask) {
+    // TODO: think about how to streamline this section; it's quite unwieldy
     tile_connection_bitmask = connection_bitmask;
-    
-    ConnectionContainer connections;
 
-    for (int direction=constants::Directions::SOUTH; direction<=constants::Directions::NORTH; direction*=2) {
-        if (direction & connection_bitmask) {
-            connections[direction] = scan(direction);
-        } else {
-            connections[direction] = this;
-        }
-    }
-    
+    // If the tile is connected in a straight line...
     if (
-        __builtin_popcount(connection_bitmask) != 2 ||
-        (
-            connection_bitmask != (constants::Directions::EAST | constants::Directions::WEST) &&
-            connection_bitmask != (constants::Directions::NORTH | constants::Directions::SOUTH)
-        )
+        connection_bitmask == (constants::Directions::EAST | constants::Directions::WEST) ||
+        connection_bitmask == (constants::Directions::NORTH | constants::Directions::SOUTH)
     ) {
-        for (int direction=constants::Directions::SOUTH; direction<=constants::Directions::NORTH; direction*=2) {
-            if (connections[direction] != this) {
-                connect(direction, connections[direction]);
-            }
-        }
-        return;
-    }
+        uint8_t incoming {
+            connection_bitmask & constants::Directions::NORTH ? constants::Directions::NORTH : constants::Directions::EAST
+        };
 
-    for (int direction=1; direction<=2; direction*=2) {
-        if (connections[direction] != connections[direction*4]) {
-            connections[direction]->connect(direction, connections[direction*4]);
+        uint8_t outgoing {uint8_t(incoming >> 2)};
+
+        Tile* connection_from_incoming {scan(incoming)};
+        Tile* connection_to_outgoing {scan(outgoing)};
+
+        // ... And that straight line doesn't start AND end in the same place (here)...
+        if (connection_from_incoming != connection_to_outgoing) {
+            /// ... connect the start and end point of that line together
+            connection_from_incoming->connect(incoming, connection_to_outgoing);
+            return;
+        }
+    } 
+    // otherwise, we must change direction somehow
+    else {
+        // so connect any remote tiles to this one
+        for (int direction=constants::Directions::SOUTH; direction<=constants::Directions::NORTH; direction*=2) {
+            if (connection_bitmask & direction) {
+                Tile* connection_to_outgoing {scan(direction)};
+                if (connection_to_outgoing != this) {
+                    connect(direction, connection_to_outgoing);
+                }
+            }
         }
     }
 }

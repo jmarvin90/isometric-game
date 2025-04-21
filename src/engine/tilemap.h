@@ -25,7 +25,6 @@ class Tile {
     const glm::ivec2 grid_position;
     TileMap* tilemap;
     uint8_t tile_connection_bitmask {0};
-    ConnectionContainer connections;
     entt::entity entity;
     std::vector<entt::entity> building_levels;
 
@@ -37,6 +36,8 @@ class Tile {
     public:
         Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* tilemap);
         ~Tile();
+
+        ConnectionContainer connections;
         
         // Don't need to be const if we're returning a copy
         glm::ivec2 world_position() const;
