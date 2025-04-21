@@ -83,6 +83,7 @@ Tile* Tile::scan(const uint8_t direction) {
     Tile* current_tile {this};
 
     while (valid) {
+        // TODO: this doesn't account for the edge of the tilemap!!
         Tile* next_tile = &(*tilemap)[
             current_tile->get_grid_position() + constants::VECTORS.at(direction)
         ];
@@ -105,7 +106,38 @@ Tile* Tile::scan(const uint8_t direction) {
 }
 
 void Tile::set_connection_bitmask(const uint8_t connection_bitmask) {
+    tile_connection_bitmask = connection_bitmask;
+    
+    ConnectionContainer connections;
 
+    for (int direction=constants::Directions::SOUTH; direction<=constants::Directions::NORTH; direction*=2) {
+        if (direction & connection_bitmask) {
+            connections[direction] = scan(direction);
+        } else {
+            connections[direction] = this;
+        }
+    }
+    
+    if (
+        __builtin_popcount(connection_bitmask) != 2 ||
+        (
+            connection_bitmask != (constants::Directions::EAST | constants::Directions::WEST) &&
+            connection_bitmask != (constants::Directions::NORTH | constants::Directions::SOUTH)
+        )
+    ) {
+        for (int direction=constants::Directions::SOUTH; direction<=constants::Directions::NORTH; direction*=2) {
+            if (connections[direction] != this) {
+                connect(direction, connections[direction]);
+            }
+        }
+        return;
+    }
+
+    for (int direction=1; direction<=2; direction*=2) {
+        if (connections[direction] != connections[direction*4]) {
+            connections[direction]->connect(direction, connections[direction*4]);
+        }
+    }
 }
 
 
