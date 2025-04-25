@@ -16,3 +16,11 @@ directions_dict = {
     Directions.WEST.value: Point(-1, 0),
     Directions.NO_DIRECTION.value: Point(0, 0)
 }
+
+reverse_directions_dict = {
+    Directions.NORTH.value: Point(0, -1),
+    Directions.EAST.value: Point(1, 0),
+    Directions.SOUTH.value: Point(0, 1),
+    Directions.WEST.value: Point(-1, 0),
+    Directions.NO_DIRECTION.value: Point(0, 0)
+}
