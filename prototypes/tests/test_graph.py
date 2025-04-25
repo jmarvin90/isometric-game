@@ -7,12 +7,16 @@ from graph.geometry import Point
 def tilemap() -> TileMap:
     return TileMap(size=12)
 
-def test_vertical_edge(tilemap: TileMap) -> None:
-    for number in range(0, 4):
-        tilemap[Point(4, number)].connect(10)
+def test_connect(tilemap: TileMap) -> None:
+    for number in range(2, 8):
+        point = Point(4, number)
+        tilemap[point].connect(10)
 
-    for partition, edges in tilemap.edges.items():
-        for edge in edges:
-            print(partition, edge)
+    for number in range(4, 8):
+        point = Point(number, 2)
+        tilemap[point].connect(5)
 
+    for tile, connections in tilemap.edges.items():
+        for connection in connections:
+            print(tile, connection)
     assert False
