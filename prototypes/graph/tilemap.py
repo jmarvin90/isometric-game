@@ -23,7 +23,8 @@ class Tile:
     def is_adjacent_to(self, tile: Tile) -> bool:
         diff = self.position - tile.position
         abs_diff = Point(abs(diff.x), abs(diff.y))
-        return abs_diff == Point(1, 0) or abs_diff == Point(0, 1)
+        result = abs_diff == Point(1, 0) or abs_diff == Point(0, 1)
+        return result
     
     def connects_with(self, tile: Tile) -> bool:
         # TODO: performs a redundant adjacency check if we're in
@@ -33,17 +34,22 @@ class Tile:
             direction = reverse_directions_dict[tile.position - self.position]
             opposite_direction = (direction >> 2 | direction << 2) & 15
             return (
-                (self.tile_connection_bitmask & direction) and
-                (tile.tile_connection_bitmask & opposite_direction)
+                bool(self.tile_connection_bitmask & direction) and
+                bool(tile.tile_connection_bitmask & opposite_direction)
             )
     
         return False
 
     def extends(self, edge: Edge) -> bool:
-        return (
-            self.connects_with(edge.origin) or
-            self.connects_with(edge.termination)
+        output = (
+            self not in [edge.origin, edge.termination] and 
+            (
+                self.connects_with(edge.origin) or
+                self.connects_with(edge.termination)
+            )
         )
+
+        return output
     
     def __scan(self, direction: int) -> Tile:
         if not self.tile_connection_bitmask & direction:
@@ -54,35 +60,41 @@ class Tile:
 
         while valid:
             next_tile = self.__tilemap[
-                self.position + directions_dict[direction]
+                current_tile.position + directions_dict[direction]
             ]
 
             # Here's the redundant check mentioned in earlier comment!
             # This looks janky but I'm not sure why
             if current_tile.connects_with(next_tile):
+                print(f"\t{current_tile.position} connects with {next_tile.position}")
                 current_tile = next_tile
-                if count_set_bits(current_tile) > 2:
-                    valid = False
+                # if count_set_bits(current_tile.tile_connection_bitmask) > 2:
+                #     valid = False
             else:
+                print(f"\t{current_tile.position} does not connect with {next_tile.position}")
                 valid = False
 
         return current_tile
     
     def connect(self, tile_connection_bitmask: int) -> None:
+        print(f"Connecting tile {self.position}")
         # Doesn't consider a case where we're 'disconnecting'
         self.tile_connection_bitmask = tile_connection_bitmask
 
         # Remove edges that we'd be extending (replacing) anyway
-        if (self.__tilemap.edges[self.partition_index]):
+        if (self.partition_index in self.__tilemap.edges):
             for edge in self.__tilemap.edges[self.partition_index]:
+                print(f"\tChecking existing edge {edge}...", end="")
                 if self.extends(edge):
+                    print(f"extends! removing")
                     self.__tilemap.remove_edge(edge)
+                else:
+                    print(f"does not extend - leaving")
 
         connections = {
             direction: self.__scan(direction)
             for direction in [8, 4, 2, 1]
             if direction & self.tile_connection_bitmask
-            and self.__scan(direction) != self
         }
 
         if tile_connection_bitmask in (
@@ -98,10 +110,12 @@ class Tile:
             end = start >> 2
 
             if connections[start] != connections[end]:
+                print(f"\tSpotted a connection between {connections[start]} and {connections[end]} - creating new edge")
                 self.__tilemap.create_edge(connections[start], connections[end])
 
         for direction in connections.keys():
-            self.__tilemap.create_edge(self, connections[direction])     
+            if connections[direction] != self:
+                self.__tilemap.create_edge(self, connections[direction])     
        
 
 class Edge:
@@ -163,12 +177,15 @@ class TileMap:
     
     def clear_connections(self) -> None:
         """Clear connections for every tile, and reset the graph."""
-        pass
+        for tile in self.tiles:
+            tile.tile_connection_bitmask = 0
+
+        self.edges = {}
 
     def create_edge(self, lhs: Tile, rhs:Tile) -> Edge:
         edge = Edge(lhs, rhs)
         for partition in edge.get_spatial_partitions(
-            self.size / self.zone_size
+            int(self.size / self.zone_size)
         ):
             if partition not in self.edges:
                 self.edges[partition] = [edge]
@@ -179,8 +196,14 @@ class TileMap:
         return edge
     
     def remove_edge(self, edge: Edge) -> None:
+        print(f"\t\tRemoving {edge} from edges")
         for partition in edge.get_spatial_partitions(
-            self.size / self.zone_size
+            int(self.size / self.zone_size)
         ):
+            partitions = self.edges[partition].remove(edge)
+
+            if not partitions:
+                self.edges.pop(partition)
+
             if partition in self.edges:
-                self.edges[partition].remove(edge)
+                self.edges[partition] = self.edges[partition].remove(edge)

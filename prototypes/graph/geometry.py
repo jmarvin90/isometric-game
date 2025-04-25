@@ -9,6 +9,12 @@ class Point:
         self.x = x
         self.y = y
 
+    def __key(self) -> tuple:
+        return (self.x, self.y)
+
+    def __hash__(self) -> int:
+        return hash(self.__key())
+
     def __str__(self) -> str:
         return f"{self.x},{self.y}"
 
