@@ -33,9 +33,8 @@ class Tile:
             if next_tile.tile_connection_bitmask & opposite_direction:
                 if next_tile in self.__tilemap.edges:
                     for connection in self.__tilemap.edges[next_tile]:
-                        edge = Edge(next_tile, connection)
                         if (
-                            edge.connection_bitmask &
+                            Edge(next_tile, connection).connection_bitmask &
                             (direction | opposite_direction)
                         ):
                             self.__tilemap.disconnect(next_tile, connection)
@@ -87,11 +86,45 @@ class Edge:
         return f"{self.origin} -> {self.termination}"
     
     @cached_property
-    def connection_bitmask(self) -> str:
+    def connection_bitmask(self) -> int:
         return (
             self.origin.tile_connection_bitmask & 
             self.termination.tile_connection_bitmask
         )
+    
+    @cached_property
+    def is_vertical(self) -> bool:
+        return self.origin.position.x == self.termination.position.x
+    
+    @cached_property
+    def is_horizontal(self) -> bool:
+        return self.origin.position.y == self.termination.position.y
+    
+    @cached_property
+    def length(self) -> int:
+        diff = self.origin - self.termination
+        return abs(diff.x) if self.is_horizontal else abs(diff.y)
+    
+    def runs_adjacent_to(self, tile: Tile) -> bool:
+        if self.is_horizontal:
+            smallest, largest = sorted(
+                [self.origin.position.x, self.termination.position.x]
+            )
+
+            return (
+                abs(self.origin.position.y - tile.position.y) == 1 and
+                smallest <= tile.position.x <= largest
+            )
+        
+        if self.is_vertical:
+            smallest, largest = sorted(
+                [self.origin.position.y, self.termination.position.y]
+            )
+
+            return (
+                abs(self.origin.position.x - tile.position.x) == 1 and
+                smallest <= tile.position.y <= largest
+            )
 
 
 class TileMap:
