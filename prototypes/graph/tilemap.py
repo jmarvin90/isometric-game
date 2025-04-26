@@ -15,7 +15,6 @@ class Tile:
         return str(self.position)
     
     def __scan(self, direction: int) -> Tile:
-        print(f"Scanning {Directions(direction).name} from {self}")
         if not direction & self.tile_connection_bitmask:
             return self
         
@@ -58,10 +57,6 @@ class Tile:
             for direction in [8, 4, 2, 1]
             if direction & tile_connection_bitmask
         }
-
-        if self.position == Point(4, 2):
-            for key, value in connections.items():
-                print("\t\t", Directions(key).name, value)
 
         if self.tile_connection_bitmask in (
             Directions.NORTH.value | Directions.SOUTH.value,
@@ -164,13 +159,11 @@ class TileMap:
                 del self.edges[origin]
     
     def connect(self, origin: Tile, termination: Tile) -> Edge:
-        print(f"\tConnecting {origin} and {termination}")
         self.__connect(origin, termination)
         self.__connect(termination, origin)
         return Edge(origin, termination)
     
     def disconnect(self, origin:Tile, termination: Tile) -> None:
-        print(f"\tDisconnecting {origin} and {termination}")
         self.__disconnect(origin, termination)
         self.__disconnect(termination, origin)
 
