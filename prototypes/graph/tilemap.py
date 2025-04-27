@@ -8,6 +8,9 @@ class Direction:
     def __init__(self, direction: int):
         self.direction = direction
 
+    def __int__(self) -> int:
+        return self.direction
+
     def __neg__(self) -> Direction:
         return Direction((self.direction >> 2 | self.direction << 2) & 15)
     
@@ -70,7 +73,25 @@ class Tile:
         return current_tile
     
     def connect(self, tile_connection_bitmask: int) -> None:
+        """Connect the tile in the directions specified by bitmask."""
+        disconnected_directions = (
+            ~tile_connection_bitmask & self.tile_connection_bitmask
+        )
+    
         self.tile_connection_bitmask = tile_connection_bitmask
+
+        for direction_num in [8, 4, 2, 1]:
+            if direction_num & disconnected_directions:
+                direction = Direction(direction_num)
+
+                disconnected_node = self.__tilemap[
+                    self.position + direction.as_vector()
+                ].__scan(direction)
+
+                new_target = disconnected_node.__scan(-direction)
+                self.__tilemap.disconnect(disconnected_node, -direction)
+                if new_target != disconnected_node:
+                    self.__tilemap.connect(disconnected_node, new_target)
 
         connections = {}
 
@@ -108,12 +129,12 @@ class Edge:
     def __str__(self) -> str:
         return f"{self.origin} -> {self.termination}"
     
-    @cached_property
-    def connection_bitmask(self) -> int:
-        return (
-            self.origin.tile_connection_bitmask & 
-            self.termination.tile_connection_bitmask
-        )
+    # @cached_property
+    # def connection_bitmask(self) -> int:
+    #     return (
+    #         self.origin.tile_connection_bitmask & 
+    #         self.termination.tile_connection_bitmask
+    #     )
     
     @cached_property
     def is_vertical(self) -> bool:
@@ -123,10 +144,10 @@ class Edge:
     def is_horizontal(self) -> bool:
         return self.origin.position.y == self.termination.position.y
     
-    @cached_property
-    def length(self) -> int:
-        diff = self.origin - self.termination
-        return abs(diff.x) if self.is_horizontal else abs(diff.y)
+    # @cached_property
+    # def length(self) -> int:
+    #     diff = self.origin - self.termination
+    #     return abs(diff.x) if self.is_horizontal else abs(diff.y)
     
     @cached_property
     def direction(self) -> Direction:
@@ -191,7 +212,7 @@ class TileMap:
             tile.tile_connection_bitmask = 0
         self.edges = {}
 
-    def __disconnect(self, node: Tile, direction: Direction) -> None:
+    def disconnect(self, node: Tile, direction: Direction) -> None:
         # Exit early if the node is not already connected
         if (
             node not in self.edges or 
@@ -211,11 +232,14 @@ class TileMap:
 
         for tile, connections in self.edges.items():
             if connections[edge.direction.direction_index] == termination:
-                self.__disconnect(tile, edge.direction)
+                self.disconnect(tile, edge.direction)
 
         # Create the connection
         self.edges[origin][edge.direction.direction_index] = termination
 
     def connect(self, origin: Tile, termination: Tile) -> None:
+        # if origin == termination:
+        #     return
+        
         self.__connect(origin, termination)
         self.__connect(termination, origin)
