@@ -96,11 +96,13 @@ class Tile:
             if direction & self.tile_connection_bitmask:
                 connections[direction] = self.__scan(direction)
 
+        # Deal with disconnections
         for direction, node in disconnections.items():
             new_target = node.__scan(-direction)
             if new_target != node:
                 self.__tilemap.connect(node, new_target)
 
+        # Deal with connections in a straight line
         if self.tile_connection_bitmask in (
             Directions.NORTH.value | Directions.SOUTH.value,
             Directions.EAST.value | Directions.WEST.value
@@ -116,6 +118,7 @@ class Tile:
             if connections[start] != connections[end]:
                 self.__tilemap.connect(connections[start], connections[end])
         
+        # Deal with connections which change direction
         else:
             for direction in connections:
                 if connections[direction] != self:
