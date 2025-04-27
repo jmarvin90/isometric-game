@@ -10,6 +10,9 @@ class Direction:
 
     def __int__(self) -> int:
         return self.direction
+    
+    def __invert__(self) -> int:
+        return ~self.direction
 
     def __neg__(self) -> Direction:
         return Direction((self.direction >> 2 | self.direction << 2) & 15)
@@ -74,31 +77,29 @@ class Tile:
     
     def connect(self, tile_connection_bitmask: int) -> None:
         """Connect the tile in the directions specified by bitmask."""
-        disconnected_directions = (
+        connections = {}
+        disconnections = {}
+
+        tile_disconnection_bitmask = (
             ~tile_connection_bitmask & self.tile_connection_bitmask
         )
-    
-        self.tile_connection_bitmask = tile_connection_bitmask
 
-        for direction_num in [8, 4, 2, 1]:
-            if direction_num & disconnected_directions:
-                direction = Direction(direction_num)
+        # Look in all directions
+        for direction in [Direction(num) for num in [8, 4, 2, 1]]:
 
-                disconnected_node = self.__tilemap[
-                    self.position + direction.as_vector()
-                ].__scan(direction)
+            if direction & tile_disconnection_bitmask:
+                disconnections[direction] = self.__scan(direction)
 
-                new_target = disconnected_node.__scan(-direction)
-                self.__tilemap.disconnect(disconnected_node, -direction)
-                if new_target != disconnected_node:
-                    self.__tilemap.connect(disconnected_node, new_target)
+            self.tile_connection_bitmask &= ~direction
+            self.tile_connection_bitmask |= direction & tile_connection_bitmask
 
-        connections = {}
-
-        for direction_num in [8, 4, 2, 1]:
-            if direction_num & tile_connection_bitmask:
-                direction = Direction(direction_num)
+            if direction & self.tile_connection_bitmask:
                 connections[direction] = self.__scan(direction)
+
+        for direction, node in disconnections.items():
+            new_target = node.__scan(-direction)
+            if new_target != node:
+                self.__tilemap.connect(node, new_target)
 
         if self.tile_connection_bitmask in (
             Directions.NORTH.value | Directions.SOUTH.value,
