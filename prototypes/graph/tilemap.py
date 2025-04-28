@@ -75,24 +75,27 @@ class Tile:
 
         return current_tile
     
-    def connect(self, tile_connection_bitmask: int) -> None:
+    def set_connection_bitmask(self, tile_connection_bitmask: int) -> None:
         """Connect the tile in the directions specified by bitmask."""
-        connections = {}
-        disconnections = {}
-
         tile_disconnection_bitmask = (
             ~tile_connection_bitmask & self.tile_connection_bitmask
         )
+        
+        connections = {}
+        disconnections = {}
 
         # Look in all directions
         for direction in [Direction(num) for num in [8, 4, 2, 1]]:
 
+            # Find the nodes we need to disconnect
             if direction & tile_disconnection_bitmask:
                 disconnections[direction] = self.__scan(direction)
 
+            # Update bit value for the given direction
             self.tile_connection_bitmask &= ~direction
             self.tile_connection_bitmask |= direction & tile_connection_bitmask
 
+            # Find the nodes we need to connect
             if direction & self.tile_connection_bitmask:
                 connections[direction] = self.__scan(direction)
 
@@ -234,16 +237,15 @@ class TileMap:
         if (origin not in self.edges):
             self.edges[origin] = [None, None, None, None]
 
+        # Check whether anything connects to termination from the same direction
         for tile, connections in self.edges.items():
             if connections[edge.direction.direction_index] == termination:
+                # and disconnect if so
                 self.disconnect(tile, edge.direction)
 
         # Create the connection
         self.edges[origin][edge.direction.direction_index] = termination
 
-    def connect(self, origin: Tile, termination: Tile) -> None:
-        # if origin == termination:
-        #     return
-        
+    def connect(self, origin: Tile, termination: Tile) -> None:         
         self.__connect(origin, termination)
         self.__connect(termination, origin)

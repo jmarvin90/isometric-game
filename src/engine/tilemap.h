@@ -6,38 +6,25 @@
 #include <glm/glm.hpp>
 
 #include "constants.h"
+#include "geometry.h"
+
 
 class TileMap;
-class Tile;
-
-class ConnectionContainer {
-    public:
-        Tile* connections[4] {};
-        ConnectionContainer() = default;
-        ~ConnectionContainer() = default;
-        Tile*& operator[](const uint8_t direction) {
-            return connections[__builtin_ctz(direction)];
-        }
-};
 
 class Tile {
     entt::registry& registry;
     const glm::ivec2 grid_position;
     TileMap* tilemap;
-    uint8_t tile_connection_bitmask {0};
     entt::entity entity;
     std::vector<entt::entity> building_levels;
 
     protected:
-        Tile* scan(const uint8_t direction);
-        void connect(const uint8_t direction, Tile* tile);
-        void disconnect(const uint8_t direction);
+        Tile* const scan(const Direction direction);
+        uint8_t m_tile_connection_bitmask {0};
 
     public:
-        Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* tilemap);
+        Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* const tilemap);
         ~Tile();
-
-        ConnectionContainer connections;
         
         // Don't need to be const if we're returning a copy
         glm::ivec2 world_position() const;
@@ -57,14 +44,18 @@ class Tile {
             SDL_Point* point_array, const glm::ivec2& camera_position
         ) const;
 
-        uint8_t get_connection_bitmask() const { return tile_connection_bitmask; }
+        uint8_t get_connection_bitmask() const { return m_tile_connection_bitmask; }
         void set_connection_bitmask(const uint8_t connection_bitmask);
 };
 
 class TileMap {
+    // TODO: think about const Tile* const
     std::vector<Tile> tilemap;
-    
+
     public: 
+        // TODO: the necessaries to make private
+        std::unordered_map<Tile*, std::array<Tile*, 4>> graph{};
+
         TileMap(entt::registry& registry);
         ~TileMap();
 
@@ -72,6 +63,14 @@ class TileMap {
 
         Tile& operator[](const glm::ivec2 position);
         glm::ivec2 grid_to_pixel(glm::ivec2 grid_pos);
+        
+        bool in_bounds(const glm::ivec2 position) const;
+
+        void disconnect(Tile* tile, const Direction);
+
+        void connect(
+            Tile* origin, Tile* termination, const Direction direction
+        );
 };
 
 #endif

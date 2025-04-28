@@ -4,6 +4,8 @@
 #include <SDL2/SDL_image.h>
 #include <spdlog/spdlog.h>
 
+#include "geometry.h"
+
 MouseMap::MouseMap(const std::string& mousemap_file_path):
     mousemap {IMG_Load(mousemap_file_path.c_str())} 
 {
@@ -49,26 +51,26 @@ SDL_Color MouseMap::mousemap_pixel_colour(const glm::ivec2& pixel_offset) const 
 glm::ivec2 MouseMap::pixel_colour_vector(const SDL_Colour& colour) const {
 
     if (colour.r == 255 && colour.g == 255 && colour.b == 255) {
-        return constants::VECTORS.at(constants::NO_DIRECTION);
+        return glm::ivec2{0, 0};
     }
 
     if (colour.r == 255) {
-        return constants::VECTORS.at(constants::WEST);
+        return glm::ivec2{-1, 0};
     }
 
     if (colour.g == 255) {
-        return constants::VECTORS.at(constants::NORTH);
+        return glm::ivec2{0, -1};
     }
 
     if (colour.b == 255) {
-        return constants::VECTORS.at(constants::EAST);
+        return glm::ivec2{1, 0};
     }
 
     if (colour.r == 0 && colour.g == 0 && colour.b == 0) {
-        return constants::VECTORS.at(constants::SOUTH);
+        return glm::ivec2{0, 1};
     }
 
-    return constants::VECTORS.at(constants::NO_DIRECTION);
+    return glm::ivec2{0, 0};;
 }
 
 // Calculate the 'coarse' grid position tile walk map

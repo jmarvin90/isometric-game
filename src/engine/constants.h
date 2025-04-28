@@ -73,12 +73,12 @@ namespace constants {
         WEST = 1
     };
 
-    inline const std::unordered_map<int, glm::ivec2> VECTORS {
-        {constants::NORTH, {0, -1}},
-        {constants::EAST, {1, 0}},
-        {constants::SOUTH, {0, 1}},
-        {constants::WEST, {-1, 0}},
-        {constants::NO_DIRECTION, {0, 0}}
+    inline constexpr std::array<glm::ivec2, 4> VECTORS {
+        // glm::ivec2{0, 0},       // 0 - NO_DIRECTION
+        glm::ivec2{-1, 0},      // 1 - WEST          
+        glm::ivec2{0, 1},       // 2 - SOUTH
+        glm::ivec2{1, 0},       // 3 - EAST
+        glm::ivec2{0, -1}       // 4 - NORTH
     };
 
     enum PointsOnTile {

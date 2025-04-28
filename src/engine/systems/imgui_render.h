@@ -123,12 +123,26 @@ void render_imgui_gui(
             ImGui::EndCombo();
         }
 
-        ImGui::SeparatorText("Tile Connection");
-        ImGui::Text(
-            "Tile connection: (%s)", 
-            std::to_string(tilemap.selected_tile->get_connection_bitmask()).c_str()
-        );
-    
+        if (
+            tilemap.graph.find(tilemap.selected_tile) != tilemap.graph.end()
+        ) {
+            for (uint8_t i=constants::Directions::NORTH; i; i>>=1) {
+                Direction direction {i};
+                Tile* connection {
+                    tilemap.graph.at(tilemap.selected_tile).at(direction.direction_index())
+                };
+                if (connection){
+                    glm::ivec2 connection_location {connection->get_grid_position()};
+                    std::string title_string{"Tile Connection " + std::to_string(i)};
+                    ImGui::SeparatorText(title_string.c_str());
+                    ImGui::Text(
+                        "Tile connection: (%s, %s)", 
+                        std::to_string(connection_location.x).c_str(),
+                        std::to_string(connection_location.y).c_str()
+                    );
+                }
+            }
+        }  
     }
     
     ImGui::Render();
