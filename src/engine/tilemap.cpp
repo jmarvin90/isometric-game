@@ -11,7 +11,7 @@
 
 #include "components/transform.h"
 #include "components/sprite.h"
-#include "geometry.h"
+#include "utils.h"
 
 Tile::Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* tilemap): 
     registry{registry}, 
@@ -67,7 +67,7 @@ entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprit
     return level;
 }
 
-Tile* const Tile::scan(const Direction direction) {
+Tile* const Tile::scan(const uint8_t direction) {
 
     if (!(direction & m_tile_connection_bitmask)) {
         return this;
@@ -79,14 +79,14 @@ Tile* const Tile::scan(const Direction direction) {
     while (valid) {
         glm::ivec2 next_point {
             current_tile->grid_position + 
-            constants::VECTORS.at(direction.direction_index())
+            constants::VECTORS.at(direction_index(direction))
         };
 
         Tile* const next_tile {&(*tilemap)[next_point]};
 
         if (
             !tilemap->in_bounds(next_point) or
-            !(-direction & next_tile->m_tile_connection_bitmask)
+            !(reverse(direction) & next_tile->m_tile_connection_bitmask)
         ) {
             return current_tile;
         }
@@ -111,11 +111,10 @@ void Tile::set_connection_bitmask(const uint8_t connection_bitmask) {
     std::array<Tile*, 4> connections{};
     std::array<Tile*, 4> disconnections{};
 
-    for (uint8_t i=Directions::NORTH; i; i>>=1) {
-        Direction direction{i};
+    for (uint8_t direction=Directions::NORTH; direction; direction>>=1) {
         
         if (direction & tile_disconnection_bitmask) {
-            disconnections.at(direction.direction_index()) = scan(direction);
+            disconnections.at(direction_index(direction)) = scan(direction);
         }
 
         m_tile_connection_bitmask &= ~direction;
@@ -123,21 +122,18 @@ void Tile::set_connection_bitmask(const uint8_t connection_bitmask) {
 
 
         if (direction & m_tile_connection_bitmask) {
-            connections.at(direction.direction_index()) = scan(direction);
+            connections.at(direction_index(direction)) = scan(direction);
         }
     }
 
-    for (uint8_t i=Directions::NORTH; i; i>>=1) {
-
-        Direction direction {i};
-
-        Tile* node {disconnections.at(direction.direction_index())};
+    for (uint8_t direction=Directions::NORTH; direction; direction>>=1) {
+        Tile* node {disconnections.at(direction_index(direction))};
 
         if (node) {
-            Tile* new_target {node->scan(-direction)};
+            Tile* new_target {node->scan(reverse(direction))};
             if (new_target != node) {
                 spdlog::info("Connecting via disconnection");
-                tilemap->connect(node, new_target, -direction);
+                tilemap->connect(node, new_target, reverse(direction));
                 tilemap->connect(new_target, node, direction);
             }
         }
@@ -147,28 +143,28 @@ void Tile::set_connection_bitmask(const uint8_t connection_bitmask) {
         (m_tile_connection_bitmask == (Directions::NORTH | Directions::SOUTH)) |
         (m_tile_connection_bitmask == (Directions::EAST | Directions::WEST))
     ) {
-        Direction direction {
+        uint8_t direction {
             Directions::NORTH & m_tile_connection_bitmask ? 
             Directions::NORTH: Directions::EAST
         };
 
-        Tile* start_node {connections.at(direction.direction_index())};
-        Tile* end_node {connections.at((-direction).direction_index())};
+        uint8_t opposite_direction {reverse(direction)};
+
+        Tile* start_node {connections.at(direction_index(direction))};
+        Tile* end_node {connections.at(direction_index(opposite_direction))};
 
         if ((start_node && end_node) && (start_node != end_node)) {
             spdlog::info("Connecting in a straight line");
-            tilemap->connect(start_node, end_node, -direction);
+            tilemap->connect(start_node, end_node, opposite_direction);
             tilemap->connect(end_node, start_node, direction);
         }
 
     } else {
-        for (uint8_t i=8; i; i>>=1) {
-            Direction direction{i};
-            Tile* node {connections.at(direction.direction_index())};
+        for (uint8_t direction=Directions::NORTH; direction; direction>>=1) {
+            Tile* node {connections.at(direction_index(direction))};
             if (node && (node != this)) {
-                spdlog::info("Connecting via a change in direction");
                 tilemap->connect(this, node, direction);
-                tilemap->connect(node, this, -direction);
+                tilemap->connect(node, this, reverse(direction));
             }
         }
     }
@@ -248,20 +244,20 @@ bool TileMap::in_bounds(const glm::ivec2 position) const {
     return x_in_bounds && y_in_bounds;
 }
 
-void TileMap::disconnect(Tile* tile, const Direction direction) {
+void TileMap::disconnect(Tile* tile, const uint8_t direction) {
     bool key_in_graph {graph.find(tile) != graph.end()};
 
-    if (!key_in_graph || !graph.at(tile).at(direction.direction_index())) {
+    if (!key_in_graph || !graph.at(tile).at(direction_index(direction))) {
         return;
     }
 
-    graph.at(tile).at(direction.direction_index()) = nullptr;
+    graph.at(tile).at(direction_index(direction)) = nullptr;
 }
 
 void TileMap::connect(
     Tile* origin, 
     Tile* termination, 
-    const Direction direction
+    const uint8_t direction
 ) {
 
     if (!(graph.find(origin) != graph.end())) {
@@ -269,10 +265,10 @@ void TileMap::connect(
     }
 
     for (auto it = graph.begin(); it != graph.end(); it++) {
-        if (it->second.at(direction.direction_index()) == termination) {
+        if (it->second.at(direction_index(direction)) == termination) {
             disconnect(it->first, direction);
         }
     }
 
-    graph.at(origin).at(direction.direction_index()) = termination;
+    graph.at(origin).at(direction_index(direction)) = termination;
 }

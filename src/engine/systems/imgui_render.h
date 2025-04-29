@@ -126,14 +126,13 @@ void render_imgui_gui(
         if (
             tilemap.graph.find(tilemap.selected_tile) != tilemap.graph.end()
         ) {
-            for (uint8_t i=constants::Directions::NORTH; i; i>>=1) {
-                Direction direction {i};
+            for (uint8_t direction=constants::Directions::NORTH; direction; direction>>=1) {
                 Tile* connection {
-                    tilemap.graph.at(tilemap.selected_tile).at(direction.direction_index())
+                    tilemap.graph.at(tilemap.selected_tile).at(direction_index(direction))
                 };
                 if (connection){
                     glm::ivec2 connection_location {connection->get_grid_position()};
-                    std::string title_string{"Tile Connection " + std::to_string(i)};
+                    std::string title_string{"Tile Connection " + std::to_string(direction)};
                     ImGui::SeparatorText(title_string.c_str());
                     ImGui::Text(
                         "Tile connection: (%s, %s)", 

@@ -4,8 +4,6 @@
 #include <SDL2/SDL_image.h>
 #include <spdlog/spdlog.h>
 
-#include "geometry.h"
-
 MouseMap::MouseMap(const std::string& mousemap_file_path):
     mousemap {IMG_Load(mousemap_file_path.c_str())} 
 {

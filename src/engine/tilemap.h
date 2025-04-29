@@ -6,7 +6,6 @@
 #include <glm/glm.hpp>
 
 #include "constants.h"
-#include "geometry.h"
 
 
 class TileMap;
@@ -19,7 +18,7 @@ class Tile {
     std::vector<entt::entity> building_levels;
 
     protected:
-        Tile* const scan(const Direction direction);
+        Tile* const scan(const uint8_t direction);
         uint8_t m_tile_connection_bitmask {0};
 
     public:
@@ -66,10 +65,10 @@ class TileMap {
         
         bool in_bounds(const glm::ivec2 position) const;
 
-        void disconnect(Tile* tile, const Direction);
+        void disconnect(Tile* tile, const uint8_t direction);
 
         void connect(
-            Tile* origin, Tile* termination, const Direction direction
+            Tile* origin, Tile* termination, const uint8_t direction
         );
 };
 

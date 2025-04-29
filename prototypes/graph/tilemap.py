@@ -3,42 +3,14 @@ from functools import cached_property
 from graph.geometry import Point, Directions, directions_dict, reverse_directions_dict
 from graph.utils import count_set_bits, count_trailing_zeros
 
+def reverse(direction: int) -> int:
+    return (direction >> 2 | direction << 2) & 15
 
-class Direction:
-    def __init__(self, direction: int):
-        self.direction = direction
+def as_vector(direction: int) -> Point:
+    return directions_dict[direction]
 
-    def __int__(self) -> int:
-        return self.direction
-    
-    def __invert__(self) -> int:
-        return ~self.direction
-
-    def __neg__(self) -> Direction:
-        return Direction((self.direction >> 2 | self.direction << 2) & 15)
-    
-    def __and__(self, comparator: int) -> int:
-        return self.direction & comparator
-    
-    def __or__(self, comparator: int) -> int:
-        return self.direction | comparator
-
-    def as_vector(self) -> Point:
-        return directions_dict[self.direction]
-    
-    def __str__(self) -> str:
-        return Directions(self.direction).name
-    
-    def __hash__(self) -> int:
-        return hash(self.direction)
-    
-    def __eq__(self, comparator: Direction) -> bool:
-        return self.direction == comparator.direction
-    
-    @cached_property
-    def direction_index(self) -> int:
-        return self.direction.bit_length() -1
-
+def direction_index(direction: int) -> int:
+        return direction.bit_length() -1
 
 class Tile:
     """Represents a tile on the TileMap."""
@@ -50,7 +22,7 @@ class Tile:
     def __str__(self) -> str:
         return str(self.position)
     
-    def __scan(self, direction: Direction) -> Tile:
+    def __scan(self, direction: int) -> Tile:
         """Get the furthest connected tile in a specified direction."""
         if not direction & self.tile_connection_bitmask:
             return self
@@ -59,12 +31,12 @@ class Tile:
         valid = True
 
         while valid:
-            next_point = current_tile.position + direction.as_vector()
+            next_point = current_tile.position + as_vector(direction)
             next_tile = self.__tilemap[next_point]
             
             if (
                 not self.__tilemap.in_bounds(next_point) or
-                not -direction & next_tile.tile_connection_bitmask
+                not reverse(direction) & next_tile.tile_connection_bitmask
             ):
                 return current_tile
         
@@ -85,7 +57,7 @@ class Tile:
         disconnections = {}
 
         # Look in all directions
-        for direction in [Direction(num) for num in [8, 4, 2, 1]]:
+        for direction in [8, 4, 2, 1]:
 
             # Find the nodes we need to disconnect
             if direction & tile_disconnection_bitmask:
@@ -101,7 +73,7 @@ class Tile:
 
         # Deal with disconnections
         for direction, node in disconnections.items():
-            new_target = node.__scan(-direction)
+            new_target = node.__scan(reverse(direction))
             if new_target != node:
                 self.__tilemap.connect(node, new_target)
 
@@ -110,13 +82,13 @@ class Tile:
             Directions.NORTH.value | Directions.SOUTH.value,
             Directions.EAST.value | Directions.WEST.value
         ):
-            start = Direction(
+            start = (
                 Directions.NORTH.value 
                 if Directions.NORTH.value & self.tile_connection_bitmask
                 else Directions.EAST.value
             )
             
-            end = -start
+            end = reverse(start)
 
             if connections[start] != connections[end]:
                 self.__tilemap.connect(connections[start], connections[end])
@@ -136,13 +108,6 @@ class Edge:
     def __str__(self) -> str:
         return f"{self.origin} -> {self.termination}"
     
-    # @cached_property
-    # def connection_bitmask(self) -> int:
-    #     return (
-    #         self.origin.tile_connection_bitmask & 
-    #         self.termination.tile_connection_bitmask
-    #     )
-    
     @cached_property
     def is_vertical(self) -> bool:
         return self.origin.position.x == self.termination.position.x
@@ -151,20 +116,13 @@ class Edge:
     def is_horizontal(self) -> bool:
         return self.origin.position.y == self.termination.position.y
     
-    # @cached_property
-    # def length(self) -> int:
-    #     diff = self.origin - self.termination
-    #     return abs(diff.x) if self.is_horizontal else abs(diff.y)
-    
     @cached_property
-    def direction(self) -> Direction:
-        return Direction(
-            reverse_directions_dict[
-                (
-                    self.termination.position - self.origin.position
-                ).vector_direction
-            ]
-        )
+    def direction(self) -> int:
+        return reverse_directions_dict[
+            (
+                self.termination.position - self.origin.position
+            ).vector_direction
+        ]
     
     def runs_adjacent_to(self, tile: Tile) -> bool:
         if self.is_horizontal:
@@ -219,16 +177,16 @@ class TileMap:
             tile.tile_connection_bitmask = 0
         self.edges = {}
 
-    def disconnect(self, node: Tile, direction: Direction) -> None:
+    def disconnect(self, node: Tile, direction: int) -> None:
         # Exit early if the node is not already connected
         if (
             node not in self.edges or 
-            self.edges[node][direction.direction_index] is None
+            self.edges[node][direction_index(direction)] is None
         ):
             return
 
         # Set the node's connection at that index to None
-        self.edges[node][direction.direction_index] = None
+        self.edges[node][direction_index(direction)] = None
 
     def __connect(self, origin: Tile, termination: Tile) -> None:
         edge = Edge(origin, termination)
@@ -239,12 +197,12 @@ class TileMap:
 
         # Check whether anything connects to termination from the same direction
         for tile, connections in self.edges.items():
-            if connections[edge.direction.direction_index] == termination:
+            if connections[direction_index(edge.direction)] == termination:
                 # and disconnect if so
                 self.disconnect(tile, edge.direction)
 
         # Create the connection
-        self.edges[origin][edge.direction.direction_index] = termination
+        self.edges[origin][direction_index(edge.direction)] = termination
 
     def connect(self, origin: Tile, termination: Tile) -> None:         
         self.__connect(origin, termination)
