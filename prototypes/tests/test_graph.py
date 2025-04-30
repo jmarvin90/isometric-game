@@ -1,17 +1,11 @@
 import pytest
 
-from graph.tilemap import TileMap, Edge
+from graph.tilemap import TileMap
 from graph.geometry import Point
 
 @pytest.fixture
 def tilemap() -> TileMap:
     return TileMap(size=12)
-
-@pytest.fixture
-def edge(tilemap: TileMap) -> Edge:
-    return Edge(
-        tilemap[Point(2, 2)], tilemap[Point(10, 2)]
-    )
 
 def test_connect(tilemap: TileMap) -> None:
     for number in range(2, 11):
