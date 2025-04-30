@@ -2,6 +2,7 @@ from __future__ import annotations
 from functools import cached_property
 from graph.geometry import Point, Directions, directions_dict, reverse_directions_dict
 from graph.utils import count_set_bits, count_trailing_zeros
+import queue
 
 def reverse(direction: int) -> int:
     return (direction >> 2 | direction << 2) & 15
@@ -12,6 +13,13 @@ def as_vector(direction: int) -> Point:
 def direction_index(direction: int) -> int:
         return direction.bit_length() -1
 
+def point_in_bounds(tilemap: TileMap, position: Point) -> bool:
+    return (
+        (0 <= position.x < tilemap.size) and
+        (0 <= position.y < tilemap.size)
+    )
+
+
 class Tile:
     """Represents a tile on the TileMap."""
     def __init__(self, position: Point, tilemap: TileMap):
@@ -21,31 +29,6 @@ class Tile:
         
     def __str__(self) -> str:
         return str(self.position)
-    
-    def __scan(self, direction: int) -> Tile:
-        """Get the furthest connected tile in a specified direction."""
-        if not direction & self.tile_connection_bitmask:
-            return self
-
-        current_tile = self
-        valid = True
-
-        while valid:
-            next_point = current_tile.position + as_vector(direction)
-            next_tile = self.__tilemap[next_point]
-            
-            if (
-                not self.__tilemap.in_bounds(next_point) or
-                not reverse(direction) & next_tile.tile_connection_bitmask
-            ):
-                return current_tile
-        
-            current_tile = next_tile
-
-            if count_set_bits(current_tile.tile_connection_bitmask) > 2:
-                valid = False
-
-        return current_tile
     
     def set_connection_bitmask(self, tile_connection_bitmask: int) -> None:
         """Connect the tile in the directions specified by bitmask."""
@@ -61,7 +44,7 @@ class Tile:
 
             # Find the nodes we need to disconnect
             if direction & tile_disconnection_bitmask:
-                disconnections[direction] = self.__scan(direction)
+                disconnections[direction] = self.__tilemap.scan(self, direction)
 
             # Update bit value for the given direction
             self.tile_connection_bitmask &= ~direction
@@ -69,13 +52,14 @@ class Tile:
 
             # Find the nodes we need to connect
             if direction & self.tile_connection_bitmask:
-                connections[direction] = self.__scan(direction)
+                connections[direction] = self.__tilemap.scan(self, direction)
 
         # Deal with disconnections
         for direction, node in disconnections.items():
-            new_target = node.__scan(reverse(direction))
+            new_target = self.__tilemap.scan(node, reverse(direction))
             if new_target != node:
                 self.__tilemap.connect(node, new_target)
+                self.__tilemap.connect(new_target, node)
 
         # Deal with connections in a straight line
         if self.tile_connection_bitmask in (
@@ -92,12 +76,14 @@ class Tile:
 
             if connections[start] != connections[end]:
                 self.__tilemap.connect(connections[start], connections[end])
+                self.__tilemap.connect(connections[end], connections[start])
         
         # Deal with connections which change direction
         else:
             for direction in connections:
                 if connections[direction] != self:
                     self.__tilemap.connect(self, connections[direction]) 
+                    self.__tilemap.connect(connections[direction], self) 
 
 
 class Edge:
@@ -123,27 +109,6 @@ class Edge:
                 self.termination.position - self.origin.position
             ).vector_direction
         ]
-    
-    def runs_adjacent_to(self, tile: Tile) -> bool:
-        if self.is_horizontal:
-            smallest, largest = sorted(
-                [self.origin.position.x, self.termination.position.x]
-            )
-
-            return (
-                abs(self.origin.position.y - tile.position.y) == 1 and
-                smallest <= tile.position.x <= largest
-            )
-        
-        if self.is_vertical:
-            smallest, largest = sorted(
-                [self.origin.position.y, self.termination.position.y]
-            )
-
-            return (
-                abs(self.origin.position.x - tile.position.x) == 1 and
-                smallest <= tile.position.y <= largest
-            )
 
 
 class TileMap:
@@ -165,17 +130,36 @@ class TileMap:
             (position.y * self.size) + position.x
         ]
     
-    def in_bounds(self, position: Point) -> bool:
-        return (
-            (0 <= position.x < self.size) and
-            (0 <= position.y < self.size)
-        )
-    
     def clear_connections(self) -> None:
         """Clear connections for every tile, and reset the graph."""
         for tile in self.tiles:
             tile.tile_connection_bitmask = 0
         self.edges = {}
+
+    def scan(self, tile: Tile, direction: int) -> Tile:
+        """Get the furthest connected tile in a specified direction."""
+        if not direction & tile.tile_connection_bitmask:
+            return tile
+
+        current_tile = tile
+        valid = True
+
+        while valid:
+            next_point = current_tile.position + as_vector(direction)
+            next_tile = self[next_point]
+            
+            if (
+                not point_in_bounds(self, next_point) or
+                not reverse(direction) & next_tile.tile_connection_bitmask
+            ):
+                return current_tile
+        
+            current_tile = next_tile
+
+            if count_set_bits(current_tile.tile_connection_bitmask) > 2:
+                valid = False
+
+        return current_tile
 
     def disconnect(self, node: Tile, direction: int) -> None:
         # Exit early if the node is not already connected
@@ -188,7 +172,7 @@ class TileMap:
         # Set the node's connection at that index to None
         self.edges[node][direction_index(direction)] = None
 
-    def __connect(self, origin: Tile, termination: Tile) -> None:
+    def connect(self, origin: Tile, termination: Tile) -> None:
         edge = Edge(origin, termination)
 
         # 'Default initialise' the tile's connection entry if we've not seen it
@@ -204,6 +188,7 @@ class TileMap:
         # Create the connection
         self.edges[origin][direction_index(edge.direction)] = termination
 
-    def connect(self, origin: Tile, termination: Tile) -> None:         
-        self.__connect(origin, termination)
-        self.__connect(termination, origin)
+    def navigate_between(self, origin: Tile, termination: Tile) -> None:      
+        
+        for tile, connections in self.edges:
+            pass
