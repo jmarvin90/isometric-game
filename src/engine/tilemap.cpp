@@ -11,10 +11,13 @@
 
 #include "components/transform.h"
 #include "components/sprite.h"
+#include "utils.h"
 
-Tile::Tile(entt::registry& registry, const glm::ivec2 grid_position): 
+
+Tile::Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* tilemap): 
     registry{registry}, 
-    grid_position{grid_position}, 
+    grid_position{grid_position},
+    tilemap{tilemap},
     entity{registry.create()}
 {}
 
@@ -65,6 +68,109 @@ entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprit
     return level;
 }
 
+const Tile* TileMap::scan(const glm::ivec2 from, const uint8_t direction) const {
+
+    const Tile* from_tile {&(*this)[from]};
+    if (!(direction & from_tile->m_tile_connection_bitmask)) {
+        return from_tile;
+    }
+
+    const Tile* current_tile {from_tile};
+    bool valid {true};
+
+    while (valid) {
+        glm::ivec2 next_point {
+            current_tile->grid_position + 
+            constants::VECTORS.at(direction_index(direction))
+        };
+
+        const Tile* next_tile {&(*this)[next_point]};
+
+        if (
+            !in_bounds(next_point) or
+            !(reverse(direction) & next_tile->m_tile_connection_bitmask)
+        ) {
+            return current_tile;
+        }
+
+        current_tile = next_tile;
+
+        if (__builtin_popcount(current_tile->m_tile_connection_bitmask) > 2) {
+            valid = false;
+        }
+    }
+
+    return current_tile;
+}
+
+void Tile::set_connection_bitmask(const uint8_t connection_bitmask) {
+    using namespace constants;
+
+    uint8_t tile_disconnection_bitmask {
+        uint8_t(~connection_bitmask & m_tile_connection_bitmask)
+    };
+
+    std::array<const Tile*, 4> connections{};
+    std::array<const Tile*, 4> disconnections{};
+
+    for (uint8_t direction=Directions::NORTH; direction; direction>>=1) {
+        
+        if (direction & tile_disconnection_bitmask) {
+            disconnections.at(direction_index(direction)) = tilemap->scan(grid_position, direction);
+        }
+
+        m_tile_connection_bitmask &= ~direction;
+        m_tile_connection_bitmask |= (direction & connection_bitmask);
+
+
+        if (direction & m_tile_connection_bitmask) {
+            connections.at(direction_index(direction)) = tilemap->scan(grid_position, direction);
+        }
+    }
+
+    for (uint8_t direction=Directions::NORTH; direction; direction>>=1) {
+        const Tile* node {disconnections.at(direction_index(direction))};
+
+        if (node) {
+            const Tile* new_target {tilemap->scan(node->grid_position, reverse(direction))};
+            if (new_target != node) {
+                spdlog::info("Connecting via disconnection");
+                tilemap->connect(node, new_target, reverse(direction));
+                tilemap->connect(new_target, node, direction);
+            }
+        }
+    }
+
+    if (
+        (m_tile_connection_bitmask == (Directions::NORTH | Directions::SOUTH)) |
+        (m_tile_connection_bitmask == (Directions::EAST | Directions::WEST))
+    ) {
+        uint8_t direction {
+            Directions::NORTH & m_tile_connection_bitmask ? 
+            Directions::NORTH: Directions::EAST
+        };
+
+        uint8_t opposite_direction {reverse(direction)};
+
+        const Tile* start_node {connections.at(direction_index(direction))};
+        const Tile* end_node {connections.at(direction_index(opposite_direction))};
+
+        if ((start_node && end_node) && (start_node != end_node)) {
+            tilemap->connect(start_node, end_node, opposite_direction);
+            tilemap->connect(end_node, start_node, direction);
+        }
+
+    } else {
+        for (uint8_t direction=Directions::NORTH; direction; direction>>=1) {
+            const Tile* node {connections.at(direction_index(direction))};
+            if (node && (node != this)) {
+                tilemap->connect(this, node, direction);
+                tilemap->connect(node, this, reverse(direction));
+            }
+        }
+    }
+}
+
 
 // Create the vector of tile entities and load the mousemap surface.
 TileMap::TileMap(entt::registry& registry) {
@@ -88,7 +194,8 @@ TileMap::TileMap(entt::registry& registry) {
 
         tilemap.emplace_back(
             registry, 
-            grid_position
+            grid_position,
+            this
         );
     }
 }
@@ -99,7 +206,14 @@ TileMap::~TileMap() {
 }
 
 // Get an entity from tilemap position x, y
-Tile& TileMap::at(const glm::ivec2 position) {
+Tile& TileMap::operator[](const glm::ivec2 position) {
+    return tilemap.at(
+        (position.y * constants::MAP_SIZE_N_TILES) + position.x
+    );
+}
+
+// Get an entity from tilemap position x, y
+const Tile& TileMap::operator[](const glm::ivec2 position) const {
     return tilemap.at(
         (position.y * constants::MAP_SIZE_N_TILES) + position.x
     );
@@ -107,7 +221,7 @@ Tile& TileMap::at(const glm::ivec2 position) {
 
 // Public function converting x, y tilemap coordinates to screen coordinates
 glm::ivec2 TileMap::grid_to_pixel(glm::ivec2 grid_pos) {
-    return at({grid_pos.x, grid_pos.y}).world_position();
+    return (*this)[{grid_pos.x, grid_pos.y}].world_position();
 }
 
 // Fill up an array with world-adjusted points used to highlight a tile
@@ -124,4 +238,33 @@ void Tile::get_tile_iso_points(
         };
         point_array[i] = SDL_Point{point.x, point.y}; 
     }
+}
+
+void TileMap::disconnect(const Tile* tile, const uint8_t direction) {
+    bool key_in_graph {graph.find(tile) != graph.end()};
+
+    if (!key_in_graph || !graph.at(tile).at(direction_index(direction))) {
+        return;
+    }
+
+    graph.at(tile).at(direction_index(direction)) = nullptr;
+}
+
+void TileMap::connect(
+    const Tile* origin, 
+    const Tile* termination, 
+    const uint8_t direction
+) {
+
+    if (!(graph.find(origin) != graph.end())) {
+        graph.insert({origin, std::array<const Tile*, 4>{}});
+    }
+
+    for (auto it = graph.begin(); it != graph.end(); it++) {
+        if (it->second.at(direction_index(direction)) == termination) {
+            disconnect(it->first, direction);
+        }
+    }
+
+    graph.at(origin).at(direction_index(direction)) = termination;
 }

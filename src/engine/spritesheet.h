@@ -8,17 +8,28 @@
 #include <string>
 
 
+class SpriteDefinition {
+    public:
+        SDL_Rect texture_rect;
+        uint8_t connection;
+        SpriteDefinition() = default;
+        SpriteDefinition(SDL_Rect texture_rect, uint8_t connection): texture_rect{texture_rect}, connection{connection} {};
+        ~SpriteDefinition() = default;
+};
+
 class SpriteSheet {
     const std::string image_path;
     const std::string atlas_path;
     SDL_Texture* spritesheet;
 
     public:
-        std::unordered_map<std::string, const SDL_Rect> sprites;
+        std::unordered_map<std::string, const SpriteDefinition> sprites;
 
         SpriteSheet(const std::string& image_path,  const std::string& atlas_path, SDL_Renderer* renderer);
         SpriteSheet(const SpriteSheet&) = default;
         ~SpriteSheet();
+
+        const SpriteDefinition& get_sprite_definition(const std::string& sprite_name) const;
         
         // Not yet implemented/used
         const SDL_Rect& get_sprite_rect(const std::string& sprite_name) const;

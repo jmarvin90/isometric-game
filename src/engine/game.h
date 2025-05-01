@@ -62,8 +62,8 @@ class Game {
         void run();
         void destroy();
 
-        const TileMap& get_tilemap() {
-            return tilemap;
+        TileMap* get_tilemap() {
+            return &tilemap;
         }
 
         entt::entity create_entity();

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <unordered_map>
 
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
@@ -65,19 +66,19 @@ namespace constants {
     };
 
     enum Directions {
-        NO_DIRECTION,
-        LEFT,
-        UP,
-        RIGHT,
-        DOWN
+        NO_DIRECTION = 0,
+        NORTH = 8,
+        EAST = 4,
+        SOUTH = 2,
+        WEST = 1
     };
 
-    inline constexpr glm::ivec2 DIRECTIONS[5] {
-        glm::ivec2{0, 0},                       // NO_DIRECTION
-        glm::ivec2{-1, 0},                      // LEFT
-        glm::ivec2{0, -1},                      // UP
-        glm::ivec2{1, 0},                       // RIGHT
-        glm::ivec2{0, 1}                        // DOWN
+    inline constexpr std::array<glm::ivec2, 4> VECTORS {
+        // glm::ivec2{0, 0},       // 0 - NO_DIRECTION
+        glm::ivec2{-1, 0},      // 1 - WEST          
+        glm::ivec2{0, 1},       // 2 - SOUTH
+        glm::ivec2{1, 0},       // 3 - EAST
+        glm::ivec2{0, -1}       // 4 - NORTH
     };
 
     enum PointsOnTile {

@@ -72,6 +72,7 @@ void render_imgui_gui(
     ImGui::SeparatorText("Tile Sprite");
     static std::string selected_sprite_texture;
     static Sprite* selected_tile_sprite {nullptr};
+    static const SpriteDefinition* sprite_definition {nullptr};
 
     std::vector<std::string> city_tile_keys;
     city_tile_keys.reserve(city_tiles.sprites.size());
@@ -109,8 +110,10 @@ void render_imgui_gui(
 
                 if (ImGui::Selectable(tile_string.c_str(), is_selected)) {
                     selected_sprite_texture = tile_string;
-                    selected_tile_sprite->source_rect = city_tiles.get_sprite_rect(selected_sprite_texture);
+                    sprite_definition = &city_tiles.get_sprite_definition(selected_sprite_texture);
+                    selected_tile_sprite->source_rect = sprite_definition->texture_rect;
                     selected_tile_sprite->offset = get_offset(selected_tile_sprite->source_rect);
+                    tilemap.selected_tile->set_connection_bitmask(sprite_definition->connection);
                 };
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -119,6 +122,28 @@ void render_imgui_gui(
             }
             ImGui::EndCombo();
         }
+
+        if (
+            tilemap.graph.find(tilemap.selected_tile) != tilemap.graph.end()
+        ) {
+            for (uint8_t direction=constants::Directions::NORTH; direction; direction>>=1) {
+                const Tile* connection {
+                    tilemap.graph.at(tilemap.selected_tile).at(
+                        direction_index(direction)
+                    )
+                };
+                if (connection){
+                    glm::ivec2 connection_location {connection->get_grid_position()};
+                    std::string title_string{"Tile Connection " + std::to_string(direction)};
+                    ImGui::SeparatorText(title_string.c_str());
+                    ImGui::Text(
+                        "Tile connection: (%s, %s)", 
+                        std::to_string(connection_location.x).c_str(),
+                        std::to_string(connection_location.y).c_str()
+                    );
+                }
+            }
+        }  
     }
     
     ImGui::Render();

@@ -11,3 +11,27 @@ glm::vec2 get_offset(const SDL_Rect& source_rect) {
         constants::TILE_SIZE.y - source_rect.h    
     };
 }
+
+int direction_index(const uint8_t direction) {
+    return __builtin_ctz(direction);
+}
+
+glm::ivec2 as_vector(const uint8_t direction) {
+    return constants::VECTORS.at(direction_index(direction));
+}
+
+uint8_t reverse(const uint8_t direction) {
+    return (direction >> 2 | direction << 2) & 15;
+}
+
+bool in_bounds(const glm::ivec2 position) {
+    bool x_in_bounds {
+        0 <= position.x && size_t(position.x) <= constants::MAP_SIZE_N_TILES
+    };
+
+    bool y_in_bounds {
+        0 <= position.y && size_t(position.y) <= constants::MAP_SIZE_N_TILES
+    };
+
+    return x_in_bounds && y_in_bounds;
+}

@@ -7,14 +7,21 @@
 
 #include "constants.h"
 
+
+class TileMap;
+
 class Tile {
     entt::registry& registry;
     const glm::ivec2 grid_position;
+    TileMap* tilemap;
     entt::entity entity;
     std::vector<entt::entity> building_levels;
 
+    protected:
+        uint8_t m_tile_connection_bitmask {0};
+
     public:
-        Tile(entt::registry& registry, const glm::ivec2 grid_position);
+        Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* const tilemap);
         ~Tile();
         
         // Don't need to be const if we're returning a copy
@@ -34,19 +41,39 @@ class Tile {
         void get_tile_iso_points(
             SDL_Point* point_array, const glm::ivec2& camera_position
         ) const;
+
+        uint8_t get_connection_bitmask() const { return m_tile_connection_bitmask; }
+        void set_connection_bitmask(const uint8_t connection_bitmask);
+
+        friend class TileMap;
 };
 
 class TileMap {
+    // TODO: think about const Tile* const
     std::vector<Tile> tilemap;
-    
+    const Tile* scan(const glm::ivec2 from, const uint8_t direction) const;
+
     public: 
+        // TODO: the necessaries to make private
+        std::unordered_map<const Tile*, std::array<const Tile*, 4>> graph{};
+
         TileMap(entt::registry& registry);
         ~TileMap();
 
         Tile* selected_tile {nullptr};
 
-        Tile& at(const glm::ivec2 position);
+        Tile& operator[](const glm::ivec2 position);
+        const Tile& operator[](const glm::ivec2 position) const;
+        
         glm::ivec2 grid_to_pixel(glm::ivec2 grid_pos);
+
+        void disconnect(const Tile* tile, const uint8_t direction);
+
+        void connect(
+            const Tile* origin, const Tile* termination, const uint8_t direction
+        );
+
+        friend class Tile;
 };
 
 #endif
