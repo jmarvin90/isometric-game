@@ -127,8 +127,10 @@ void render_imgui_gui(
             tilemap.graph.find(tilemap.selected_tile) != tilemap.graph.end()
         ) {
             for (uint8_t direction=constants::Directions::NORTH; direction; direction>>=1) {
-                Tile* connection {
-                    tilemap.graph.at(tilemap.selected_tile).at(direction_index(direction))
+                const Tile* connection {
+                    tilemap.graph.at(tilemap.selected_tile).at(
+                        direction_index(direction)
+                    )
                 };
                 if (connection){
                     glm::ivec2 connection_location {connection->get_grid_position()};

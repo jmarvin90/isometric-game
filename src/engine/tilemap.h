@@ -18,7 +18,6 @@ class Tile {
     std::vector<entt::entity> building_levels;
 
     protected:
-        Tile* const scan(const uint8_t direction);
         uint8_t m_tile_connection_bitmask {0};
 
     public:
@@ -45,15 +44,18 @@ class Tile {
 
         uint8_t get_connection_bitmask() const { return m_tile_connection_bitmask; }
         void set_connection_bitmask(const uint8_t connection_bitmask);
+
+        friend class TileMap;
 };
 
 class TileMap {
     // TODO: think about const Tile* const
     std::vector<Tile> tilemap;
+    const Tile* scan(const glm::ivec2 from, const uint8_t direction) const;
 
     public: 
         // TODO: the necessaries to make private
-        std::unordered_map<Tile*, std::array<Tile*, 4>> graph{};
+        std::unordered_map<const Tile*, std::array<const Tile*, 4>> graph{};
 
         TileMap(entt::registry& registry);
         ~TileMap();
@@ -61,15 +63,17 @@ class TileMap {
         Tile* selected_tile {nullptr};
 
         Tile& operator[](const glm::ivec2 position);
-        glm::ivec2 grid_to_pixel(glm::ivec2 grid_pos);
+        const Tile& operator[](const glm::ivec2 position) const;
         
-        bool in_bounds(const glm::ivec2 position) const;
+        glm::ivec2 grid_to_pixel(glm::ivec2 grid_pos);
 
-        void disconnect(Tile* tile, const uint8_t direction);
+        void disconnect(const Tile* tile, const uint8_t direction);
 
         void connect(
-            Tile* origin, Tile* termination, const uint8_t direction
+            const Tile* origin, const Tile* termination, const uint8_t direction
         );
+
+        friend class Tile;
 };
 
 #endif
