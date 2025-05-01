@@ -1,8 +1,16 @@
 from __future__ import annotations
-from functools import cached_property
-from graph.geometry import Point, Directions, directions_dict, reverse_directions_dict
-from graph.utils import count_set_bits, count_trailing_zeros
+from dataclasses import dataclass, field
+import math
 import queue
+from typing import Any
+
+from graph.geometry import Point, Directions, directions_dict
+from graph.utils import count_set_bits
+
+@dataclass(order=True)
+class PrioritizedItem:
+    priority: int
+    item: Any=field(compare=False)
 
 def reverse(direction: int) -> int:
     return (direction >> 2 | direction << 2) & 15
@@ -19,6 +27,10 @@ def point_in_bounds(tilemap: TileMap, position: Point) -> bool:
         (0 <= position.y < tilemap.size)
     )
 
+def distance_between(point_a: Point, point_b: Point) -> int:
+    x_diff = point_a.x - point_b.x
+    y_diff = point_a.y - point_b.y
+    return int(math.sqrt(x_diff**2 + y_diff**2))
 
 class Tile:
     """Represents a tile on the TileMap."""
@@ -175,7 +187,42 @@ class TileMap:
         # Create the connection
         self.edges[origin][direction_index(direction)] = termination
 
-    def navigate_between(self, origin: Tile, termination: Tile) -> None:      
+    def navigate_between(self, point_a: Point, point_b: Point) -> None:      
         
-        for tile, connections in self.edges:
-            pass
+        frontier = queue.PriorityQueue()
+        frontier.put(PrioritizedItem(0, point_a))
+
+        came_from = {point_a: None}
+        cost_so_far = {point_a: 0}
+
+        while not frontier.empty():
+            current = frontier.get().item
+
+            if current == point_b:
+                break
+
+            for direction in [8, 4, 2, 1]:
+                connection = self.edges[self[current]][direction_index(direction)]
+                if connection:
+                    new_cost = (
+                        cost_so_far[current] + 
+                        distance_between(current, connection.position)
+                    )
+
+                    if (
+                        connection.position not in cost_so_far or
+                        new_cost < cost_so_far[connection.position]
+                    ):
+                        cost_so_far[connection.position] = new_cost
+                        priority = new_cost
+                        frontier.put(PrioritizedItem(priority, connection.position))
+                        came_from[connection.position] = current
+
+        path = []
+        current = point_b
+        while current != point_a:
+            path.append(current)
+            current = came_from[current]
+        path.append(point_a)
+        path.reverse()
+        return path
