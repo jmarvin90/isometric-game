@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import math
 import queue
-from typing import Any
+from typing import Any, Iterable
 
 from graph.geometry import Point, Directions, directions_dict
 from graph.utils import count_set_bits
@@ -31,6 +31,24 @@ def distance_between(point_a: Point, point_b: Point) -> int:
     x_diff = point_a.x - point_b.x
     y_diff = point_a.y - point_b.y
     return int(math.sqrt(x_diff**2 + y_diff**2))
+
+def point_is_on_line(
+    point: Point, line_origin: Point, line_termination: Point
+) -> bool:
+    same_x = point.x == line_origin.x == line_termination.x
+    same_y = point.y == line_origin.y == line_termination.y
+    
+    if same_x:
+        smaller, larger = sorted([line_origin.x, line_termination.x])
+        return smaller <= point.x <= larger
+    
+    elif same_y:
+        smaller, larger = sorted([line_origin.y, line_termination.y])
+        return smaller <= point.y <= larger
+    
+    else:
+        return False
+
 
 class Tile:
     """Represents a tile on the TileMap."""
@@ -131,6 +149,13 @@ class TileMap:
             (position.y * self.size) + position.x
         ]
     
+    def __graph_iterator(self) -> Iterable:
+        for node, connections in self.edges.items():
+            for direction in [8, 4, 2, 1]:
+                connected_node = connections[direction_index(direction)]
+                if connected_node:
+                    yield (node, connected_node)
+    
     def clear_connections(self) -> None:
         """Clear connections for every tile, and reset the graph."""
         for tile in self.tiles:
@@ -187,7 +212,38 @@ class TileMap:
         # Create the connection
         self.edges[origin][direction_index(direction)] = termination
 
-    def navigate_between(self, point_a: Point, point_b: Point) -> None:      
+    def points_are_navigable(self, point_a: Point, point_b: Point) -> bool:
+        point_a_is_navigable = False
+        point_b_is_navigable = False
+
+        for node, connected_node in self.__graph_iterator():
+
+            if not point_a_is_navigable:
+                point_a_is_navigable |= (
+                    node.position == point_a or
+                    connected_node.position == point_a or
+                    point_is_on_line(
+                        point_a, node.position, connected_node.position
+                    )
+                )
+                
+            if not point_b_is_navigable:
+                point_b_is_navigable |= (
+                    node.position == point_b or
+                    connected_node.position == point_b or
+                    point_is_on_line(
+                        point_b, node.position, connected_node.position
+                    )
+                )
+
+            if point_a_is_navigable & point_b_is_navigable:
+                return True
+
+        return False
+
+    def get_path_between(self, point_a: Point, point_b: Point) -> list | None:
+        if not self.points_are_navigable(point_a, point_b):
+            return
         
         frontier = queue.PriorityQueue()
         frontier.put(PrioritizedItem(0, point_a))
@@ -201,22 +257,23 @@ class TileMap:
             if current == point_b:
                 break
 
-            for direction in [8, 4, 2, 1]:
-                connection = self.edges[self[current]][direction_index(direction)]
-                if connection:
-                    new_cost = (
-                        cost_so_far[current] + 
-                        distance_between(current, connection.position)
-                    )
+            for connection in [
+                node for node in self.edges[self[current]]
+                if node is not None
+            ]:
+                new_cost = (
+                    cost_so_far[current] + 
+                    distance_between(current, connection.position)
+                )
 
-                    if (
-                        connection.position not in cost_so_far or
-                        new_cost < cost_so_far[connection.position]
-                    ):
-                        cost_so_far[connection.position] = new_cost
-                        priority = new_cost
-                        frontier.put(PrioritizedItem(priority, connection.position))
-                        came_from[connection.position] = current
+                if (
+                    connection.position not in cost_so_far or
+                    new_cost < cost_so_far[connection.position]
+                ):
+                    cost_so_far[connection.position] = new_cost
+                    priority = new_cost
+                    frontier.put(PrioritizedItem(priority, connection.position))
+                    came_from[connection.position] = current
 
         path = []
         current = point_b

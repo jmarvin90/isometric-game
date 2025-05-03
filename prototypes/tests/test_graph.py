@@ -7,6 +7,19 @@ from graph.geometry import Point
 def tilemap() -> TileMap:
     return TileMap(size=12)
 
+def test_points_are_navigable(tilemap: TileMap) -> None:
+    for number in range(2, 10):
+        tilemap[Point(number, 2)].set_connection_bitmask(5)
+
+    assert (
+        tilemap.points_are_navigable(Point(3, 2), Point(8, 2))
+        and tilemap.points_are_navigable(Point(2, 2), Point(7, 2)) 
+        and tilemap.points_are_navigable(Point(2, 2), Point(9, 2)) 
+        and not tilemap.points_are_navigable(Point(2, 2), Point(2, 5))
+    )    
+
+    tilemap.clear_connections()
+
 def test_connect(tilemap: TileMap) -> None:
     for number in range(2, 11):
         tilemap[Point(number, 2)].set_connection_bitmask(5)
@@ -46,7 +59,10 @@ def test_connect(tilemap: TileMap) -> None:
             if edge is not None:
                 print(tile, edge)
 
-    output = tilemap.navigate_between(Point(2, 2), Point(10, 2))
+    output = tilemap.get_path_between(Point(2, 2), Point(10, 2))
     print("->".join([str(item) for item in output]))
+
+    tilemap[Point(6, 10)].set_connection_bitmask(0)
+    
 
     assert False
