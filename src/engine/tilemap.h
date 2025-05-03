@@ -12,7 +12,7 @@ class TileMap;
 
 class Tile {
     entt::registry& registry;
-    const glm::ivec2 grid_position;
+    glm::ivec2 grid_position;
     TileMap* tilemap;
     entt::entity entity;
     std::vector<entt::entity> building_levels;
@@ -71,6 +71,10 @@ class TileMap {
 
         void connect(
             const Tile* origin, const Tile* termination, const uint8_t direction
+        );
+
+        void get_path_between(
+            const glm::ivec2 point_a, const glm::ivec2 point_b, std::vector<glm::ivec2>& path
         );
 
         friend class Tile;

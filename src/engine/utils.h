@@ -12,5 +12,7 @@ int direction_index(const uint8_t direction);
 glm::ivec2 as_vector(const uint8_t direction);
 uint8_t reverse(const uint8_t direction);
 bool in_bounds(const glm::ivec2 position);
+int distance_between(const glm::ivec2 point_a, const glm::ivec2 point_b);
+
 
 #endif

@@ -1,5 +1,6 @@
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
+#include <cmath>
 
 #include "utils.h"
 #include "constants.h"
@@ -34,4 +35,10 @@ bool in_bounds(const glm::ivec2 position) {
     };
 
     return x_in_bounds && y_in_bounds;
+}
+
+int distance_between(const glm::ivec2 point_a, const glm::ivec2 point_b) {
+    int x_diff {std::abs(point_a.x - point_b.x)};
+    int y_diff {std::abs(point_a.y - point_b.y)};
+    return static_cast<int>(std::sqrt(x_diff*x_diff + y_diff*y_diff));
 }

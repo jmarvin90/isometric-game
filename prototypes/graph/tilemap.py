@@ -19,7 +19,7 @@ def as_vector(direction: int) -> Point:
     return directions_dict[direction]
 
 def direction_index(direction: int) -> int:
-        return direction.bit_length() -1
+    return direction.bit_length() -1
 
 def point_in_bounds(tilemap: TileMap, position: Point) -> bool:
     return (

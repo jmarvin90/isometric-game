@@ -1,5 +1,12 @@
 #include <cmath>
 #include <iostream>
+#include <queue>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+
+#include <unordered_map>
+#include <utility>
 
 #include "SDL2/SDL_image.h"
 #include "SDL2/SDL.h"
@@ -267,4 +274,58 @@ void TileMap::connect(
     }
 
     graph.at(origin).at(direction_index(direction)) = termination;
+}
+
+void TileMap::get_path_between(
+    glm::ivec2 point_a, glm::ivec2 point_b, std::vector<glm::ivec2>& path
+) {
+    typedef std::pair<int, glm::ivec2> priority_point;
+
+    static constexpr auto cmp = [](const priority_point& a, const priority_point& b) {
+        return a.first < b.first;
+    }; 
+
+    std::priority_queue<priority_point, std::vector<priority_point>, decltype(cmp)> frontier(cmp);
+    frontier.push({0, point_a});
+
+    std::unordered_map<glm::ivec2, const glm::ivec2*> came_from {{point_a, nullptr}};
+    std::unordered_map<glm::ivec2, int> cost_so_far {{point_a, 0}};
+
+    while (!frontier.empty()) {
+        const glm::ivec2 current {frontier.top().second};
+        frontier.pop();
+
+        if (current == point_b) {
+            break;
+        }
+
+        // TODO: learn about iterators
+        for (auto node_connection: graph) {
+            for (uint8_t direction = constants::Directions::NORTH; direction; direction>>=2) {
+                const Tile* connection {node_connection.second[direction_index(direction)]};
+                if (connection) {
+                    int new_cost {
+                        cost_so_far.at(current) + 
+                        distance_between(current, connection->grid_position)
+                    };
+
+                    if (
+                        cost_so_far.find(connection->grid_position) == cost_so_far.end() or
+                        new_cost < cost_so_far.at(connection->grid_position)
+                    ) {
+                        cost_so_far.emplace(connection->grid_position, new_cost);
+                        frontier.emplace(new_cost, connection->grid_position);
+                        came_from.emplace(connection->grid_position, &current);
+                    }
+                }
+            }
+        }
+    }
+
+    glm::ivec2 current {point_b};
+    while (current != point_a) {
+        path.emplace(path.begin(), current);
+        current = *came_from.at(current);
+    }
+    path.emplace(path.begin(), point_a);
 }
