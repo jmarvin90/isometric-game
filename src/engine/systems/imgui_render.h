@@ -25,8 +25,8 @@ void render_imgui_gui(
     entt::registry& registry,
     const Mouse& mouse,
     const TileMap& tilemap,
-    const SpriteSheet& city_tiles,
-    const SpriteSheet& building_tiles
+    const SpriteSheet<TileSpriteDefinition>& city_tiles,
+    const SpriteSheet<TileSpriteDefinition>& building_tiles
 ) {
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
@@ -72,7 +72,7 @@ void render_imgui_gui(
     ImGui::SeparatorText("Tile Sprite");
     static std::string selected_sprite_texture;
     static Sprite* selected_tile_sprite {nullptr};
-    static const SpriteDefinition* sprite_definition {nullptr};
+    static const TileSpriteDefinition* sprite_definition {nullptr};
 
     std::vector<std::string> city_tile_keys;
     city_tile_keys.reserve(city_tiles.sprites.size());

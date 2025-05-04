@@ -16,16 +16,17 @@
 #include "spritesheet.h"
 #include "systems/render.h"
 
-class Game {
-    bool is_running {false};
-    bool debug_mode {false};
+class Game
+{
+    bool is_running{false};
+    bool debug_mode{false};
 
     // Has to be default initialised because it's referenced in Game::update()
-    int millis_previous_frame{};    
+    int millis_previous_frame{};
     uint64_t _last_time{0};
 
     entt::registry registry;
-    SDL_Window* window;
+    SDL_Window *window;
     SDL_DisplayMode display_mode;
 
     // Camera, renderer are smart pointers to allow late initialisation
@@ -43,40 +44,43 @@ class Game {
     void update(const float delta_time);
     void render();
 
-    public:
+public:
+    // Todo: read re. asset stores; make private if necessary
+    std::optional<SpriteSheet<TileSpriteDefinition>> city_tiles;
+    std::optional<SpriteSheet<TileSpriteDefinition>> building_tiles;
+    std::optional<SpriteSheet<SpriteDefinition>> vehicle_tiles;
 
-        // Todo: read re. asset stores; make private if necessary
-        std::optional<SpriteSheet> city_tiles;
-        std::optional<SpriteSheet> building_tiles;
+    Game();
+    ~Game();
 
-        Game();
-        ~Game();
+    // TODO: define copy constructor to enable -Weffc++
+    // Game(const Game&) = ...;
 
-        // TODO: define copy constructor to enable -Weffc++
-        // Game(const Game&) = ...;
+    // TODO: define operator= method to enable -Weffc++
+    // ...operator=(const Game&) ...;
 
-        // TODO: define operator= method to enable -Weffc++
-        // ...operator=(const Game&) ...;
+    void initialise();
+    void run();
+    void destroy();
 
-        void initialise();
-        void run();
-        void destroy();
+    TileMap *get_tilemap()
+    {
+        return &tilemap;
+    }
 
-        TileMap* get_tilemap() {
-            return &tilemap;
-        }
+    entt::entity create_entity();
 
-        entt::entity create_entity();
+    template <typename T, typename... TArgs>
+    void add_component(const entt::entity &entity, TArgs... args)
+    {
+        registry.emplace<T>(entity, std::forward<TArgs>(args)...);
+    }
 
-        template <typename T, typename ...TArgs>
-        void add_component(const entt::entity& entity, TArgs ...args) {
-            registry.emplace<T>(entity, std::forward<TArgs>(args)...);
-        }
-
-        template <typename T>
-        T get_component(const entt::entity& entity) {
-            return registry.get<T>(entity);
-        }
+    template <typename T>
+    T get_component(const entt::entity &entity)
+    {
+        return registry.get<T>(entity);
+    }
 };
 
 #endif

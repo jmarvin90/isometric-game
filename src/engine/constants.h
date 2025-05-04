@@ -61,6 +61,16 @@ namespace constants {
         "kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.xml"
     };
 
+    const std::string VEHICLE_TILE_PNG_PATH {
+        "/home/marv/Documents/Projects/isometric-game/assets/"
+        "kenney_isometric-vehicles-1/Spritesheet/sheet_allCars.png"
+    };
+
+    const std::string VEHICLE_ATLAS_PATH {
+        "/home/marv/Documents/Projects/isometric-game/assets/"
+        "kenney_isometric-vehicles-1/Spritesheet/sheet_allCars.xml"
+    };
+
     const std::string MOUSE_MAP_PNG_PATH {
         "/home/marv/Documents/Projects/isometric-game/assets/mousemap.png"
     };
