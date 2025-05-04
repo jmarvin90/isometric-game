@@ -2,18 +2,19 @@
 #include "constants.h"
 #include <SDL2/SDL.h>
 
-Camera::Camera(const SDL_DisplayMode &display_mode) : camera_area{
-                                                          (constants::RENDER_SPACE_SIZE_PX.x / 2) - (display_mode.w / 2), // Initial X
-                                                          (constants::RENDER_SPACE_SIZE_PX.y / 2) - (display_mode.h / 2), // Initial Y
-                                                          display_mode.w,                                                 // Width
-                                                          display_mode.h                                                  // Height
-                                                      }
+Camera::Camera(const SDL_DisplayMode& display_mode)
+    : camera_area{
+        (constants::RENDER_SPACE_SIZE_PX.x / 2) - (display_mode.w / 2), // Initial X
+        (constants::RENDER_SPACE_SIZE_PX.y / 2) - (display_mode.h / 2), // Initial Y
+        display_mode.w,                                                 // Width
+        display_mode.h                                                  // Height
+    }
 {
 }
 
 void Camera::update(
-    const SDL_DisplayMode &display_mode,
-    const glm::ivec2 &mouse_screen_position)
+    const SDL_DisplayMode& display_mode,
+    const glm::ivec2& mouse_screen_position)
 {
     /* Move the camera in a given direction if:
         - There's space in that direction; and
@@ -55,5 +56,5 @@ void Camera::update(
 
 const glm::ivec2 Camera::get_position() const
 {
-    return glm::ivec2{camera_area.x, camera_area.y};
+    return glm::ivec2{ camera_area.x, camera_area.y };
 }

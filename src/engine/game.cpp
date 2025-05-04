@@ -27,10 +27,10 @@
 #include "systems/render.h"
 #include "systems/imgui_render.h"
 
-Game::Game() : registry{entt::registry()},
-               tilemap{registry},
-               mousemap{constants::MOUSE_MAP_PNG_PATH},
-               mouse{mousemap}
+Game::Game() : registry{ entt::registry() },
+tilemap{ registry },
+mousemap{ constants::MOUSE_MAP_PNG_PATH },
+mouse{ mousemap }
 {
     spdlog::info("Game constructor called.");
 }
@@ -64,9 +64,9 @@ void Game::load_tilemap()
         for (int x = 0; x < constants::MAP_SIZE_N_TILES; x++)
         {
 
-            glm::ivec2 position{tilemap[{x, y}].world_position()};
+            glm::ivec2 position{ tilemap[{x, y}].world_position() };
 
-            entt::entity entity{tilemap[{x, y}].get_entity()};
+            entt::entity entity{ tilemap[{x, y}].get_entity() };
 
             registry.emplace<Transform>(entity, position, 0, 0.0);
 
@@ -156,7 +156,7 @@ void Game::process_input()
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
-        ImGuiIO &io = ImGui::GetIO();
+        ImGuiIO& io = ImGui::GetIO();
         mouse.update_imgui_io(io);
         ImGui_ImplSDL2_ProcessEvent(&event);
 
@@ -210,7 +210,7 @@ void Game::update(const float delta_time)
     movement_update(registry, mousemap, delta_time);
 }
 
-bool transform_comparison(const Transform &lhs, const Transform &rhs)
+bool transform_comparison(const Transform& lhs, const Transform& rhs)
 {
     if (
         lhs.z_index < rhs.z_index ||
@@ -223,7 +223,7 @@ bool transform_comparison(const Transform &lhs, const Transform &rhs)
 
 void Game::render()
 {
-    const glm::ivec2 camera_position{camera->get_position()};
+    const glm::ivec2 camera_position{ camera->get_position() };
     registry.sort<Transform>(transform_comparison);
 
     renderer->render(registry, camera_position, debug_mode);
@@ -238,7 +238,7 @@ void Game::render()
         if (tilemap.selected_tile || mouse.is_on_world_grid())
         {
 
-            Tile &focus_tile{(tilemap.selected_tile) ? *tilemap.selected_tile : tilemap[mouse.get_grid_position()]};
+            Tile& focus_tile{ (tilemap.selected_tile) ? *tilemap.selected_tile : tilemap[mouse.get_grid_position()] };
 
             if (tilemap.selected_tile)
             {
@@ -273,19 +273,19 @@ void Game::run()
     while (is_running)
     {
         // The start point (in ticks), the delta to the last frame in s/ms
-        const uint64_t start{SDL_GetTicks64()};
-        const uint64_t since_last_frame{start - _last_time};
-        const float delta_time = {since_last_frame / 1'000.f};
+        const uint64_t start{ SDL_GetTicks64() };
+        const uint64_t since_last_frame{ start - _last_time };
+        const float delta_time = { since_last_frame / 1'000.f };
 
         process_input();
         update(delta_time);
         render();
 
         // How many millis have elapsed this frame
-        const uint64_t elapsed_this_frame{SDL_GetTicks64() - start};
+        const uint64_t elapsed_this_frame{ SDL_GetTicks64() - start };
 
         // Delay until the START of the next frame
-        const float time_to_delay{constants::MILLIS_PER_FRAME - elapsed_this_frame};
+        const float time_to_delay{ constants::MILLIS_PER_FRAME - elapsed_this_frame };
 
         if (time_to_delay > 0 && time_to_delay <= constants::MILLIS_PER_FRAME)
         {

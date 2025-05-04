@@ -11,24 +11,24 @@ class TileMap;
 
 class Tile
 {
-    entt::registry &registry;
+    entt::registry& registry;
     glm::ivec2 grid_position;
-    TileMap *tilemap;
+    TileMap* tilemap;
     entt::entity entity;
     std::vector<entt::entity> building_levels;
 
 protected:
-    uint8_t m_tile_connection_bitmask{0};
+    uint8_t m_tile_connection_bitmask{ 0 };
 
 public:
-    Tile(entt::registry &registry, const glm::ivec2 grid_position, TileMap *const tilemap);
+    Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* const tilemap);
     ~Tile();
 
     // Don't need to be const if we're returning a copy
     glm::ivec2 world_position() const;
     glm::ivec2 get_grid_position() const { return grid_position; }
 
-    entt::entity add_building_level(SDL_Texture *texture, const SDL_Rect sprite_rect);
+    entt::entity add_building_level(SDL_Texture* texture, const SDL_Rect sprite_rect);
     entt::entity get_entity() const { return entity; }
 
     // Awaiting definition
@@ -39,7 +39,7 @@ public:
     // ... Can be pretty confident that caller has allocated 5 positions,
     // but not 100%
     void get_tile_iso_points(
-        SDL_Point *point_array, const glm::ivec2 &camera_position) const;
+        SDL_Point* point_array, const glm::ivec2& camera_position) const;
 
     uint8_t get_connection_bitmask() const { return m_tile_connection_bitmask; }
     void set_connection_bitmask(const uint8_t connection_bitmask);
@@ -51,29 +51,29 @@ class TileMap
 {
     // TODO: think about const Tile* const
     std::vector<Tile> tilemap;
-    const Tile *scan(const glm::ivec2 from, const uint8_t direction) const;
+    const Tile* scan(const glm::ivec2 from, const uint8_t direction) const;
 
 public:
     // TODO: the necessaries to make private
-    std::unordered_map<const Tile *, std::array<const Tile *, 4>> graph{};
+    std::unordered_map<const Tile*, std::array<const Tile*, 4>> graph{};
 
-    TileMap(entt::registry &registry);
+    TileMap(entt::registry& registry);
     ~TileMap();
 
-    Tile *selected_tile{nullptr};
+    Tile* selected_tile{ nullptr };
 
-    Tile &operator[](const glm::ivec2 position);
-    const Tile &operator[](const glm::ivec2 position) const;
+    Tile& operator[](const glm::ivec2 position);
+    const Tile& operator[](const glm::ivec2 position) const;
 
     glm::ivec2 grid_to_pixel(glm::ivec2 grid_pos);
 
-    void disconnect(const Tile *tile, const uint8_t direction);
+    void disconnect(const Tile* tile, const uint8_t direction);
 
     void connect(
-        const Tile *origin, const Tile *termination, const uint8_t direction);
+        const Tile* origin, const Tile* termination, const uint8_t direction);
 
     void get_path_between(
-        const glm::ivec2 point_a, const glm::ivec2 point_b, std::vector<glm::ivec2> &path);
+        const glm::ivec2 point_a, const glm::ivec2 point_b, std::vector<glm::ivec2>& path);
 
     friend class Tile;
 };

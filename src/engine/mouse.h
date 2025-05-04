@@ -15,22 +15,22 @@ class Mouse
     glm::ivec2 window_current_position;
     glm::ivec2 world_position;
     glm::ivec2 grid_position;
-    const MouseMap &mousemap;
+    const MouseMap& mousemap;
 
-    void set_position(const SDL_Rect &camera);
+    void set_position(const SDL_Rect& camera);
 
 public:
-    Mouse(const MouseMap &mousemap);
+    Mouse(const MouseMap& mousemap);
     ~Mouse();
 
-    void update(const glm::ivec2 &camera_position);
-    const glm::ivec2 &get_window_position() const;
-    const glm::ivec2 &get_world_position() const;
-    const glm::ivec2 &get_grid_position() const;
+    void update(const glm::ivec2& camera_position);
+    const glm::ivec2& get_window_position() const;
+    const glm::ivec2& get_world_position() const;
+    const glm::ivec2& get_grid_position() const;
     const uint32_t get_mouse_state() const;
     const bool has_moved_this_frame() const;
     const bool is_on_world_grid() const;
-    void update_imgui_io(ImGuiIO &io) const;
+    void update_imgui_io(ImGuiIO& io) const;
 };
 
 #endif

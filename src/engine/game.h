@@ -79,6 +79,7 @@ public:
     template <typename T>
     T get_component(const entt::entity &entity)
     {
+                                            
         return registry.get<T>(entity);
     }
 };

@@ -3,8 +3,9 @@
 
 #include "render.h"
 
-Renderer::Renderer(SDL_Window *window, const SDL_DisplayMode &display_mode, uint32_t render_flags, int index) : renderer{SDL_CreateRenderer(window, index, render_flags)},
-                                                                                                                render_clip_rect{20, 20, display_mode.w - 40, display_mode.h - 40}
+Renderer::Renderer(SDL_Window* window, const SDL_DisplayMode& display_mode, uint32_t render_flags, int index)
+    : renderer{ SDL_CreateRenderer(window, index, render_flags) }
+    , render_clip_rect{ 20, 20, display_mode.w - 40, display_mode.h - 40 }
 {
 
     spdlog::info("Renderer constructor called.");
@@ -25,19 +26,19 @@ Renderer::~Renderer()
 }
 
 void Renderer::render_sprite(
-    const glm::ivec2 &camera_position,
-    const Transform &transform,
-    const Sprite &sprite,
+    const glm::ivec2& camera_position,
+    const Transform& transform,
+    const Sprite& sprite,
     bool render_bounding_box)
 {
-    glm::vec2 position{transform.position + sprite.offset};
+    glm::vec2 position{ transform.position + sprite.offset };
     position -= camera_position;
 
     SDL_FRect dest_rect{
         position.x,
         position.y,
         static_cast<float>(sprite.source_rect.w),
-        static_cast<float>(sprite.source_rect.h)};
+        static_cast<float>(sprite.source_rect.h) };
 
     SDL_RenderCopyExF(
         renderer,
@@ -56,21 +57,21 @@ void Renderer::render_sprite(
 }
 
 void Renderer::render_sprites(
-    const entt::registry &registry,
-    const glm::ivec2 &camera_position,
+    const entt::registry& registry,
+    const glm::ivec2& camera_position,
     bool render_bounding_box)
 {
     auto sprites = registry.view<Transform, Sprite>();
     sprites.use<Transform>();
     for (auto entity : sprites)
     {
-        const auto &transform{sprites.get<Transform>(entity)};
-        const auto &sprite{sprites.get<Sprite>(entity)};
+        const auto& transform{ sprites.get<Transform>(entity) };
+        const auto& sprite{ sprites.get<Sprite>(entity) };
         render_sprite(camera_position, transform, sprite, render_bounding_box);
     }
 }
 
-void Renderer::render(const entt::registry &registry, const glm::ivec2 &camera_position, bool render_bounding_box)
+void Renderer::render(const entt::registry& registry, const glm::ivec2& camera_position, bool render_bounding_box)
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);

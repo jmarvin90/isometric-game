@@ -7,7 +7,7 @@
 #include "constants.h"
 #include "tilemap.h"
 
-glm::vec2 get_offset(const SDL_Rect &source_rect);
+glm::vec2 get_offset(const SDL_Rect& source_rect);
 int direction_index(const uint8_t direction);
 glm::ivec2 as_vector(const uint8_t direction);
 uint8_t reverse(const uint8_t direction);

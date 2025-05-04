@@ -21,23 +21,23 @@
 #include <utils.h>
 
 void render_imgui_gui(
-    SDL_Renderer *renderer,
-    entt::registry &registry,
-    const Mouse &mouse,
-    const TileMap &tilemap,
-    const SpriteSheet<TileSpriteDefinition> &city_tiles,
-    const SpriteSheet<TileSpriteDefinition> &building_tiles)
+    SDL_Renderer* renderer,
+    entt::registry& registry,
+    const Mouse& mouse,
+    const TileMap& tilemap,
+    const SpriteSheet<TileSpriteDefinition>& city_tiles,
+    const SpriteSheet<TileSpriteDefinition>& building_tiles)
 {
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
-    bool show_demo_window{true};
+    bool show_demo_window{ true };
     ImGui::ShowDemoWindow(&show_demo_window);
 
     // The mouse and world positions
-    const glm::ivec2 world_position{mouse.get_world_position()};
-    const glm::ivec2 grid_position{mouse.get_grid_position()};
+    const glm::ivec2 world_position{ mouse.get_world_position() };
+    const glm::ivec2 grid_position{ mouse.get_grid_position() };
 
     ImGui::SeparatorText("Mouse Position");
     ImGui::Text(
@@ -68,8 +68,8 @@ void render_imgui_gui(
     // The sprite for the selected tile
     ImGui::SeparatorText("Tile Sprite");
     static std::string selected_sprite_texture;
-    static Sprite *selected_tile_sprite{nullptr};
-    static const TileSpriteDefinition *sprite_definition{nullptr};
+    static Sprite* selected_tile_sprite{ nullptr };
+    static const TileSpriteDefinition* sprite_definition{ nullptr };
 
     std::vector<std::string> city_tile_keys;
     city_tile_keys.reserve(city_tiles.sprites.size());
@@ -89,7 +89,7 @@ void render_imgui_gui(
 
     if (tilemap.selected_tile)
     {
-        entt::entity selected_tile{tilemap.selected_tile->get_entity()};
+        entt::entity selected_tile{ tilemap.selected_tile->get_entity() };
         selected_tile_sprite = &registry.get<Sprite>(selected_tile);
 
         if (selected_tile_sprite->texture == city_tiles.get_spritesheet_texture())
@@ -132,12 +132,12 @@ void render_imgui_gui(
         {
             for (uint8_t direction = constants::Directions::NORTH; direction; direction >>= 1)
             {
-                const Tile *connection{
-                    tilemap.graph.at(tilemap.selected_tile).at(direction_index(direction))};
+                const Tile* connection{
+                    tilemap.graph.at(tilemap.selected_tile).at(direction_index(direction)) };
                 if (connection)
                 {
-                    glm::ivec2 connection_location{connection->get_grid_position()};
-                    std::string title_string{"Tile Connection " + std::to_string(direction)};
+                    glm::ivec2 connection_location{ connection->get_grid_position() };
+                    std::string title_string{ "Tile Connection " + std::to_string(direction) };
                     ImGui::SeparatorText(title_string.c_str());
                     ImGui::Text(
                         "Tile connection: (%s, %s)",

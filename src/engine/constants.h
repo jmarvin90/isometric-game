@@ -11,18 +11,18 @@
 
 namespace constants
 {
-    inline constexpr int FPS{60};
-    inline constexpr float MILLIS_PER_FRAME{1'000.f / FPS};
+    inline constexpr int FPS{ 60 };
+    inline constexpr float MILLIS_PER_FRAME{ 1'000.f / FPS };
 
-    inline constexpr glm::ivec2 TILE_SIZE{132, 66};
-    inline constexpr glm::ivec2 TILE_SIZE_HALF{TILE_SIZE / 2};
+    inline constexpr glm::ivec2 TILE_SIZE{ 132, 66 };
+    inline constexpr glm::ivec2 TILE_SIZE_HALF{ TILE_SIZE / 2 };
 
-    inline constexpr int MAP_BORDER_PX{100};
-    inline constexpr int MAP_SIZE_N_TILES{10};
-    inline constexpr glm::ivec2 MAP_SIZE_PX{TILE_SIZE * MAP_SIZE_N_TILES};
+    inline constexpr int MAP_BORDER_PX{ 100 };
+    inline constexpr int MAP_SIZE_N_TILES{ 10 };
+    inline constexpr glm::ivec2 MAP_SIZE_PX{ TILE_SIZE * MAP_SIZE_N_TILES };
 
-    inline constexpr glm::ivec2 RENDER_SPACE_SIZE_PX{MAP_SIZE_PX + (MAP_BORDER_PX * 2)};
-    inline constexpr glm::ivec2 TILEMAP_START{(RENDER_SPACE_SIZE_PX.x / 2) - (TILE_SIZE.x / 2), MAP_BORDER_PX};
+    inline constexpr glm::ivec2 RENDER_SPACE_SIZE_PX{ MAP_SIZE_PX + (MAP_BORDER_PX * 2) };
+    inline constexpr glm::ivec2 TILEMAP_START{ (RENDER_SPACE_SIZE_PX.x / 2) - (TILE_SIZE.x / 2), MAP_BORDER_PX };
 
     /*
         This offset is being used as a means of accounting for tile "depth" when converting mouse
@@ -35,39 +35,39 @@ namespace constants
         33 pixels) so that we can still understand which tile the mouse coordinate is 'on' while
         accounting for how tall the tiles are.
     */
-    inline constexpr int MIN_TILE_DEPTH{33};
-    inline constexpr int MAX_TILE_DEPTH{34};
-    inline constexpr int GROUND_FLOOR_BUILDING_OFFSET{77};
-    inline constexpr glm::ivec2 OFFSET_TILEMAP_START{TILEMAP_START - glm::ivec2{0, MIN_TILE_DEPTH}};
+    inline constexpr int MIN_TILE_DEPTH{ 33 };
+    inline constexpr int MAX_TILE_DEPTH{ 34 };
+    inline constexpr int GROUND_FLOOR_BUILDING_OFFSET{ 77 };
+    inline constexpr glm::ivec2 OFFSET_TILEMAP_START{ TILEMAP_START - glm::ivec2{0, MIN_TILE_DEPTH} };
 
-    inline constexpr int CAMERA_BORDER_PX{80};
+    inline constexpr int CAMERA_BORDER_PX{ 80 };
 
     const std::string MAP_TILE_PNG_PATH{
         "/home/marv/Documents/Projects/isometric-game/assets/"
-        "kenney_isometric-city/Spritesheet/cityTiles_sheet.png"};
+        "kenney_isometric-city/Spritesheet/cityTiles_sheet.png" };
 
     const std::string MAP_ATLAS_PATH{
         "/home/marv/Documents/Projects/isometric-game/assets/"
-        "kenney_isometric-city/Spritesheet/cityTiles_sheet.xml"};
+        "kenney_isometric-city/Spritesheet/cityTiles_sheet.xml" };
 
     const std::string BUILDING_TILE_PNG_PATH{
         "/home/marv/Documents/Projects/isometric-game/assets/"
-        "kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.png"};
+        "kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.png" };
 
     const std::string BUILDING_ATLAS_PATH{
         "/home/marv/Documents/Projects/isometric-game/assets/"
-        "kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.xml"};
+        "kenney_isometric-buildings-1/Spritesheet/buildingTiles_sheet.xml" };
 
     const std::string VEHICLE_TILE_PNG_PATH{
         "/home/marv/Documents/Projects/isometric-game/assets/"
-        "kenney_isometric-vehicles-1/Spritesheet/sheet_allCars.png"};
+        "kenney_isometric-vehicles-1/Spritesheet/sheet_allCars.png" };
 
     const std::string VEHICLE_ATLAS_PATH{
         "/home/marv/Documents/Projects/isometric-game/assets/"
-        "kenney_isometric-vehicles-1/Spritesheet/sheet_allCars.xml"};
+        "kenney_isometric-vehicles-1/Spritesheet/sheet_allCars.xml" };
 
     const std::string MOUSE_MAP_PNG_PATH{
-        "/home/marv/Documents/Projects/isometric-game/assets/mousemap.png"};
+        "/home/marv/Documents/Projects/isometric-game/assets/mousemap.png" };
 
     enum Directions
     {
@@ -99,35 +99,35 @@ namespace constants
     };
 
     constexpr std::array<glm::ivec2, 8> POINTS_ON_TILE = []()
-    {
-        int count{};
-        std::array<glm::ivec2, 8> points = {};
-
-        for (int x = 0; x < 3; x++)
         {
-            for (int y = 0; y < 3; y++)
+            int count{};
+            std::array<glm::ivec2, 8> points = {};
+
+            for (int x = 0; x < 3; x++)
             {
-
-                if (x == 1 && y == 1)
+                for (int y = 0; y < 3; y++)
                 {
-                    continue;
+
+                    if (x == 1 && y == 1)
+                    {
+                        continue;
+                    }
+
+                    points[count] = glm::ivec2{
+                        constants::TILE_SIZE_HALF * glm::ivec2{x, y} };
+
+                    count++;
                 }
-
-                points[count] = glm::ivec2{
-                    constants::TILE_SIZE_HALF * glm::ivec2{x, y}};
-
-                count++;
             }
-        }
-        return points;
-    }();
+            return points;
+        }();
 
     constexpr std::array<glm::ivec2, 5> TILE_EDGE_POINTS{
         POINTS_ON_TILE[constants::TOP_MIDDLE],
         POINTS_ON_TILE[constants::RIGHT_MIDDLE],
         POINTS_ON_TILE[constants::BOTTOM_MIDDLE],
         POINTS_ON_TILE[constants::LEFT_MIDDLE],
-        POINTS_ON_TILE[constants::TOP_MIDDLE]};
+        POINTS_ON_TILE[constants::TOP_MIDDLE] };
 }
 
 #endif
