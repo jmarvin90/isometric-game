@@ -7,77 +7,75 @@
 
 #include "constants.h"
 
-
 class TileMap;
 
-class Tile {
-    entt::registry& registry;
+class Tile
+{
+    entt::registry &registry;
     glm::ivec2 grid_position;
-    TileMap* tilemap;
+    TileMap *tilemap;
     entt::entity entity;
     std::vector<entt::entity> building_levels;
 
-    protected:
-        uint8_t m_tile_connection_bitmask {0};
+protected:
+    uint8_t m_tile_connection_bitmask{0};
 
-    public:
-        Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* const tilemap);
-        ~Tile();
-        
-        // Don't need to be const if we're returning a copy
-        glm::ivec2 world_position() const;
-        glm::ivec2 get_grid_position() const { return grid_position; }
+public:
+    Tile(entt::registry &registry, const glm::ivec2 grid_position, TileMap *const tilemap);
+    ~Tile();
 
-        entt::entity add_building_level(SDL_Texture* texture, const SDL_Rect sprite_rect);
-        entt::entity get_entity() const { return entity; }
+    // Don't need to be const if we're returning a copy
+    glm::ivec2 world_position() const;
+    glm::ivec2 get_grid_position() const { return grid_position; }
 
-        // Awaiting definition
-        entt::entity topmost_building_level() const { return building_levels.back(); }
-        void remove_building_level();
+    entt::entity add_building_level(SDL_Texture *texture, const SDL_Rect sprite_rect);
+    entt::entity get_entity() const { return entity; }
 
-        // Not sure on the use of an out-paramter here; what's the alternative?
-        // ... Can be pretty confident that caller has allocated 5 positions,
-        // but not 100%
-        void get_tile_iso_points(
-            SDL_Point* point_array, const glm::ivec2& camera_position
-        ) const;
+    // Awaiting definition
+    entt::entity topmost_building_level() const { return building_levels.back(); }
+    void remove_building_level();
 
-        uint8_t get_connection_bitmask() const { return m_tile_connection_bitmask; }
-        void set_connection_bitmask(const uint8_t connection_bitmask);
+    // Not sure on the use of an out-paramter here; what's the alternative?
+    // ... Can be pretty confident that caller has allocated 5 positions,
+    // but not 100%
+    void get_tile_iso_points(
+        SDL_Point *point_array, const glm::ivec2 &camera_position) const;
 
-        friend class TileMap;
+    uint8_t get_connection_bitmask() const { return m_tile_connection_bitmask; }
+    void set_connection_bitmask(const uint8_t connection_bitmask);
+
+    friend class TileMap;
 };
 
-class TileMap {
+class TileMap
+{
     // TODO: think about const Tile* const
     std::vector<Tile> tilemap;
-    const Tile* scan(const glm::ivec2 from, const uint8_t direction) const;
+    const Tile *scan(const glm::ivec2 from, const uint8_t direction) const;
 
-    public: 
-        // TODO: the necessaries to make private
-        std::unordered_map<const Tile*, std::array<const Tile*, 4>> graph{};
+public:
+    // TODO: the necessaries to make private
+    std::unordered_map<const Tile *, std::array<const Tile *, 4>> graph{};
 
-        TileMap(entt::registry& registry);
-        ~TileMap();
+    TileMap(entt::registry &registry);
+    ~TileMap();
 
-        Tile* selected_tile {nullptr};
+    Tile *selected_tile{nullptr};
 
-        Tile& operator[](const glm::ivec2 position);
-        const Tile& operator[](const glm::ivec2 position) const;
-        
-        glm::ivec2 grid_to_pixel(glm::ivec2 grid_pos);
+    Tile &operator[](const glm::ivec2 position);
+    const Tile &operator[](const glm::ivec2 position) const;
 
-        void disconnect(const Tile* tile, const uint8_t direction);
+    glm::ivec2 grid_to_pixel(glm::ivec2 grid_pos);
 
-        void connect(
-            const Tile* origin, const Tile* termination, const uint8_t direction
-        );
+    void disconnect(const Tile *tile, const uint8_t direction);
 
-        void get_path_between(
-            const glm::ivec2 point_a, const glm::ivec2 point_b, std::vector<glm::ivec2>& path
-        );
+    void connect(
+        const Tile *origin, const Tile *termination, const uint8_t direction);
 
-        friend class Tile;
+    void get_path_between(
+        const glm::ivec2 point_a, const glm::ivec2 point_b, std::vector<glm::ivec2> &path);
+
+    friend class Tile;
 };
 
 #endif

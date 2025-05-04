@@ -3,7 +3,8 @@
 
 #include <glm/glm.hpp>
 
-struct Transform{
+struct Transform
+{
     glm::vec2 position;
     int z_index;
     double rotation;
