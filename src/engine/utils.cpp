@@ -21,8 +21,12 @@ glm::ivec2 as_vector(const uint8_t direction) {
     return constants::VECTORS.at(direction_index(direction));
 }
 
-uint8_t reverse(const uint8_t direction) {
+uint8_t reverse_direction(const uint8_t direction) {
     return (direction >> 2 | direction << 2) & 15;
+}
+
+uint8_t reverse_elevation(const uint8_t elevation) {
+    return (elevation >> 2 | elevation << 2) & 240;
 }
 
 bool in_bounds(const glm::ivec2 position) {

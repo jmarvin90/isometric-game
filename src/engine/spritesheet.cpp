@@ -30,3 +30,8 @@ TileSpriteDefinition::TileSpriteDefinition(rapidxml::xml_node<>* xml_definition)
     : SpriteDefinition(xml_definition)
     , connection{ uint8_t(std::atoi(xml_definition->first_attribute("connection")->value())) } {
 }
+
+VehicleSpriteDefinition::VehicleSpriteDefinition(rapidxml::xml_node<>* xml_definition)
+    : SpriteDefinition(xml_definition)
+    , direction{ uint8_t(std::atoi(xml_definition->first_attribute("direction")->value())) } {
+}

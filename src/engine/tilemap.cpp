@@ -95,14 +95,14 @@ const Tile* TileMap::scan(const glm::ivec2 from, const uint8_t direction) const
 
         if (
             !in_bounds(next_point) or
-            !(reverse(direction) & next_tile->m_tile_connection_bitmask))
+            !(reverse_direction(direction) & next_tile->m_tile_connection_bitmask))
         {
             return current_tile;
         }
 
         current_tile = next_tile;
 
-        if (__builtin_popcount(current_tile->m_tile_connection_bitmask) > 2)
+        if (__builtin_popcount(current_tile->m_tile_connection_bitmask & 15) > 2)
         {
             valid = false;
         }
@@ -144,11 +144,11 @@ void Tile::set_connection_bitmask(const uint8_t connection_bitmask)
 
         if (node)
         {
-            const Tile* new_target{ tilemap->scan(node->grid_position, reverse(direction)) };
+            const Tile* new_target{ tilemap->scan(node->grid_position, reverse_direction(direction)) };
             if (new_target != node)
             {
                 spdlog::info("Connecting via disconnection");
-                tilemap->connect(node, new_target, reverse(direction));
+                tilemap->connect(node, new_target, reverse_direction(direction));
                 tilemap->connect(new_target, node, direction);
             }
         }
@@ -161,7 +161,7 @@ void Tile::set_connection_bitmask(const uint8_t connection_bitmask)
         uint8_t direction{
             Directions::NORTH & m_tile_connection_bitmask ? Directions::NORTH : Directions::EAST };
 
-        uint8_t opposite_direction{ reverse(direction) };
+        uint8_t opposite_direction{ reverse_direction(direction) };
 
         const Tile* start_node{ connections.at(direction_index(direction)) };
         const Tile* end_node{ connections.at(direction_index(opposite_direction)) };
@@ -180,7 +180,7 @@ void Tile::set_connection_bitmask(const uint8_t connection_bitmask)
             if (node && (node != this))
             {
                 tilemap->connect(this, node, direction);
-                tilemap->connect(node, this, reverse(direction));
+                tilemap->connect(node, this, reverse_direction(direction));
             }
         }
     }

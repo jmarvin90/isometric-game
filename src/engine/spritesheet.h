@@ -19,7 +19,6 @@ public:
     SDL_Rect texture_rect;
     SpriteDefinition() = default;
     SpriteDefinition(const rapidxml::xml_node<>* xml_definition);
-    // SpriteDefinition(SDL_Rect texture_rect): texture_rect{texture_rect} {};
     ~SpriteDefinition() = default;
     virtual void load_sprites_from_xml() = delete;
 };
@@ -30,9 +29,14 @@ public:
     TileSpriteDefinition() = default;
     uint8_t connection;
     TileSpriteDefinition(rapidxml::xml_node<>* xml_definition);
-    // TileSpriteDefinition(SDL_Rect texture_rect, uint8_t connection)
-    //     : SpriteDefinition{texture_rect}
-    //     , connection{connection} {};
+};
+
+class VehicleSpriteDefinition: public SpriteDefinition
+{
+public:
+    VehicleSpriteDefinition() = default;
+    uint8_t direction;
+    VehicleSpriteDefinition(rapidxml::xml_node<>* xml_definition);
 };
 
 template <typename T>
