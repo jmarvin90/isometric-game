@@ -40,6 +40,10 @@ glm::ivec2 Tile::world_position() const
     };
 }
 
+glm::ivec2 Tile::get_centre() const {
+    return {world_position() + constants::TILE_SIZE_HALF};
+}
+
 Tile::~Tile()
 {
     registry.destroy(entity);

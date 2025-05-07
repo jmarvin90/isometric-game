@@ -231,7 +231,8 @@ void Game::render()
     if (debug_mode)
     {
         render_imgui_gui(
-            renderer->renderer, registry, mouse, tilemap, city_tiles.value(), building_tiles.value());
+            renderer->renderer, registry, mouse, tilemap, city_tiles.value(), building_tiles.value(), vehicle_tiles.value()
+        );
 
         // Highlight tiles if relevant
         // TODO: move this somewhere more appropriate

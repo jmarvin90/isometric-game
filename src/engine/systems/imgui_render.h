@@ -26,7 +26,9 @@ void render_imgui_gui(
     const Mouse& mouse,
     const TileMap& tilemap,
     const SpriteSheet<TileSpriteDefinition>& city_tiles,
-    const SpriteSheet<TileSpriteDefinition>& building_tiles)
+    const SpriteSheet<TileSpriteDefinition>& building_tiles,
+    const SpriteSheet<VehicleSpriteDefinition>& vehicle_tiles
+)
 {
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
@@ -66,7 +68,6 @@ void render_imgui_gui(
     }
 
     // The sprite for the selected tile
-    ImGui::SeparatorText("Tile Sprite");
     static std::string selected_sprite_texture;
     static Sprite* selected_tile_sprite{ nullptr };
     static const TileSpriteDefinition* sprite_definition{ nullptr };
@@ -77,6 +78,9 @@ void render_imgui_gui(
     std::vector<std::string> building_tile_keys;
     building_tile_keys.reserve(building_tiles.sprites.size());
 
+    std::vector<std::string> vehicle_tile_keys;
+    vehicle_tile_keys.reserve(vehicle_tiles.sprites.size());
+
     for (auto kv : city_tiles.sprites)
     {
         city_tile_keys.push_back(kv.first);
@@ -85,6 +89,11 @@ void render_imgui_gui(
     for (auto kv : building_tiles.sprites)
     {
         building_tile_keys.push_back(kv.first);
+    }
+
+    for (auto kv : vehicle_tiles.sprites)
+    {
+        vehicle_tile_keys.push_back(kv.first);
     }
 
     if (tilemap.selected_tile)
@@ -100,6 +109,26 @@ void render_imgui_gui(
         if (selected_tile_sprite->texture == building_tiles.get_spritesheet_texture())
         {
             selected_sprite_texture = building_tiles.reverse_lookup(selected_tile_sprite->source_rect).value();
+        }
+
+        ImGui::SeparatorText("Tile Options");
+
+        if (
+            tilemap.graph.find(tilemap.selected_tile) != tilemap.graph.end())
+        {
+            for (uint8_t direction = constants::Directions::NORTH; direction; direction >>= 1)
+            {
+                const Tile* connection{
+                    tilemap.graph.at(tilemap.selected_tile).at(direction_index(direction)) };
+                if (connection)
+                {
+                    glm::ivec2 connection_location{ connection->get_grid_position() };
+                    ImGui::Text(
+                        "Tile connection: (%s, %s)",
+                        std::to_string(connection_location.x).c_str(),
+                        std::to_string(connection_location.y).c_str());
+                }
+            }
         }
 
         if (ImGui::BeginCombo("Sprite image", selected_sprite_texture.c_str()))
@@ -127,25 +156,70 @@ void render_imgui_gui(
             ImGui::EndCombo();
         }
 
-        if (
-            tilemap.graph.find(tilemap.selected_tile) != tilemap.graph.end())
+        ImGui::SeparatorText("Vehicle Options");
+
+        static std::string selected_vehicle_sprite_texture {"ambulance_E.png"};
+
+        static Sprite selected_vehicle_sprite{ 
+            vehicle_tiles.get_spritesheet_texture(),
+            vehicle_tiles.get_sprite_rect(selected_vehicle_sprite_texture)
+        };
+
+        static const VehicleSpriteDefinition* vehicle_sprite_definition { nullptr };
+
+        if (ImGui::BeginCombo("Vehicle Sprite image", selected_vehicle_sprite_texture.c_str()))
         {
-            for (uint8_t direction = constants::Directions::NORTH; direction; direction >>= 1)
+
+            std::sort(vehicle_tile_keys.begin(), vehicle_tile_keys.end());
+
+            for (auto tile_string : vehicle_tile_keys)
             {
-                const Tile* connection{
-                    tilemap.graph.at(tilemap.selected_tile).at(direction_index(direction)) };
-                if (connection)
+                const bool is_selected = (selected_vehicle_sprite_texture == tile_string);
+
+                if (ImGui::Selectable(tile_string.c_str(), is_selected))
                 {
-                    glm::ivec2 connection_location{ connection->get_grid_position() };
-                    std::string title_string{ "Tile Connection " + std::to_string(direction) };
-                    ImGui::SeparatorText(title_string.c_str());
-                    ImGui::Text(
-                        "Tile connection: (%s, %s)",
-                        std::to_string(connection_location.x).c_str(),
-                        std::to_string(connection_location.y).c_str());
-                }
+                    selected_vehicle_sprite_texture = tile_string;
+                    vehicle_sprite_definition = &vehicle_tiles.get_sprite_definition(selected_vehicle_sprite_texture);
+                    selected_vehicle_sprite.source_rect = vehicle_sprite_definition->texture_rect;
+                    selected_vehicle_sprite.offset = get_offset(selected_vehicle_sprite.source_rect);
+                };
+
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
             }
+            ImGui::EndCombo();
         }
+
+        /* 
+            TODO: here's where we create the vehicle
+            
+            At some stage the target has to be to align the centre point of the 
+            vehicle sprite with the centre point of the tile sprite it's being 
+            placed on.
+
+            The difficulty is that there are various offsets for e.g. tile 
+            depth that make doing this a little bit tricky.
+        */
+
+        if (ImGui::Button("Create Vehicle"))
+        {
+            entt::entity vehicle_entity {registry.create()};
+            registry.emplace<Sprite>(
+                vehicle_entity,
+                selected_vehicle_sprite
+            );
+
+            glm::ivec2 position {tilemap.selected_tile->world_position()};
+            position.y -= constants::MIN_TILE_DEPTH;
+            registry.emplace<Transform>(
+                vehicle_entity,
+                position,
+                1,
+                0.0
+            );
+        }
+
     }
 
     ImGui::Render();

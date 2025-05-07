@@ -48,7 +48,7 @@ public:
     // Todo: read re. asset stores; make private if necessary
     std::optional<SpriteSheet<TileSpriteDefinition>> city_tiles;
     std::optional<SpriteSheet<TileSpriteDefinition>> building_tiles;
-    std::optional<SpriteSheet<SpriteDefinition>> vehicle_tiles;
+    std::optional<SpriteSheet<VehicleSpriteDefinition>> vehicle_tiles;
 
     Game();
     ~Game();

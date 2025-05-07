@@ -27,6 +27,7 @@ public:
     // Don't need to be const if we're returning a copy
     glm::ivec2 world_position() const;
     glm::ivec2 get_grid_position() const { return grid_position; }
+    glm::ivec2 get_centre() const;
 
     entt::entity add_building_level(SDL_Texture* texture, const SDL_Rect sprite_rect);
     entt::entity get_entity() const { return entity; }
