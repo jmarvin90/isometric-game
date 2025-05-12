@@ -41,7 +41,7 @@ glm::ivec2 Tile::world_position() const
 }
 
 glm::ivec2 Tile::get_centre() const {
-    return {world_position() + constants::TILE_SIZE_HALF};
+    return { world_position() + constants::TILE_SIZE_HALF };
 }
 
 Tile::~Tile()
@@ -58,21 +58,44 @@ entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprit
     */
 
     // Create the entity and get the 'z-index'
+
+    /*
+        Either
+            - there are no building levels at this tile location; in which
+              case, we set our starting position using the ground floor offset; 
+              or
+            - there are levels at this tile location, in which case, we set our
+              starting position relative to the 'highest' building building_levels
+
+        For the latter, we
+            - start with the position of the last building level,
+            - move up by the full height of the new level sprite image
+            - find the height of the new sprite's TILE be halfing the image's 
+              width
+            - adjust the position down by the difference between the sprite's
+              total height and tile height
+
+        The logic is in the fact that all tile-like sprites will contain
+        an isometric diamond whose height is half its width. In addition
+        to the diamond, they may contain a vertical component to represent
+        e.g. the height of a building floor. We can find the height portion
+        by subtracting the total image height from the isometric tile height.
+    */
+    glm::ivec2 starting_point;
+    if (building_levels.empty()) {
+        starting_point = world_position();
+        starting_point.y -= constants::GROUND_FLOOR_BUILDING_OFFSET;
+    } else {
+        starting_point = registry.get<Transform>(building_levels.back()).position;
+        starting_point.y -= (sprite_rect.h - (sprite_rect.w / 2));
+    }
+
     entt::entity& level{ building_levels.emplace_back(registry.create()) };
     auto vertical_level{ building_levels.size() };
 
-    // Determine the vertical offset based on the building 'level'
-    int offset = constants::GROUND_FLOOR_BUILDING_OFFSET + ((vertical_level == 1) ? 0 : constants::MAX_TILE_DEPTH * (vertical_level - 1));
-
     // Create the necessary components
-    registry.emplace<Transform>(
-        level, world_position(), vertical_level, 0.0);
-
-    registry.emplace<Sprite>(
-        level,
-        texture,
-        sprite_rect,
-        glm::vec2{ 0, offset });
+    registry.emplace<Transform>(level, starting_point, vertical_level, 0.0);
+    registry.emplace<Sprite>(level, texture, sprite_rect);
 
     return level;
 }
@@ -252,7 +275,7 @@ void Tile::get_tile_iso_points(
     SDL_Point* point_array, const glm::ivec2& camera_position) const
 {
     glm::ivec2 start_point{ world_position() -= camera_position };
-    start_point.y -= constants::MIN_TILE_DEPTH;
+    // start_point.y -= constants::MIN_TILE_DEPTH;
 
     for (int i = 0; i < 5; i++)
     {

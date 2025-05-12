@@ -24,21 +24,10 @@ namespace constants
     inline constexpr glm::ivec2 RENDER_SPACE_SIZE_PX{ MAP_SIZE_PX + (MAP_BORDER_PX * 2) };
     inline constexpr glm::ivec2 TILEMAP_START{ (RENDER_SPACE_SIZE_PX.x / 2) - (TILE_SIZE.x / 2), MAP_BORDER_PX };
 
-    /*
-        This offset is being used as a means of accounting for tile "depth" when converting mouse
-        pixel coordinate to the grid coordinate.
-
-        The idea is that if every tile is at least MIN_TILE_DEPTH 'deep', then the real tilemap surface
-        starts at the 'top' of that depth, and not the bottom of it (as would be default).
-
-        We 'offset' the tilemap start by the minimum tile depth (e.g. shift the tilemap surface up by
-        33 pixels) so that we can still understand which tile the mouse coordinate is 'on' while
-        accounting for how tall the tiles are.
-    */
     inline constexpr int MIN_TILE_DEPTH{ 33 };
     inline constexpr int MAX_TILE_DEPTH{ 34 };
-    inline constexpr int GROUND_FLOOR_BUILDING_OFFSET{ 77 };
-    inline constexpr glm::ivec2 OFFSET_TILEMAP_START{ TILEMAP_START - glm::ivec2{0, MIN_TILE_DEPTH} };
+    inline constexpr int GROUND_FLOOR_BUILDING_OFFSET{ 63 };
+    inline constexpr int TILE_BASE_HEIGHT {TILE_SIZE.y + MIN_TILE_DEPTH};
 
     inline constexpr int CAMERA_BORDER_PX{ 80 };
 

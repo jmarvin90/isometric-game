@@ -73,11 +73,13 @@ void Game::load_tilemap()
             // TODO: probably memory issue for uninitialised members
             TileSpriteDefinition sprite_def;
 
+            [[maybe_unused]] std::remove_const_t<Sprite>* sprite { nullptr };
+
             // TODO: sort this mess out
             if ((x == 8 || x == 7) && y == 0)
             {
                 sprite_def = building_tiles->get_sprite_definition("buildingTiles_014.png");
-                registry.emplace<Sprite>(
+                sprite = &registry.emplace<Sprite>(
                     entity,
                     building_tiles->get_spritesheet_texture(),
                     sprite_def.texture_rect);
@@ -85,7 +87,7 @@ void Game::load_tilemap()
             else if (x == 6 && y == 2)
             {
                 sprite_def = building_tiles->get_sprite_definition("buildingTiles_028.png");
-                registry.emplace<Sprite>(
+                sprite = &registry.emplace<Sprite>(
                     entity,
                     building_tiles->get_spritesheet_texture(),
                     sprite_def.texture_rect);
@@ -93,7 +95,7 @@ void Game::load_tilemap()
             else if (y == 1)
             {
                 sprite_def = city_tiles->get_sprite_definition("cityTiles_036.png");
-                registry.emplace<Sprite>(
+                sprite = &registry.emplace<Sprite>(
                     entity,
                     city_tiles->get_spritesheet_texture(),
                     sprite_def.texture_rect);
@@ -101,12 +103,13 @@ void Game::load_tilemap()
             else
             {
                 sprite_def = city_tiles->get_sprite_definition("cityTiles_072.png");
-                registry.emplace<Sprite>(
+                sprite = &registry.emplace<Sprite>(
                     entity,
                     city_tiles->get_spritesheet_texture(),
                     sprite_def.texture_rect);
             }
-
+            
+            sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - sprite->source_rect.h};
             tilemap[{x, y}].set_connection_bitmask(sprite_def.connection);
         }
     }

@@ -210,7 +210,7 @@ void render_imgui_gui(
                 selected_vehicle_sprite
             );
 
-            sprite->offset = glm::ivec2{0, -constants::MIN_TILE_DEPTH};
+            // sprite->offset = glm::ivec2{0, -constants::MIN_TILE_DEPTH};
 
             [[maybe_unused]] std::remove_const_t<Transform>* transform = &registry.emplace<Transform>(
                 vehicle_entity,

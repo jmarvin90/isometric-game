@@ -21,6 +21,7 @@ struct Sprite
     )
         : texture{ texture }
         , source_rect{ source_rect }
+        , offset { in_offset }
 
         /*
             TODO: determine how the offset should work.
@@ -40,8 +41,6 @@ struct Sprite
             Will leave for now since we don't have any scenarios where that's the
             case.
         */
-
-        , offset{ get_offset(source_rect) - in_offset }
     {
     }
 };

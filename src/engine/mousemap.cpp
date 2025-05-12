@@ -102,7 +102,8 @@ glm::ivec2 MouseMap::tile_walk(const glm::ivec2& tile_offset) const
 glm::ivec2 MouseMap::pixel_to_grid(const glm::ivec2& pixel_coordinate) const
 {
     // Where we are in relation to the tilemap start (0th tile, top left)
-    glm::ivec2 screen_offset{ pixel_coordinate - constants::OFFSET_TILEMAP_START };
+    // glm::ivec2 screen_offset{ pixel_coordinate - constants::OFFSET_TILEMAP_START };
+    glm::ivec2 screen_offset{ pixel_coordinate - constants::TILEMAP_START };
 
     // How many whole tiles between us and the tilemap start
     // The casting is necessary because of quirks re. division & negative nums
