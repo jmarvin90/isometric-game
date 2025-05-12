@@ -205,18 +205,30 @@ void render_imgui_gui(
         if (ImGui::Button("Create Vehicle"))
         {
             entt::entity vehicle_entity {registry.create()};
-            registry.emplace<Sprite>(
+            [[maybe_unused]] std::remove_const_t<Sprite>* sprite = &registry.emplace<Sprite>(
                 vehicle_entity,
                 selected_vehicle_sprite
             );
 
-            glm::ivec2 position {tilemap.selected_tile->world_position()};
-            position.y -= constants::MIN_TILE_DEPTH;
-            registry.emplace<Transform>(
+            sprite->offset = glm::ivec2{0, -constants::MIN_TILE_DEPTH};
+
+            [[maybe_unused]] std::remove_const_t<Transform>* transform = &registry.emplace<Transform>(
                 vehicle_entity,
-                position,
-                1,
+                tilemap.selected_tile->world_position(),
+                0,
                 0.0
+            );
+
+            transform->position +=  constants::TILE_SIZE_HALF;
+
+            transform->position -= glm::ivec2{
+                sprite->source_rect.w / 2,
+                sprite->source_rect.h / 2
+            };
+
+            registry.emplace<RigidBody>(
+                vehicle_entity,
+                glm::vec2{10, 5}
             );
         }
 
