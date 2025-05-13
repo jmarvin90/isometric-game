@@ -31,8 +31,7 @@ void Renderer::render_sprite(
     const Sprite& sprite,
     bool render_bounding_box)
 {
-    glm::vec2 position{ transform.position + sprite.offset };
-    position -= camera_position;
+    glm::vec2 position{ (transform.position + sprite.offset) -= camera_position };
 
     SDL_FRect dest_rect{
         position.x,

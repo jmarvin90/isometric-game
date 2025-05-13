@@ -65,10 +65,10 @@ entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprit
               case, we set our starting position using the ground floor offset; 
               or
             - there are levels at this tile location, in which case, we set our
-              starting position relative to the 'highest' building building_levels
+              offset relative to the 'highest' building in building_levels
 
         For the latter, we
-            - start with the position of the last building level,
+            - start with the offset of the last building level,
             - move up by the full height of the new level sprite image
             - find the height of the new sprite's TILE be halfing the image's 
               width
@@ -76,26 +76,34 @@ entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprit
               total height and tile height
 
         The logic is in the fact that all tile-like sprites will contain
-        an isometric diamond whose height is half its width. In addition
+        an isometric diamond whose height is half its width (2:1). In addition
         to the diamond, they may contain a vertical component to represent
         e.g. the height of a building floor. We can find the height portion
         by subtracting the total image height from the isometric tile height.
     */
-    glm::ivec2 starting_point;
+    glm::ivec2 offset {0};
+
     if (building_levels.empty()) {
-        starting_point = world_position();
-        starting_point.y -= constants::GROUND_FLOOR_BUILDING_OFFSET;
+        offset.y -= constants::GROUND_FLOOR_BUILDING_OFFSET;
     } else {
-        starting_point = registry.get<Transform>(building_levels.back()).position;
-        starting_point.y -= (sprite_rect.h - (sprite_rect.w / 2));
+        offset.y += registry.get<Sprite>(building_levels.back()).offset.y;
+        offset.y -= (sprite_rect.h - (sprite_rect.w / 2));
+        offset.y += 1;      // TODO: where does this 1 come from?
     }
+
+    // Centre against the tile - building levels aren't full tile widths
+    offset.x += (
+        ((constants::TILE_SIZE.x - sprite_rect.w) / 2) + 
+        ((constants::TILE_SIZE.x - sprite_rect.w) % 2 != 0)
+    );
+        
 
     entt::entity& level{ building_levels.emplace_back(registry.create()) };
     auto vertical_level{ building_levels.size() };
 
     // Create the necessary components
-    registry.emplace<Transform>(level, starting_point, vertical_level, 0.0);
-    registry.emplace<Sprite>(level, texture, sprite_rect);
+    registry.emplace<Transform>(level, world_position(), vertical_level, 0.0);
+    registry.emplace<Sprite>(level, texture, sprite_rect, offset);
 
     return level;
 }

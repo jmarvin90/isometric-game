@@ -145,7 +145,7 @@ void render_imgui_gui(
                     selected_sprite_texture = tile_string;
                     sprite_definition = &city_tiles.get_sprite_definition(selected_sprite_texture);
                     selected_tile_sprite->source_rect = sprite_definition->texture_rect;
-                    selected_tile_sprite->offset = get_offset(selected_tile_sprite->source_rect);
+                    selected_tile_sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - selected_tile_sprite->source_rect.h};
                     tilemap.selected_tile->set_connection_bitmask(sprite_definition->connection);
                 };
 
@@ -181,7 +181,6 @@ void render_imgui_gui(
                     selected_vehicle_sprite_texture = tile_string;
                     vehicle_sprite_definition = &vehicle_tiles.get_sprite_definition(selected_vehicle_sprite_texture);
                     selected_vehicle_sprite.source_rect = vehicle_sprite_definition->texture_rect;
-                    selected_vehicle_sprite.offset = get_offset(selected_vehicle_sprite.source_rect);
                 };
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
