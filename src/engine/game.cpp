@@ -215,13 +215,9 @@ void Game::update(const float delta_time)
 
 bool transform_comparison(const Transform& lhs, const Transform& rhs)
 {
-    if (
+    return (
         lhs.z_index < rhs.z_index ||
-        (lhs.z_index == rhs.z_index && lhs.position.y < rhs.position.y))
-    {
-        return true;
-    }
-    return false;
+        (lhs.z_index == rhs.z_index && lhs.position.y < rhs.position.y));
 }
 
 void Game::render()
