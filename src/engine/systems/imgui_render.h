@@ -70,7 +70,7 @@ void render_imgui_gui(
     // The sprite for the selected tile
     static std::string selected_sprite_texture;
     static Sprite* selected_tile_sprite{ nullptr };
-    static const TileSpriteDefinition* sprite_definition{ nullptr };
+    // static const TileSpriteDefinition* sprite_definition{ nullptr };
 
     std::vector<std::string> city_tile_keys;
     city_tile_keys.reserve(city_tiles.sprites.size());
@@ -143,10 +143,11 @@ void render_imgui_gui(
                 if (ImGui::Selectable(tile_string.c_str(), is_selected))
                 {
                     selected_sprite_texture = tile_string;
-                    sprite_definition = &city_tiles.get_sprite_definition(selected_sprite_texture);
-                    selected_tile_sprite->source_rect = sprite_definition->texture_rect;
-                    selected_tile_sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - selected_tile_sprite->source_rect.h};
-                    tilemap.selected_tile->set_connection_bitmask(sprite_definition->connection);
+                    tilemap.selected_tile->set_tile_base(selected_sprite_texture, city_tiles);
+                    // sprite_definition = &city_tiles.get_sprite_definition(selected_sprite_texture);
+                    // selected_tile_sprite->source_rect = sprite_definition->texture_rect;
+                    // selected_tile_sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - selected_tile_sprite->source_rect.h};
+                    // tilemap.selected_tile->set_connection_bitmask(sprite_definition->connection);
                 };
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -214,7 +215,7 @@ void render_imgui_gui(
             [[maybe_unused]] std::remove_const_t<Transform>* transform = &registry.emplace<Transform>(
                 vehicle_entity,
                 tilemap.selected_tile->world_position(),
-                0,
+                1,
                 0.0
             );
 

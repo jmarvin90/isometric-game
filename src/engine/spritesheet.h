@@ -11,6 +11,8 @@
 #include <rapidxml/rapidxml_utils.hpp>
 #include <rapidxml/rapidxml_print.hpp>
 
+// TODO: std::string& -> std::string_view
+
 bool operator==(const SDL_Rect& lhs, const SDL_Rect& rhs);
 
 class SpriteDefinition

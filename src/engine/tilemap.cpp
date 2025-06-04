@@ -15,6 +15,7 @@
 
 #include "tilemap.h"
 #include "constants.h"
+#include "spritesheet.h"
 
 #include "components/transform.h"
 #include "components/sprite.h"
@@ -107,6 +108,20 @@ entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprit
 
     return level;
 }
+
+void Tile::set_tile_base(
+    const std::string sprite_name,
+    const SpriteSheet<TileSpriteDefinition>& sprite_sheet
+) {
+    spdlog::info(sprite_name.c_str());
+    Sprite* current_sprite = &registry.get<Sprite>(entity);
+    const TileSpriteDefinition* target_sprite = &sprite_sheet.get_sprite_definition(sprite_name);
+
+    current_sprite->source_rect = target_sprite->texture_rect;
+    current_sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - target_sprite->texture_rect.h};
+    set_connection_bitmask(target_sprite->connection);
+}
+
 
 const Tile* TileMap::scan(const glm::ivec2 from, const uint8_t direction) const
 {

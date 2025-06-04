@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "constants.h"
+#include "spritesheet.h"
 
 class TileMap;
 
@@ -31,6 +32,12 @@ public:
 
     entt::entity add_building_level(SDL_Texture* texture, const SDL_Rect sprite_rect);
     entt::entity get_entity() const { return entity; }
+
+    // Not const because it sets the tile's connection bitmask
+    void set_tile_base(
+        const std::string sprite_name,
+        const SpriteSheet<TileSpriteDefinition>& sprite_sheet
+    );
 
     // Awaiting definition
     entt::entity topmost_building_level() const { return building_levels.back(); }

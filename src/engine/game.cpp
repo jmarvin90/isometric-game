@@ -91,6 +91,18 @@ void Game::load_tilemap()
                     entity,
                     building_tiles->get_spritesheet_texture(),
                     sprite_def.texture_rect);
+                
+                SDL_Rect overlay_rect {sprite_def.texture_rect};
+                overlay_rect.h -= constants::GROUND_FLOOR_BUILDING_OFFSET;
+
+                entt::entity gf_entity {registry.create()};
+                registry.emplace<Transform>(gf_entity, position, 1, 0.0);
+                registry.emplace<Sprite>(
+                    gf_entity, 
+                    building_tiles->get_spritesheet_texture(),
+                    overlay_rect,
+                    glm::ivec2{0, constants::TILE_BASE_HEIGHT - sprite->source_rect.h}
+                );
             }
             else if (y == 1)
             {
