@@ -25,9 +25,9 @@ void render_imgui_gui(
     entt::registry& registry,
     const Mouse& mouse,
     const std::unique_ptr<TileMap>& tilemap,
-    const SpriteSheet<TileSpriteDefinition>& city_tiles,
-    const SpriteSheet<TileSpriteDefinition>& building_tiles,
-    const SpriteSheet<VehicleSpriteDefinition>& vehicle_tiles
+    const std::unique_ptr<SpriteSheet>& city_tiles,
+    const std::unique_ptr<SpriteSheet>& building_tiles,
+    const std::unique_ptr<SpriteSheet>& vehicle_tiles
 )
 {
     ImGui_ImplSDLRenderer2_NewFrame();
@@ -73,25 +73,25 @@ void render_imgui_gui(
     // static const TileSpriteDefinition* sprite_definition{ nullptr };
 
     std::vector<std::string> city_tile_keys;
-    city_tile_keys.reserve(city_tiles.sprites.size());
+    city_tile_keys.reserve(city_tiles->sprites.size());
 
     std::vector<std::string> building_tile_keys;
-    building_tile_keys.reserve(building_tiles.sprites.size());
+    building_tile_keys.reserve(building_tiles->sprites.size());
 
     std::vector<std::string> vehicle_tile_keys;
-    vehicle_tile_keys.reserve(vehicle_tiles.sprites.size());
+    vehicle_tile_keys.reserve(vehicle_tiles->sprites.size());
 
-    for (auto kv : city_tiles.sprites)
+    for (auto kv : city_tiles->sprites)
     {
         city_tile_keys.push_back(kv.first);
     }
 
-    for (auto kv : building_tiles.sprites)
+    for (auto kv : building_tiles->sprites)
     {
         building_tile_keys.push_back(kv.first);
     }
 
-    for (auto kv : vehicle_tiles.sprites)
+    for (auto kv : vehicle_tiles->sprites)
     {
         vehicle_tile_keys.push_back(kv.first);
     }
@@ -101,14 +101,14 @@ void render_imgui_gui(
         entt::entity selected_tile{ tilemap->selected_tile->get_entity() };
         selected_tile_sprite = &registry.get<Sprite>(selected_tile);
 
-        if (selected_tile_sprite->texture == city_tiles.get_spritesheet_texture())
+        if (selected_tile_sprite->texture == city_tiles->get_spritesheet_texture())
         {
-            selected_sprite_texture = city_tiles.reverse_lookup(selected_tile_sprite->source_rect).value();
+            selected_sprite_texture = city_tiles->reverse_lookup(selected_tile_sprite->source_rect).value();
         }
 
-        if (selected_tile_sprite->texture == building_tiles.get_spritesheet_texture())
+        if (selected_tile_sprite->texture == building_tiles->get_spritesheet_texture())
         {
-            selected_sprite_texture = building_tiles.reverse_lookup(selected_tile_sprite->source_rect).value();
+            selected_sprite_texture = building_tiles->reverse_lookup(selected_tile_sprite->source_rect).value();
         }
 
         ImGui::SeparatorText("Tile Options");
@@ -162,11 +162,11 @@ void render_imgui_gui(
         static std::string selected_vehicle_sprite_texture {"ambulance_E.png"};
 
         static Sprite selected_vehicle_sprite{ 
-            vehicle_tiles.get_spritesheet_texture(),
-            vehicle_tiles.get_sprite_rect(selected_vehicle_sprite_texture)
+            vehicle_tiles->get_spritesheet_texture(),
+            vehicle_tiles->get_sprite_rect(selected_vehicle_sprite_texture)
         };
 
-        static const VehicleSpriteDefinition* vehicle_sprite_definition { nullptr };
+        static const Sprite* vehicle_sprite_definition { nullptr };
 
         if (ImGui::BeginCombo("Vehicle Sprite image", selected_vehicle_sprite_texture.c_str()))
         {
@@ -180,8 +180,8 @@ void render_imgui_gui(
                 if (ImGui::Selectable(tile_string.c_str(), is_selected))
                 {
                     selected_vehicle_sprite_texture = tile_string;
-                    vehicle_sprite_definition = &vehicle_tiles.get_sprite_definition(selected_vehicle_sprite_texture);
-                    selected_vehicle_sprite.source_rect = vehicle_sprite_definition->texture_rect;
+                    vehicle_sprite_definition = &vehicle_tiles->get_sprite_definition(selected_vehicle_sprite_texture);
+                    selected_vehicle_sprite.source_rect = vehicle_sprite_definition->source_rect;
                 };
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)

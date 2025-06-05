@@ -58,6 +58,14 @@ namespace constants
     const std::string MOUSE_MAP_PNG_PATH{
         "/home/marv/Documents/Projects/isometric-game/assets/mousemap.png" };
 
+    enum SpriteType
+    {
+        TILE_SPRITE = 0,
+        FLOOR_SPRITE = 1,
+        VEHICLE_SPRITE = 2,
+        DETAIL_SPRITE = 3
+    };
+
     enum Directions
     {
         NO_DIRECTION = 0,

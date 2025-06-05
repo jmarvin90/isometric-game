@@ -9,6 +9,7 @@
 #include "spritesheet.h"
 
 class TileMap;
+class SpriteSheet;
 
 class Tile
 {
@@ -36,7 +37,7 @@ public:
     // Not const because it sets the tile's connection bitmask
     void set_tile_base(
         const std::string sprite_name,
-        const SpriteSheet<TileSpriteDefinition>& sprite_sheet
+        const std::unique_ptr<SpriteSheet>& sprite_sheet
     );
 
     // Awaiting definition

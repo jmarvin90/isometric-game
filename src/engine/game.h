@@ -45,12 +45,11 @@ class Game
 
 public:
 
-    std::unique_ptr<TileMap> tilemap;
-    
     // Todo: read re. asset stores; make private if necessary
-    std::optional<SpriteSheet<TileSpriteDefinition>> city_tiles;
-    std::optional<SpriteSheet<TileSpriteDefinition>> building_tiles;
-    std::optional<SpriteSheet<VehicleSpriteDefinition>> vehicle_tiles;
+    std::unique_ptr<TileMap> tilemap;
+    std::unique_ptr<SpriteSheet> city_tiles;
+    std::unique_ptr<SpriteSheet> building_tiles;
+    std::unique_ptr<SpriteSheet> vehicle_tiles;
 
     Game();
     ~Game();

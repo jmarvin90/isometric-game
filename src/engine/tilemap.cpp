@@ -111,14 +111,14 @@ entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprit
 
 void Tile::set_tile_base(
     const std::string sprite_name,
-    const SpriteSheet<TileSpriteDefinition>& sprite_sheet
+    const std::unique_ptr<SpriteSheet>& sprite_sheet
 ) {
     spdlog::info(sprite_name.c_str());
-    Sprite* current_sprite = &registry.get<Sprite>(entity);
-    const TileSpriteDefinition* target_sprite = &sprite_sheet.get_sprite_definition(sprite_name);
+    std::remove_const_t<Sprite>* current_sprite = &registry.get<Sprite>(entity);
+    const Sprite* target_sprite = &sprite_sheet->get_sprite_definition(sprite_name);
 
-    current_sprite->source_rect = target_sprite->texture_rect;
-    current_sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - target_sprite->texture_rect.h};
+    current_sprite->source_rect = target_sprite->source_rect;
+    current_sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - target_sprite->source_rect.h};
     set_connection_bitmask(target_sprite->connection);
 }
 

@@ -12,7 +12,11 @@ struct Sprite
     // to be replaced with an asset identifier?
     SDL_Texture* texture;
     SDL_Rect source_rect;
-    glm::vec2 offset;
+    uint8_t sprite_type{ 0 };
+    glm::vec2 offset{ 0, 0 };
+    uint8_t connection{ 0 };
+    uint8_t direction{ 0 };
+
 
     Sprite(
         SDL_Texture* texture,
@@ -21,26 +25,35 @@ struct Sprite
     )
         : texture{ texture }
         , source_rect{ source_rect }
-        , offset { in_offset }
+        , offset{ in_offset }
+    {
+    }
 
-        /*
-            TODO: determine how the offset should work.
-
-            Here, we basically determine that the BOTTOM MIDDLE of the portion
-            of the texture we're rendering should be aligned to the BOTTOM MIDDLE
-            of the tile we're rendering it into.
-
-            NOTE that the "middle" is offset to the right, for a positive difference
-            (e.g. where the spite is smaller than a standard tile) in the case that
-            the width of the source rect is not evenly divisible by two.
-
-            The logic used to do the offset (ceil division) will potentially have
-            the inverse affect in the case it's used when the sprite is larger than
-            a standard tile.
-
-            Will leave for now since we don't have any scenarios where that's the
-            case.
-        */
+    Sprite(SDL_Texture* texture, const rapidxml::xml_node<>* xml_definition)
+        : texture{ texture }
+        , source_rect{
+            std::atoi(xml_definition->first_attribute("x")->value()),
+            std::atoi(xml_definition->first_attribute("y")->value()),
+            std::atoi(xml_definition->first_attribute("width")->value()),
+            std::atoi(xml_definition->first_attribute("height")->value()) }
+        , sprite_type{
+            static_cast<uint8_t>(
+                xml_definition->first_attribute("sprite_type") ? 
+                std::atoi(xml_definition->first_attribute("sprite_type")->value())
+                : 0 
+            )}
+        , connection {
+            static_cast<uint8_t>(
+                xml_definition->first_attribute("connection") ?
+                std::atoi(xml_definition->first_attribute("connection")->value())
+                : 0
+            )}
+        , direction {
+            static_cast<uint8_t>(
+                xml_definition->first_attribute("direction") ?
+                std::atoi(xml_definition->first_attribute("direction")->value())
+                : 0
+            )}
     {
     }
 };

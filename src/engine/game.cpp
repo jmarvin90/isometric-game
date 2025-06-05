@@ -44,14 +44,17 @@ void Game::load_spritesheets()
 {
     spdlog::info("Loading spritesheets");
 
-    city_tiles.emplace(
-        constants::MAP_TILE_PNG_PATH, constants::MAP_ATLAS_PATH, renderer->renderer);
+    city_tiles = std::make_unique<SpriteSheet>(
+        constants::MAP_TILE_PNG_PATH, constants::MAP_ATLAS_PATH, renderer->renderer
+    );
 
-    building_tiles.emplace(
-        constants::BUILDING_TILE_PNG_PATH, constants::BUILDING_ATLAS_PATH, renderer->renderer);
+    building_tiles = std::make_unique<SpriteSheet>(
+        constants::BUILDING_TILE_PNG_PATH, constants::BUILDING_ATLAS_PATH, renderer->renderer
+    );
 
-    vehicle_tiles.emplace(
-        constants::VEHICLE_TILE_PNG_PATH, constants::VEHICLE_ATLAS_PATH, renderer->renderer);
+    vehicle_tiles = std::make_unique<SpriteSheet>(
+        constants::VEHICLE_TILE_PNG_PATH, constants::VEHICLE_ATLAS_PATH, renderer->renderer
+    );
 
     spdlog::info("Sprites loaded");
 }
@@ -71,28 +74,27 @@ void Game::load_tilemap()
             registry.emplace<Transform>(entity, position, 0, 0.0);
 
             // TODO: probably memory issue for uninitialised members
-            TileSpriteDefinition sprite_def;
-
             [[maybe_unused]] std::remove_const_t<Sprite>* sprite{ nullptr };
 
             // TODO: sort this mess out
             if ((x == 8 || x == 7) && y == 0)
             {
-                sprite_def = building_tiles->get_sprite_definition("buildingTiles_014.png");
+                Sprite sprite_def = building_tiles->get_sprite_definition("buildingTiles_014.png");
                 sprite = &registry.emplace<Sprite>(
                     entity,
                     building_tiles->get_spritesheet_texture(),
-                    sprite_def.texture_rect);
+                    sprite_def.source_rect);
+                (*tilemap)[{x, y}].set_connection_bitmask(sprite_def.connection);
             }
             else if (x == 6 && y == 2)
             {
-                sprite_def = building_tiles->get_sprite_definition("buildingTiles_028.png");
+                Sprite sprite_def = building_tiles->get_sprite_definition("buildingTiles_028.png");
                 sprite = &registry.emplace<Sprite>(
                     entity,
                     building_tiles->get_spritesheet_texture(),
-                    sprite_def.texture_rect);
+                    sprite_def.source_rect);
 
-                SDL_Rect overlay_rect{ sprite_def.texture_rect };
+                SDL_Rect overlay_rect{ sprite_def.source_rect };
                 overlay_rect.h -= constants::GROUND_FLOOR_BUILDING_OFFSET;
 
                 entt::entity gf_entity{ registry.create() };
@@ -103,26 +105,28 @@ void Game::load_tilemap()
                     overlay_rect,
                     glm::ivec2{ 0, constants::TILE_BASE_HEIGHT - sprite->source_rect.h }
                 );
+                (*tilemap)[{x, y}].set_connection_bitmask(sprite_def.connection);   
             }
             else if (y == 1)
             {
-                sprite_def = city_tiles->get_sprite_definition("cityTiles_036.png");
+                Sprite sprite_def = city_tiles->get_sprite_definition("cityTiles_036.png");
                 sprite = &registry.emplace<Sprite>(
                     entity,
                     city_tiles->get_spritesheet_texture(),
-                    sprite_def.texture_rect);
+                    sprite_def.source_rect);
+                (*tilemap)[{x, y}].set_connection_bitmask(sprite_def.connection);
             }
             else
             {
-                sprite_def = city_tiles->get_sprite_definition("cityTiles_072.png");
+                Sprite sprite_def = city_tiles->get_sprite_definition("cityTiles_072.png");
                 sprite = &registry.emplace<Sprite>(
                     entity,
                     city_tiles->get_spritesheet_texture(),
-                    sprite_def.texture_rect);
+                    sprite_def.source_rect);
+                (*tilemap)[{x, y}].set_connection_bitmask(sprite_def.connection);
             }
 
             sprite->offset = glm::ivec2{ 0, constants::TILE_BASE_HEIGHT - sprite->source_rect.h };
-            (*tilemap)[{x, y}].set_connection_bitmask(sprite_def.connection);
         }
     }
 }
@@ -135,7 +139,7 @@ entt::entity Game::create_entity()
 void Game::initialise()
 {
     tilemap = std::make_unique<TileMap>(registry);
-    
+
     SDL_Init(SDL_INIT_EVERYTHING);
 
     SDL_GetDesktopDisplayMode(0, &display_mode);
@@ -244,7 +248,7 @@ void Game::render()
     if (debug_mode)
     {
         render_imgui_gui(
-            renderer->renderer, registry, mouse, tilemap, city_tiles.value(), building_tiles.value(), vehicle_tiles.value()
+            renderer->renderer, registry, mouse, tilemap, city_tiles, building_tiles, vehicle_tiles
         );
 
         // Highlight tiles if relevant
