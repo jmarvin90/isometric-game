@@ -30,11 +30,10 @@ class Game
     SDL_DisplayMode display_mode;
 
     // Camera, renderer are smart pointers to allow late initialisation
-    std::optional<Camera> camera;
-    std::optional<Renderer> renderer;
+    std::unique_ptr<Camera> camera;
+    std::unique_ptr<Renderer> renderer;
 
-    // TileMap and Mouse can be initialised during game construction
-    TileMap tilemap;
+    // Mouse can be initialised during game construction
     MouseMap mousemap;
     Mouse mouse;
 
@@ -45,6 +44,9 @@ class Game
     void render();
 
 public:
+
+    std::unique_ptr<TileMap> tilemap;
+    
     // Todo: read re. asset stores; make private if necessary
     std::optional<SpriteSheet<TileSpriteDefinition>> city_tiles;
     std::optional<SpriteSheet<TileSpriteDefinition>> building_tiles;
@@ -62,11 +64,6 @@ public:
     void initialise();
     void run();
     void destroy();
-
-    TileMap *get_tilemap()
-    {
-        return &tilemap;
-    }
 
     entt::entity create_entity();
 

@@ -27,10 +27,10 @@
 #include "systems/render.h"
 #include "systems/imgui_render.h"
 
-Game::Game() : registry{ entt::registry() },
-tilemap{ registry },
-mousemap{ constants::MOUSE_MAP_PNG_PATH },
-mouse{ mousemap }
+Game::Game() 
+    : registry{ entt::registry() }
+    , mousemap{ constants::MOUSE_MAP_PNG_PATH }
+    , mouse{ mousemap }
 {
     spdlog::info("Game constructor called.");
 }
@@ -64,16 +64,16 @@ void Game::load_tilemap()
         for (int x = 0; x < constants::MAP_SIZE_N_TILES; x++)
         {
 
-            glm::ivec2 position{ tilemap[{x, y}].world_position() };
+            glm::ivec2 position{ (*tilemap)[{x, y}].world_position() };
 
-            entt::entity entity{ tilemap[{x, y}].get_entity() };
+            entt::entity entity{ (*tilemap)[{x, y}].get_entity() };
 
             registry.emplace<Transform>(entity, position, 0, 0.0);
 
             // TODO: probably memory issue for uninitialised members
             TileSpriteDefinition sprite_def;
 
-            [[maybe_unused]] std::remove_const_t<Sprite>* sprite { nullptr };
+            [[maybe_unused]] std::remove_const_t<Sprite>* sprite{ nullptr };
 
             // TODO: sort this mess out
             if ((x == 8 || x == 7) && y == 0)
@@ -91,17 +91,17 @@ void Game::load_tilemap()
                     entity,
                     building_tiles->get_spritesheet_texture(),
                     sprite_def.texture_rect);
-                
-                SDL_Rect overlay_rect {sprite_def.texture_rect};
+
+                SDL_Rect overlay_rect{ sprite_def.texture_rect };
                 overlay_rect.h -= constants::GROUND_FLOOR_BUILDING_OFFSET;
 
-                entt::entity gf_entity {registry.create()};
+                entt::entity gf_entity{ registry.create() };
                 registry.emplace<Transform>(gf_entity, position, 1, 0.0);
                 registry.emplace<Sprite>(
-                    gf_entity, 
+                    gf_entity,
                     building_tiles->get_spritesheet_texture(),
                     overlay_rect,
-                    glm::ivec2{0, constants::TILE_BASE_HEIGHT - sprite->source_rect.h}
+                    glm::ivec2{ 0, constants::TILE_BASE_HEIGHT - sprite->source_rect.h }
                 );
             }
             else if (y == 1)
@@ -120,9 +120,9 @@ void Game::load_tilemap()
                     city_tiles->get_spritesheet_texture(),
                     sprite_def.texture_rect);
             }
-            
-            sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - sprite->source_rect.h};
-            tilemap[{x, y}].set_connection_bitmask(sprite_def.connection);
+
+            sprite->offset = glm::ivec2{ 0, constants::TILE_BASE_HEIGHT - sprite->source_rect.h };
+            (*tilemap)[{x, y}].set_connection_bitmask(sprite_def.connection);
         }
     }
 }
@@ -134,10 +134,12 @@ entt::entity Game::create_entity()
 
 void Game::initialise()
 {
+    tilemap = std::make_unique<TileMap>(registry);
+    
     SDL_Init(SDL_INIT_EVERYTHING);
 
     SDL_GetDesktopDisplayMode(0, &display_mode);
-    camera.emplace(display_mode);
+    camera = std::make_unique<Camera>(display_mode);
 
     // Create the SDL Window
     window = SDL_CreateWindow(
@@ -154,7 +156,7 @@ void Game::initialise()
         spdlog::error("Could not initialise SDL Window.");
     }
 
-    renderer.emplace(window, display_mode, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC, -1);
+    renderer = std::make_unique<Renderer>(window, display_mode, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC, -1);
 
     load_spritesheets();
     load_tilemap();
@@ -194,15 +196,15 @@ void Game::process_input()
         case SDL_MOUSEBUTTONDOWN:
             if (!io.WantCaptureMouse)
             {
-                if (tilemap.selected_tile)
+                if (tilemap->selected_tile)
                 {
-                    tilemap.selected_tile = nullptr;
+                    tilemap->selected_tile = nullptr;
                 }
                 else
                 {
                     if (mouse.is_on_world_grid())
                     {
-                        tilemap.selected_tile = &tilemap[mouse.get_grid_position()];
+                        tilemap->selected_tile = &(*tilemap)[mouse.get_grid_position()];
                     }
                 }
             }
@@ -247,12 +249,12 @@ void Game::render()
 
         // Highlight tiles if relevant
         // TODO: move this somewhere more appropriate
-        if (tilemap.selected_tile || mouse.is_on_world_grid())
+        if (tilemap->selected_tile || mouse.is_on_world_grid())
         {
 
-            Tile& focus_tile{ (tilemap.selected_tile) ? *tilemap.selected_tile : tilemap[mouse.get_grid_position()] };
+            Tile& focus_tile{ (tilemap->selected_tile) ? *tilemap->selected_tile : (*tilemap)[mouse.get_grid_position()] };
 
-            if (tilemap.selected_tile)
+            if (tilemap->selected_tile)
             {
                 SDL_SetRenderDrawColor(
                     renderer->renderer,

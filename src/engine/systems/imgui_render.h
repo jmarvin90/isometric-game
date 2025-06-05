@@ -24,7 +24,7 @@ void render_imgui_gui(
     SDL_Renderer* renderer,
     entt::registry& registry,
     const Mouse& mouse,
-    const TileMap& tilemap,
+    const std::unique_ptr<TileMap>& tilemap,
     const SpriteSheet<TileSpriteDefinition>& city_tiles,
     const SpriteSheet<TileSpriteDefinition>& building_tiles,
     const SpriteSheet<VehicleSpriteDefinition>& vehicle_tiles
@@ -53,18 +53,18 @@ void render_imgui_gui(
         std::to_string(grid_position.y).c_str());
 
     ImGui::SeparatorText("Selected Tile Position");
-    if (tilemap.selected_tile)
+    if (tilemap->selected_tile)
     {
 
         ImGui::Text(
             "Selected Tile World position: (%s) (%s)",
-            std::to_string(tilemap.selected_tile->world_position().x).c_str(),
-            std::to_string(tilemap.selected_tile->world_position().y).c_str());
+            std::to_string(tilemap->selected_tile->world_position().x).c_str(),
+            std::to_string(tilemap->selected_tile->world_position().y).c_str());
 
         ImGui::Text(
             "Selected Tile Grid position: (%s) (%s)",
-            std::to_string(tilemap.selected_tile->get_grid_position().x).c_str(),
-            std::to_string(tilemap.selected_tile->get_grid_position().y).c_str());
+            std::to_string(tilemap->selected_tile->get_grid_position().x).c_str(),
+            std::to_string(tilemap->selected_tile->get_grid_position().y).c_str());
     }
 
     // The sprite for the selected tile
@@ -96,9 +96,9 @@ void render_imgui_gui(
         vehicle_tile_keys.push_back(kv.first);
     }
 
-    if (tilemap.selected_tile)
+    if (tilemap->selected_tile)
     {
-        entt::entity selected_tile{ tilemap.selected_tile->get_entity() };
+        entt::entity selected_tile{ tilemap->selected_tile->get_entity() };
         selected_tile_sprite = &registry.get<Sprite>(selected_tile);
 
         if (selected_tile_sprite->texture == city_tiles.get_spritesheet_texture())
@@ -114,12 +114,12 @@ void render_imgui_gui(
         ImGui::SeparatorText("Tile Options");
 
         if (
-            tilemap.graph.find(tilemap.selected_tile) != tilemap.graph.end())
+            tilemap->graph.find(tilemap->selected_tile) != tilemap->graph.end())
         {
             for (uint8_t direction = constants::Directions::NORTH; direction; direction >>= 1)
             {
                 const Tile* connection{
-                    tilemap.graph.at(tilemap.selected_tile).at(direction_index(direction)) };
+                    tilemap->graph.at(tilemap->selected_tile).at(direction_index(direction)) };
                 if (connection)
                 {
                     glm::ivec2 connection_location{ connection->get_grid_position() };
@@ -143,11 +143,11 @@ void render_imgui_gui(
                 if (ImGui::Selectable(tile_string.c_str(), is_selected))
                 {
                     selected_sprite_texture = tile_string;
-                    tilemap.selected_tile->set_tile_base(selected_sprite_texture, city_tiles);
+                    tilemap->selected_tile->set_tile_base(selected_sprite_texture, city_tiles);
                     // sprite_definition = &city_tiles.get_sprite_definition(selected_sprite_texture);
                     // selected_tile_sprite->source_rect = sprite_definition->texture_rect;
                     // selected_tile_sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - selected_tile_sprite->source_rect.h};
-                    // tilemap.selected_tile->set_connection_bitmask(sprite_definition->connection);
+                    // tilemap->selected_tile->set_connection_bitmask(sprite_definition->connection);
                 };
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -214,7 +214,7 @@ void render_imgui_gui(
 
             [[maybe_unused]] std::remove_const_t<Transform>* transform = &registry.emplace<Transform>(
                 vehicle_entity,
-                tilemap.selected_tile->world_position(),
+                tilemap->selected_tile->world_position(),
                 1,
                 0.0
             );
