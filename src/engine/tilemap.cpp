@@ -30,7 +30,6 @@ Tile::Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* ti
 {
     // TODO: check if it's strictly necessary for every tile to have an overlay entity/transform
     registry.emplace<Transform>(base_entity, world_position(), 0, 0.0);
-    registry.emplace<Transform>(overlay_entity, world_position(), 1, 0.0);
 }
 
 glm::ivec2 Tile::world_position() const
@@ -105,7 +104,7 @@ entt::entity Tile::add_building_level(const Sprite* sprite)
         
 
     entt::entity& level{ building_levels.emplace_back(registry.create()) };
-    auto vertical_level{ building_levels.size() };
+    auto vertical_level{ building_levels.size() + 1};
 
     // Create the necessary components
     registry.emplace<Transform>(level, world_position(), vertical_level, 0.0);
@@ -117,31 +116,30 @@ entt::entity Tile::add_building_level(const Sprite* sprite)
 void Tile::set_tile_base(const Sprite* target_sprite) {
 
     glm::ivec2 offset {0, constants::TILE_BASE_HEIGHT - target_sprite->source_rect.h};
-
-    spdlog::info("Setting base sprite");
     std::remove_const_t<Sprite>* base_sprite = &registry.emplace_or_replace<Sprite>(
         base_entity, 
         *target_sprite
-        // target_sprite->texture,
-        // target_sprite->source_rect,
-        // glm::ivec2{0, constants::TILE_BASE_HEIGHT - target_sprite->source_rect.h}
     );
 
     base_sprite->offset = offset;
     set_connection_bitmask(target_sprite->connection);
 
-    spdlog::info("Setting overlay sprite");
-    registry.remove<Sprite>(overlay_entity);
+    registry.remove<Sprite, Transform>(overlay_entity);
 
-    spdlog::info("Setting conditional");
     if (target_sprite->source_rect.h > constants::STANDARD_BASE_TILE_HEIGHT) {
         std::remove_const_t<Sprite>* overlay_sprite {
             &registry.emplace<Sprite>(overlay_entity, *target_sprite)
         };
 
+        std::remove_const_t<Transform>* overlay_transform {
+            &registry.emplace<Transform>(overlay_entity, registry.get<Transform>(base_entity))
+        };
+
+        overlay_transform->z_index = 1;
+
         overlay_sprite->offset = base_sprite->offset;
         overlay_sprite->source_rect.h -= (
-            constants::TILE_BASE_HEIGHT + constants::TILE_SIZE_HALF.y
+            constants::MIN_TILE_DEPTH + constants::TILE_SIZE_HALF.y
         );
     }
 }

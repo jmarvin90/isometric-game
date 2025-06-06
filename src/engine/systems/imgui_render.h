@@ -73,6 +73,9 @@ void render_imgui_gui(
     std::vector<std::pair<std::string, const Sprite*>> tile_sprites {};
     asset_manager->get_sprites_of_type(constants::SpriteType::TILE_SPRITE, tile_sprites);
 
+    std::vector<std::pair<std::string, const Sprite*>> vehicle_sprites {};
+    asset_manager->get_sprites_of_type(constants::SpriteType::VEHICLE_SPRITE, vehicle_sprites);
+
     if (tilemap->selected_tile)
     {
         entt::entity selected_tile{ tilemap->selected_tile->get_entity() };
@@ -118,38 +121,36 @@ void render_imgui_gui(
             ImGui::EndCombo();
         }
 
-        // ImGui::SeparatorText("Vehicle Options");
+        ImGui::SeparatorText("Vehicle Options");
 
-        // static std::string selected_vehicle_sprite_texture {"ambulance_E.png"};
+        static std::string selected_vehicle_sprite_texture {"ambulance_E.png"};
+        [[maybe_unused]] static const Sprite* vehicle_sprite_definition { 
+            asset_manager->get_sprite(selected_vehicle_sprite_texture) 
+        };
 
         // SDL_Texture* vehicle_tiles_texture {vehicle_tiles->get_spritesheet_texture()};
         // const SDL_Rect vehicle_sprite_rect {*vehicle_tiles->get_sprite_rect(selected_vehicle_sprite_texture)};
         // static Sprite selected_vehicle_sprite{ vehicle_tiles_texture, vehicle_sprite_rect };
 
-        // static const Sprite* vehicle_sprite_definition { nullptr };
+        if (ImGui::BeginCombo("Vehicle Sprite image", selected_vehicle_sprite_texture.c_str()))
+        {
 
-        // if (ImGui::BeginCombo("Vehicle Sprite image", selected_vehicle_sprite_texture.c_str()))
-        // {
+            for (const auto& [name, sprite] : vehicle_sprites)
+            {
+                const bool is_selected = (selected_vehicle_sprite_texture == name);
 
-        //     std::sort(vehicle_tile_keys.begin(), vehicle_tile_keys.end());
+                if (ImGui::Selectable(name.c_str(), is_selected))
+                {
+                    selected_vehicle_sprite_texture = name;
+                    vehicle_sprite_definition = sprite;
+                };
 
-        //     for (auto tile_string : vehicle_tile_keys)
-        //     {
-        //         const bool is_selected = (selected_vehicle_sprite_texture == tile_string);
-
-        //         if (ImGui::Selectable(tile_string.c_str(), is_selected))
-        //         {
-        //             selected_vehicle_sprite_texture = tile_string;
-        //             vehicle_sprite_definition = vehicle_tiles->get_sprite_definition(selected_vehicle_sprite_texture);
-        //             selected_vehicle_sprite.source_rect = vehicle_sprite_definition->source_rect;
-        //         };
-
-        //         // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-        //         if (is_selected)
-        //             ImGui::SetItemDefaultFocus();
-        //     }
-        //     ImGui::EndCombo();
-        // }
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
 
         /* 
             TODO: here's where we create the vehicle
@@ -162,35 +163,40 @@ void render_imgui_gui(
             depth that make doing this a little bit tricky.
         */
 
-        // if (ImGui::Button("Create Vehicle"))
-        // {
-        //     entt::entity vehicle_entity {registry.create()};
-        //     [[maybe_unused]] std::remove_const_t<Sprite>* sprite = &registry.emplace<Sprite>(
-        //         vehicle_entity,
-        //         selected_vehicle_sprite
-        //     );
+        if (ImGui::Button("Create Vehicle"))
+        {
+            if (vehicle_sprite_definition) {
+                entt::entity vehicle_entity {registry.create()};
 
-        //     // sprite->offset = glm::ivec2{0, -constants::MIN_TILE_DEPTH};
+                [[maybe_unused]] std::remove_const_t<Sprite>* sprite = &registry.emplace<Sprite>(
+                    vehicle_entity,
+                    *vehicle_sprite_definition
+                );
 
-        //     [[maybe_unused]] std::remove_const_t<Transform>* transform = &registry.emplace<Transform>(
-        //         vehicle_entity,
-        //         tilemap->selected_tile->world_position(),
-        //         1,
-        //         0.0
-        //     );
+                // sprite->offset = glm::ivec2{0, -constants::MIN_TILE_DEPTH};
 
-        //     transform->position +=  constants::TILE_SIZE_HALF;
+                [[maybe_unused]] std::remove_const_t<Transform>* transform = &registry.emplace<Transform>(
+                    vehicle_entity,
+                    tilemap->selected_tile->world_position(),
+                    1,
+                    0.0
+                );
 
-        //     transform->position -= glm::ivec2{
-        //         sprite->source_rect.w / 2,
-        //         sprite->source_rect.h / 2
-        //     };
+                transform->position +=  constants::TILE_SIZE_HALF;
 
-        //     registry.emplace<RigidBody>(
-        //         vehicle_entity,
-        //         glm::vec2{10, 5}
-        //     );
-        // }
+                transform->position -= glm::ivec2{
+                    sprite->source_rect.w / 2,
+                    sprite->source_rect.h / 2
+                };
+
+                registry.emplace<RigidBody>(
+                    vehicle_entity,
+                    glm::vec2{10, 5}
+                );
+            } else {
+                spdlog::info("No match on vehicle sprite!");
+            }
+        }
 
     }
 
