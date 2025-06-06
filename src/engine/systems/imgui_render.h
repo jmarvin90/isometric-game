@@ -69,8 +69,16 @@ void render_imgui_gui(
     static std::string selected_sprite_texture;
     [[maybe_unused]] static Sprite* selected_tile_sprite{ nullptr };
 
-    static const std::vector<std::pair<std::string, const Sprite*>> tile_sprites {};
+    // TBD: make static
+    std::vector<std::pair<std::string, const Sprite*>> tile_sprites {};
+    // std::vector<std::string> tile_sprite_names {};
+
     asset_manager->get_sprites_of_type(constants::SpriteType::TILE_SPRITE, tile_sprites);
+
+    // for (const auto& [name, sprite]: tile_sprites) {
+    //     spdlog::info(name);
+    //     tile_sprite_names.push_back(name);
+    // }
 
     if (tilemap->selected_tile)
     {

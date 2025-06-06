@@ -21,7 +21,7 @@ const Sprite* AssetManager::get_sprite(std::string sprite_name) const {
     return nullptr;
 }
 
-void AssetManager::get_sprites_of_type(const uint8_t sprite_type, std::vector<std::pair<std::string, const Sprite*>> out_sprites) const {
+void AssetManager::get_sprites_of_type(const uint8_t sprite_type, std::vector<std::pair<std::string, const Sprite*>>& out_sprites) const {
     for (const auto& [name, sprite_sheet]: sprite_sheets) {
         sprite_sheet->get_sprites_of_type(sprite_type, out_sprites);
     }

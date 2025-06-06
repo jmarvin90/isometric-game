@@ -35,7 +35,7 @@ public:
 
     const Sprite* get_sprite_definition(std::string sprite_name) const;
     SDL_Texture* get_spritesheet_texture() const;
-    void get_sprites_of_type(const uint8_t sprite_type, std::vector<std::pair<std::string, const Sprite*>> out_sprites) const;
+    void get_sprites_of_type(const uint8_t sprite_type, std::vector<std::pair<std::string, const Sprite*>>& out_sprites) const;
     
     // TODO: dubious; string pointer? string reference? string_view?
     std::string get_sprite_name(const Sprite* target_sprite) const;

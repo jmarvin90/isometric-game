@@ -83,7 +83,7 @@ SDL_Texture* SpriteSheet::get_spritesheet_texture() const {
     return spritesheet;
 }
 
-void SpriteSheet::get_sprites_of_type(const uint8_t sprite_type, std::vector<std::pair<std::string, const Sprite*>> out_sprites) const {
+void SpriteSheet::get_sprites_of_type(const uint8_t sprite_type, std::vector<std::pair<std::string, const Sprite*>>& out_sprites) const {
     for (const auto& [name, sprite]: sprites) {
         if (sprite.sprite_type == sprite_type) {
             out_sprites.push_back(std::pair<std::string, const Sprite*>(name, &sprite));
