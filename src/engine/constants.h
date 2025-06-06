@@ -28,6 +28,7 @@ namespace constants
     inline constexpr int MAX_TILE_DEPTH{ 34 };
     inline constexpr int GROUND_FLOOR_BUILDING_OFFSET{ 63 };
     inline constexpr int TILE_BASE_HEIGHT {TILE_SIZE.y + MIN_TILE_DEPTH};
+    inline constexpr int STANDARD_BASE_TILE_HEIGHT { 101 };
 
     inline constexpr int CAMERA_BORDER_PX{ 80 };
 
@@ -57,6 +58,16 @@ namespace constants
 
     const std::string MOUSE_MAP_PNG_PATH{
         "/home/marv/Documents/Projects/isometric-game/assets/mousemap.png" };
+
+    enum SpriteType
+    {
+        UNDEFINED = 0,
+        TILE_SPRITE = 1,
+        BUILDING_FLOOR_SPRITE = 2,
+        BUILDING_ROOF_SPRITE = 3,
+        VEHICLE_SPRITE = 4,
+        DETAIL_SPRITE = 5
+    };
 
     enum Directions
     {

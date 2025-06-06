@@ -5,16 +5,21 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+#include "components/sprite.h"
 #include "constants.h"
+#include "spritesheet.h"
 
 class TileMap;
+class SpriteSheet;
+class Sprite;
 
 class Tile
 {
     entt::registry& registry;
     glm::ivec2 grid_position;
     TileMap* tilemap;
-    entt::entity entity;
+    entt::entity base_entity;
+    entt::entity overlay_entity;
     std::vector<entt::entity> building_levels;
 
 protected:
@@ -29,8 +34,11 @@ public:
     glm::ivec2 get_grid_position() const { return grid_position; }
     glm::ivec2 get_centre() const;
 
-    entt::entity add_building_level(SDL_Texture* texture, const SDL_Rect sprite_rect);
-    entt::entity get_entity() const { return entity; }
+    entt::entity add_building_level(const Sprite* sprite);
+    entt::entity get_entity() const { return base_entity; }
+
+    // Not const because it sets the tile's connection bitmask
+    void set_tile_base(const Sprite* target_sprite);
 
     // Awaiting definition
     entt::entity topmost_building_level() const { return building_levels.back(); }

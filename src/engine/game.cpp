@@ -18,6 +18,7 @@
 #include "constants.h"
 #include "game.h"
 #include "spritesheet.h"
+#include "asset_manager.h"
 
 #include "components/transform.h"
 #include "components/sprite.h"
@@ -27,10 +28,10 @@
 #include "systems/render.h"
 #include "systems/imgui_render.h"
 
-Game::Game() : registry{ entt::registry() },
-tilemap{ registry },
-mousemap{ constants::MOUSE_MAP_PNG_PATH },
-mouse{ mousemap }
+Game::Game() 
+    : registry{ entt::registry() }
+    , mousemap{ constants::MOUSE_MAP_PNG_PATH }
+    , mouse{ mousemap }
 {
     spdlog::info("Game constructor called.");
 }
@@ -43,15 +44,20 @@ Game::~Game()
 void Game::load_spritesheets()
 {
     spdlog::info("Loading spritesheets");
+    
+    asset_manager = std::make_unique<AssetManager>();
 
-    city_tiles.emplace(
-        constants::MAP_TILE_PNG_PATH, constants::MAP_ATLAS_PATH, renderer->renderer);
+    asset_manager->add_spritesheet(
+        "city_tiles", constants::MAP_TILE_PNG_PATH, constants::MAP_ATLAS_PATH, renderer->renderer
+    );
 
-    building_tiles.emplace(
-        constants::BUILDING_TILE_PNG_PATH, constants::BUILDING_ATLAS_PATH, renderer->renderer);
+    asset_manager->add_spritesheet(
+        "building_tiles", constants::BUILDING_TILE_PNG_PATH, constants::BUILDING_ATLAS_PATH, renderer->renderer
+    );
 
-    vehicle_tiles.emplace(
-        constants::VEHICLE_TILE_PNG_PATH, constants::VEHICLE_ATLAS_PATH, renderer->renderer);
+    asset_manager->add_spritesheet(
+        "vehicle_tiles", constants::VEHICLE_TILE_PNG_PATH, constants::VEHICLE_ATLAS_PATH, renderer->renderer
+    );
 
     spdlog::info("Sprites loaded");
 }
@@ -59,58 +65,33 @@ void Game::load_spritesheets()
 void Game::load_tilemap()
 {
     spdlog::info("Loading tilemap");
+    tilemap = std::make_unique<TileMap>(registry);
+
     for (int y = 0; y < constants::MAP_SIZE_N_TILES; y++)
     {
         for (int x = 0; x < constants::MAP_SIZE_N_TILES; x++)
         {
-
-            glm::ivec2 position{ tilemap[{x, y}].world_position() };
-
-            entt::entity entity{ tilemap[{x, y}].get_entity() };
-
-            registry.emplace<Transform>(entity, position, 0, 0.0);
-
-            // TODO: probably memory issue for uninitialised members
-            TileSpriteDefinition sprite_def;
-
-            [[maybe_unused]] std::remove_const_t<Sprite>* sprite { nullptr };
-
             // TODO: sort this mess out
             if ((x == 8 || x == 7) && y == 0)
             {
-                sprite_def = building_tiles->get_sprite_definition("buildingTiles_014.png");
-                sprite = &registry.emplace<Sprite>(
-                    entity,
-                    building_tiles->get_spritesheet_texture(),
-                    sprite_def.texture_rect);
+                const Sprite* sprite_def = asset_manager->get_sprite("buildingTiles_014.png");
+                (*tilemap)[{x, y}].set_tile_base(sprite_def);
             }
             else if (x == 6 && y == 2)
             {
-                sprite_def = building_tiles->get_sprite_definition("buildingTiles_028.png");
-                sprite = &registry.emplace<Sprite>(
-                    entity,
-                    building_tiles->get_spritesheet_texture(),
-                    sprite_def.texture_rect);
+                const Sprite* sprite_def = asset_manager->get_sprite("buildingTiles_028.png");
+                (*tilemap)[{x, y}].set_tile_base(sprite_def);
             }
             else if (y == 1)
             {
-                sprite_def = city_tiles->get_sprite_definition("cityTiles_036.png");
-                sprite = &registry.emplace<Sprite>(
-                    entity,
-                    city_tiles->get_spritesheet_texture(),
-                    sprite_def.texture_rect);
+                const Sprite* sprite_def = asset_manager->get_sprite("cityTiles_036.png");
+                (*tilemap)[{x, y}].set_tile_base(sprite_def);
             }
             else
             {
-                sprite_def = city_tiles->get_sprite_definition("cityTiles_072.png");
-                sprite = &registry.emplace<Sprite>(
-                    entity,
-                    city_tiles->get_spritesheet_texture(),
-                    sprite_def.texture_rect);
+                const Sprite* sprite_def = asset_manager->get_sprite("cityTiles_072.png");
+                (*tilemap)[{x, y}].set_tile_base(sprite_def);
             }
-            
-            sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - sprite->source_rect.h};
-            tilemap[{x, y}].set_connection_bitmask(sprite_def.connection);
         }
     }
 }
@@ -125,7 +106,7 @@ void Game::initialise()
     SDL_Init(SDL_INIT_EVERYTHING);
 
     SDL_GetDesktopDisplayMode(0, &display_mode);
-    camera.emplace(display_mode);
+    camera = std::make_unique<Camera>(display_mode);
 
     // Create the SDL Window
     window = SDL_CreateWindow(
@@ -142,7 +123,7 @@ void Game::initialise()
         spdlog::error("Could not initialise SDL Window.");
     }
 
-    renderer.emplace(window, display_mode, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC, -1);
+    renderer = std::make_unique<Renderer>(window, display_mode, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC, -1);
 
     load_spritesheets();
     load_tilemap();
@@ -182,15 +163,15 @@ void Game::process_input()
         case SDL_MOUSEBUTTONDOWN:
             if (!io.WantCaptureMouse)
             {
-                if (tilemap.selected_tile)
+                if (tilemap->selected_tile)
                 {
-                    tilemap.selected_tile = nullptr;
+                    tilemap->selected_tile = nullptr;
                 }
                 else
                 {
                     if (mouse.is_on_world_grid())
                     {
-                        tilemap.selected_tile = &tilemap[mouse.get_grid_position()];
+                        tilemap->selected_tile = &(*tilemap)[mouse.get_grid_position()];
                     }
                 }
             }
@@ -230,17 +211,17 @@ void Game::render()
     if (debug_mode)
     {
         render_imgui_gui(
-            renderer->renderer, registry, mouse, tilemap, city_tiles.value(), building_tiles.value(), vehicle_tiles.value()
+            renderer->renderer, registry, mouse, tilemap, asset_manager
         );
 
         // Highlight tiles if relevant
         // TODO: move this somewhere more appropriate
-        if (tilemap.selected_tile || mouse.is_on_world_grid())
+        if (tilemap->selected_tile || mouse.is_on_world_grid())
         {
 
-            Tile& focus_tile{ (tilemap.selected_tile) ? *tilemap.selected_tile : tilemap[mouse.get_grid_position()] };
+            Tile& focus_tile{ (tilemap->selected_tile) ? *tilemap->selected_tile : (*tilemap)[mouse.get_grid_position()] };
 
-            if (tilemap.selected_tile)
+            if (tilemap->selected_tile)
             {
                 SDL_SetRenderDrawColor(
                     renderer->renderer,

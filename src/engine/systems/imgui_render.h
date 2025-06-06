@@ -17,17 +17,15 @@
 #include <sprite.h>
 #include <rigid_body.h>
 #include <constants.h>
-#include <spritesheet.h>
+#include <asset_manager.h>
 #include <utils.h>
 
 void render_imgui_gui(
     SDL_Renderer* renderer,
     entt::registry& registry,
     const Mouse& mouse,
-    const TileMap& tilemap,
-    const SpriteSheet<TileSpriteDefinition>& city_tiles,
-    const SpriteSheet<TileSpriteDefinition>& building_tiles,
-    const SpriteSheet<VehicleSpriteDefinition>& vehicle_tiles
+    const std::unique_ptr<TileMap>& tilemap,
+    const std::unique_ptr<AssetManager>& asset_manager
 )
 {
     ImGui_ImplSDLRenderer2_NewFrame();
@@ -53,73 +51,45 @@ void render_imgui_gui(
         std::to_string(grid_position.y).c_str());
 
     ImGui::SeparatorText("Selected Tile Position");
-    if (tilemap.selected_tile)
+    if (tilemap->selected_tile)
     {
 
         ImGui::Text(
             "Selected Tile World position: (%s) (%s)",
-            std::to_string(tilemap.selected_tile->world_position().x).c_str(),
-            std::to_string(tilemap.selected_tile->world_position().y).c_str());
+            std::to_string(tilemap->selected_tile->world_position().x).c_str(),
+            std::to_string(tilemap->selected_tile->world_position().y).c_str());
 
         ImGui::Text(
             "Selected Tile Grid position: (%s) (%s)",
-            std::to_string(tilemap.selected_tile->get_grid_position().x).c_str(),
-            std::to_string(tilemap.selected_tile->get_grid_position().y).c_str());
+            std::to_string(tilemap->selected_tile->get_grid_position().x).c_str(),
+            std::to_string(tilemap->selected_tile->get_grid_position().y).c_str());
     }
 
     // The sprite for the selected tile
     static std::string selected_sprite_texture;
-    static Sprite* selected_tile_sprite{ nullptr };
-    static const TileSpriteDefinition* sprite_definition{ nullptr };
+    [[maybe_unused]] static Sprite* selected_tile_sprite{ nullptr };
 
-    std::vector<std::string> city_tile_keys;
-    city_tile_keys.reserve(city_tiles.sprites.size());
+    // TODO: does this need to happen every frame? Had it better be static?
+    std::vector<std::pair<std::string, const Sprite*>> tile_sprites {};
+    asset_manager->get_sprites_of_type(constants::SpriteType::TILE_SPRITE, tile_sprites);
 
-    std::vector<std::string> building_tile_keys;
-    building_tile_keys.reserve(building_tiles.sprites.size());
+    std::vector<std::pair<std::string, const Sprite*>> vehicle_sprites {};
+    asset_manager->get_sprites_of_type(constants::SpriteType::VEHICLE_SPRITE, vehicle_sprites);
 
-    std::vector<std::string> vehicle_tile_keys;
-    vehicle_tile_keys.reserve(vehicle_tiles.sprites.size());
-
-    for (auto kv : city_tiles.sprites)
+    if (tilemap->selected_tile)
     {
-        city_tile_keys.push_back(kv.first);
-    }
-
-    for (auto kv : building_tiles.sprites)
-    {
-        building_tile_keys.push_back(kv.first);
-    }
-
-    for (auto kv : vehicle_tiles.sprites)
-    {
-        vehicle_tile_keys.push_back(kv.first);
-    }
-
-    if (tilemap.selected_tile)
-    {
-        entt::entity selected_tile{ tilemap.selected_tile->get_entity() };
+        entt::entity selected_tile{ tilemap->selected_tile->get_entity() };
         selected_tile_sprite = &registry.get<Sprite>(selected_tile);
-
-        if (selected_tile_sprite->texture == city_tiles.get_spritesheet_texture())
-        {
-            selected_sprite_texture = city_tiles.reverse_lookup(selected_tile_sprite->source_rect).value();
-        }
-
-        if (selected_tile_sprite->texture == building_tiles.get_spritesheet_texture())
-        {
-            selected_sprite_texture = building_tiles.reverse_lookup(selected_tile_sprite->source_rect).value();
-        }
 
         ImGui::SeparatorText("Tile Options");
 
         if (
-            tilemap.graph.find(tilemap.selected_tile) != tilemap.graph.end())
+            tilemap->graph.find(tilemap->selected_tile) != tilemap->graph.end())
         {
             for (uint8_t direction = constants::Directions::NORTH; direction; direction >>= 1)
             {
                 const Tile* connection{
-                    tilemap.graph.at(tilemap.selected_tile).at(direction_index(direction)) };
+                    tilemap->graph.at(tilemap->selected_tile).at(direction_index(direction)) };
                 if (connection)
                 {
                     glm::ivec2 connection_location{ connection->get_grid_position() };
@@ -134,19 +104,14 @@ void render_imgui_gui(
         if (ImGui::BeginCombo("Sprite image", selected_sprite_texture.c_str()))
         {
 
-            std::sort(city_tile_keys.begin(), city_tile_keys.end());
-
-            for (auto tile_string : city_tile_keys)
+            for (const auto& [name, sprite]: tile_sprites)
             {
-                const bool is_selected = (selected_sprite_texture == tile_string);
+                const bool is_selected = (selected_sprite_texture == name);
 
-                if (ImGui::Selectable(tile_string.c_str(), is_selected))
+                if (ImGui::Selectable(name.c_str(), is_selected))
                 {
-                    selected_sprite_texture = tile_string;
-                    sprite_definition = &city_tiles.get_sprite_definition(selected_sprite_texture);
-                    selected_tile_sprite->source_rect = sprite_definition->texture_rect;
-                    selected_tile_sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - selected_tile_sprite->source_rect.h};
-                    tilemap.selected_tile->set_connection_bitmask(sprite_definition->connection);
+                    selected_sprite_texture = name;
+                    tilemap->selected_tile->set_tile_base(sprite);
                 };
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -159,28 +124,25 @@ void render_imgui_gui(
         ImGui::SeparatorText("Vehicle Options");
 
         static std::string selected_vehicle_sprite_texture {"ambulance_E.png"};
-
-        static Sprite selected_vehicle_sprite{ 
-            vehicle_tiles.get_spritesheet_texture(),
-            vehicle_tiles.get_sprite_rect(selected_vehicle_sprite_texture)
+        [[maybe_unused]] static const Sprite* vehicle_sprite_definition { 
+            asset_manager->get_sprite(selected_vehicle_sprite_texture) 
         };
 
-        static const VehicleSpriteDefinition* vehicle_sprite_definition { nullptr };
+        // SDL_Texture* vehicle_tiles_texture {vehicle_tiles->get_spritesheet_texture()};
+        // const SDL_Rect vehicle_sprite_rect {*vehicle_tiles->get_sprite_rect(selected_vehicle_sprite_texture)};
+        // static Sprite selected_vehicle_sprite{ vehicle_tiles_texture, vehicle_sprite_rect };
 
         if (ImGui::BeginCombo("Vehicle Sprite image", selected_vehicle_sprite_texture.c_str()))
         {
 
-            std::sort(vehicle_tile_keys.begin(), vehicle_tile_keys.end());
-
-            for (auto tile_string : vehicle_tile_keys)
+            for (const auto& [name, sprite] : vehicle_sprites)
             {
-                const bool is_selected = (selected_vehicle_sprite_texture == tile_string);
+                const bool is_selected = (selected_vehicle_sprite_texture == name);
 
-                if (ImGui::Selectable(tile_string.c_str(), is_selected))
+                if (ImGui::Selectable(name.c_str(), is_selected))
                 {
-                    selected_vehicle_sprite_texture = tile_string;
-                    vehicle_sprite_definition = &vehicle_tiles.get_sprite_definition(selected_vehicle_sprite_texture);
-                    selected_vehicle_sprite.source_rect = vehicle_sprite_definition->texture_rect;
+                    selected_vehicle_sprite_texture = name;
+                    vehicle_sprite_definition = sprite;
                 };
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -203,32 +165,37 @@ void render_imgui_gui(
 
         if (ImGui::Button("Create Vehicle"))
         {
-            entt::entity vehicle_entity {registry.create()};
-            [[maybe_unused]] std::remove_const_t<Sprite>* sprite = &registry.emplace<Sprite>(
-                vehicle_entity,
-                selected_vehicle_sprite
-            );
+            if (vehicle_sprite_definition) {
+                entt::entity vehicle_entity {registry.create()};
 
-            // sprite->offset = glm::ivec2{0, -constants::MIN_TILE_DEPTH};
+                [[maybe_unused]] std::remove_const_t<Sprite>* sprite = &registry.emplace<Sprite>(
+                    vehicle_entity,
+                    *vehicle_sprite_definition
+                );
 
-            [[maybe_unused]] std::remove_const_t<Transform>* transform = &registry.emplace<Transform>(
-                vehicle_entity,
-                tilemap.selected_tile->world_position(),
-                0,
-                0.0
-            );
+                // sprite->offset = glm::ivec2{0, -constants::MIN_TILE_DEPTH};
 
-            transform->position +=  constants::TILE_SIZE_HALF;
+                [[maybe_unused]] std::remove_const_t<Transform>* transform = &registry.emplace<Transform>(
+                    vehicle_entity,
+                    tilemap->selected_tile->world_position(),
+                    1,
+                    0.0
+                );
 
-            transform->position -= glm::ivec2{
-                sprite->source_rect.w / 2,
-                sprite->source_rect.h / 2
-            };
+                transform->position +=  constants::TILE_SIZE_HALF;
 
-            registry.emplace<RigidBody>(
-                vehicle_entity,
-                glm::vec2{10, 5}
-            );
+                transform->position -= glm::ivec2{
+                    sprite->source_rect.w / 2,
+                    sprite->source_rect.h / 2
+                };
+
+                registry.emplace<RigidBody>(
+                    vehicle_entity,
+                    glm::vec2{10, 5}
+                );
+            } else {
+                spdlog::info("No match on vehicle sprite!");
+            }
         }
 
     }

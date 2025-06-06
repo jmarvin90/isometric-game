@@ -27,6 +27,7 @@ add_executable(
     src/engine/mousemap.cpp
     src/engine/tilemap.cpp
     src/engine/spritesheet.cpp
+    src/engine/asset_manager.cpp
     src/engine/systems/render.cpp
     libs/imgui/imgui.cpp
     libs/imgui/imgui_demo.cpp
