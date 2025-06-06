@@ -50,7 +50,7 @@ Tile::~Tile()
     registry.destroy(entity);
 }
 
-entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprite_rect)
+entt::entity Tile::add_building_level(const Sprite* sprite)
 {
 
     /*
@@ -88,14 +88,14 @@ entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprit
         offset.y -= constants::GROUND_FLOOR_BUILDING_OFFSET;
     } else {
         offset.y += registry.get<Sprite>(building_levels.back()).offset.y;
-        offset.y -= (sprite_rect.h - (sprite_rect.w / 2));
+        offset.y -= (sprite->source_rect.h - (sprite->source_rect.w / 2));
         offset.y += 1;      // TODO: where does this 1 come from?
     }
 
     // Centre against the tile - building levels aren't full tile widths
     offset.x += (
-        ((constants::TILE_SIZE.x - sprite_rect.w) / 2) + 
-        ((constants::TILE_SIZE.x - sprite_rect.w) % 2 != 0)
+        ((constants::TILE_SIZE.x - sprite->source_rect.w) / 2) + 
+        ((constants::TILE_SIZE.x - sprite->source_rect.w) % 2 != 0)
     );
         
 
@@ -104,18 +104,13 @@ entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprit
 
     // Create the necessary components
     registry.emplace<Transform>(level, world_position(), vertical_level, 0.0);
-    registry.emplace<Sprite>(level, texture, sprite_rect, offset);
+    registry.emplace<Sprite>(level, sprite->texture, sprite->source_rect, offset);
 
     return level;
 }
 
-void Tile::set_tile_base(
-    const std::string sprite_name,
-    const std::unique_ptr<SpriteSheet>& sprite_sheet
-) {
-    spdlog::info(sprite_name.c_str());
+void Tile::set_tile_base(const Sprite* target_sprite) {
     std::remove_const_t<Sprite>* current_sprite = &registry.get<Sprite>(entity);
-    const Sprite* target_sprite = &sprite_sheet->get_sprite_definition(sprite_name);
 
     current_sprite->source_rect = target_sprite->source_rect;
     current_sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - target_sprite->source_rect.h};

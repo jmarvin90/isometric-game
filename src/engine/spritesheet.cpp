@@ -74,30 +74,29 @@ SpriteSheet::~SpriteSheet()
     SDL_DestroyTexture(spritesheet);
 }
 
-const Sprite& SpriteSheet::get_sprite_definition(const std::string& sprite_name) const {
-    return sprites.at(sprite_name);
-}
-
-// Not yet implemented/used
-const SDL_Rect& SpriteSheet::get_sprite_rect(const std::string& sprite_name) const
-{
-    return sprites.at(sprite_name).source_rect;
+const Sprite* SpriteSheet::get_sprite_definition(std::string sprite_name) const {
+    auto result { sprites.find(sprite_name) };
+    return (result != sprites.end() ? & result->second : nullptr);
 }
 
 SDL_Texture* SpriteSheet::get_spritesheet_texture() const {
     return spritesheet;
 }
 
-const std::optional<std::string_view> SpriteSheet::reverse_lookup(const SDL_Rect& target_rect) const
-{
-    auto it = std::find_if(
-        std::begin(sprites),
-        std::end(sprites),
-        [&target_rect](auto&& p)
-        { return p.second.source_rect == target_rect; });
+void SpriteSheet::get_sprites_of_type(const uint8_t sprite_type, std::vector<std::pair<std::string, const Sprite*>> out_sprites) const {
+    for (const auto& [name, sprite]: sprites) {
+        if (sprite.sprite_type == sprite_type) {
+            out_sprites.push_back(std::pair<std::string, const Sprite*>(name, &sprite));
+        }
+    }
+}
 
-    if (it == std::end(sprites))
-        return std::nullopt;
-
-    return it->first;
+std::string SpriteSheet::get_sprite_name(const Sprite* target_sprite) const {
+    for (const auto& [name, sprite]: sprites) {
+        if (&sprite == target_sprite) {
+            return name;
+        }
+    }
+    // TODO: better than this!
+    return std::string {};
 }

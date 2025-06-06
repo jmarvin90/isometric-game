@@ -13,7 +13,7 @@
 #include "mouse.h"
 #include "camera.h"
 #include "constants.h"
-#include "spritesheet.h"
+#include "asset_manager.h"
 #include "systems/render.h"
 
 class Game
@@ -47,9 +47,7 @@ public:
 
     // Todo: read re. asset stores; make private if necessary
     std::unique_ptr<TileMap> tilemap;
-    std::unique_ptr<SpriteSheet> city_tiles;
-    std::unique_ptr<SpriteSheet> building_tiles;
-    std::unique_ptr<SpriteSheet> vehicle_tiles;
+    std::unique_ptr<AssetManager> asset_manager;
 
     Game();
     ~Game();

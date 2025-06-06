@@ -5,11 +5,13 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+#include "components/sprite.h"
 #include "constants.h"
 #include "spritesheet.h"
 
 class TileMap;
 class SpriteSheet;
+class Sprite;
 
 class Tile
 {
@@ -31,14 +33,11 @@ public:
     glm::ivec2 get_grid_position() const { return grid_position; }
     glm::ivec2 get_centre() const;
 
-    entt::entity add_building_level(SDL_Texture* texture, const SDL_Rect sprite_rect);
+    entt::entity add_building_level(const Sprite* sprite);
     entt::entity get_entity() const { return entity; }
 
     // Not const because it sets the tile's connection bitmask
-    void set_tile_base(
-        const std::string sprite_name,
-        const std::unique_ptr<SpriteSheet>& sprite_sheet
-    );
+    void set_tile_base(const Sprite* target_sprite);
 
     // Awaiting definition
     entt::entity topmost_building_level() const { return building_levels.back(); }

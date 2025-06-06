@@ -3,6 +3,8 @@
 
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
+#include <rapidxml/rapidxml_utils.hpp>
+#include <rapidxml/rapidxml_print.hpp>
 
 #include "constants.h"
 #include "utils.h"
@@ -20,7 +22,7 @@ struct Sprite
 
     Sprite(
         SDL_Texture* texture,
-        const SDL_Rect& source_rect,
+        const SDL_Rect source_rect,
         const glm::vec2 in_offset = { 0, 0 }
     )
         : texture{ texture }
