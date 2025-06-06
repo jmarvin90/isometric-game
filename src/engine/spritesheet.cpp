@@ -50,8 +50,6 @@ SpriteSheet::SpriteSheet(const std::string& image_path, const std::string& atlas
     rapidxml::xml_node<>* node = xml_doc.first_node(); // TextureAtlas
 
     // For each SubTexture node, create an entry in sprites
-    spdlog::info("Populating map from XML...");
-
     for (
         rapidxml::xml_node<>* _iternode = node->first_node(); // SubTexture
         _iternode;
@@ -68,7 +66,6 @@ SpriteSheet::SpriteSheet(const std::string& image_path, const std::string& atlas
             Sprite{ spritesheet, _iternode }
         );
     }
-    spdlog::info("...complete!");
 }
 
 SpriteSheet::~SpriteSheet()
