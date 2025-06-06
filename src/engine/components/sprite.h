@@ -19,6 +19,7 @@ struct Sprite
     uint8_t connection{ 0 };
     uint8_t direction{ 0 };
 
+    Sprite(const Sprite& in_sprite) = default;
 
     Sprite(
         SDL_Texture* texture,

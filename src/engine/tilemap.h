@@ -18,7 +18,8 @@ class Tile
     entt::registry& registry;
     glm::ivec2 grid_position;
     TileMap* tilemap;
-    entt::entity entity;
+    entt::entity base_entity;
+    entt::entity overlay_entity;
     std::vector<entt::entity> building_levels;
 
 protected:
@@ -34,7 +35,7 @@ public:
     glm::ivec2 get_centre() const;
 
     entt::entity add_building_level(const Sprite* sprite);
-    entt::entity get_entity() const { return entity; }
+    entt::entity get_entity() const { return base_entity; }
 
     // Not const because it sets the tile's connection bitmask
     void set_tile_base(const Sprite* target_sprite);

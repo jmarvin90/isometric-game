@@ -64,75 +64,34 @@ void Game::load_spritesheets()
 
 void Game::load_tilemap()
 {
-
+    spdlog::info("Loading tilemap");
     tilemap = std::make_unique<TileMap>(registry);
 
-    spdlog::info("Loading tilemap");
     for (int y = 0; y < constants::MAP_SIZE_N_TILES; y++)
     {
         for (int x = 0; x < constants::MAP_SIZE_N_TILES; x++)
         {
-
-            glm::ivec2 position{ (*tilemap)[{x, y}].world_position() };
-
-            entt::entity entity{ (*tilemap)[{x, y}].get_entity() };
-
-            registry.emplace<Transform>(entity, position, 0, 0.0);
-
-            // TODO: probably memory issue for uninitialised members
-            [[maybe_unused]] std::remove_const_t<Sprite>* sprite{ nullptr };
-
             // TODO: sort this mess out
             if ((x == 8 || x == 7) && y == 0)
             {
                 const Sprite* sprite_def = asset_manager->get_sprite("buildingTiles_014.png");
-                sprite = &registry.emplace<Sprite>(
-                    entity,
-                    sprite_def->texture,
-                    sprite_def->source_rect);
-                (*tilemap)[{x, y}].set_connection_bitmask(sprite_def->connection);
+                (*tilemap)[{x, y}].set_tile_base(sprite_def);
             }
             else if (x == 6 && y == 2)
             {
                 const Sprite* sprite_def = asset_manager->get_sprite("buildingTiles_028.png");
-                sprite = &registry.emplace<Sprite>(
-                    entity,
-                    sprite_def->texture,
-                    sprite_def->source_rect);
-
-                SDL_Rect overlay_rect{ sprite_def->source_rect };
-                overlay_rect.h -= constants::GROUND_FLOOR_BUILDING_OFFSET;
-
-                entt::entity gf_entity{ registry.create() };
-                registry.emplace<Transform>(gf_entity, position, 1, 0.0);
-                registry.emplace<Sprite>(
-                    gf_entity,
-                    sprite_def->texture,
-                    overlay_rect,
-                    glm::ivec2{ 0, constants::TILE_BASE_HEIGHT - sprite->source_rect.h }
-                );
-                (*tilemap)[{x, y}].set_connection_bitmask(sprite_def->connection);   
+                (*tilemap)[{x, y}].set_tile_base(sprite_def);
             }
             else if (y == 1)
             {
                 const Sprite* sprite_def = asset_manager->get_sprite("cityTiles_036.png");
-                sprite = &registry.emplace<Sprite>(
-                    entity,
-                    sprite_def->texture,
-                    sprite_def->source_rect);
-                (*tilemap)[{x, y}].set_connection_bitmask(sprite_def->connection);
+                (*tilemap)[{x, y}].set_tile_base(sprite_def);
             }
             else
             {
                 const Sprite* sprite_def = asset_manager->get_sprite("cityTiles_072.png");
-                sprite = &registry.emplace<Sprite>(
-                    entity,
-                    sprite_def->texture,
-                    sprite_def->source_rect);
-                (*tilemap)[{x, y}].set_connection_bitmask(sprite_def->connection);
+                (*tilemap)[{x, y}].set_tile_base(sprite_def);
             }
-
-            sprite->offset = glm::ivec2{ 0, constants::TILE_BASE_HEIGHT - sprite->source_rect.h };
         }
     }
 }

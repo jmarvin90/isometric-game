@@ -28,6 +28,7 @@ namespace constants
     inline constexpr int MAX_TILE_DEPTH{ 34 };
     inline constexpr int GROUND_FLOOR_BUILDING_OFFSET{ 63 };
     inline constexpr int TILE_BASE_HEIGHT {TILE_SIZE.y + MIN_TILE_DEPTH};
+    inline constexpr int STANDARD_BASE_TILE_HEIGHT { 101 };
 
     inline constexpr int CAMERA_BORDER_PX{ 80 };
 
