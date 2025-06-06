@@ -112,6 +112,7 @@ entt::entity Tile::add_building_level(const Sprite* sprite)
 void Tile::set_tile_base(const Sprite* target_sprite) {
     std::remove_const_t<Sprite>* current_sprite = &registry.get<Sprite>(entity);
 
+    current_sprite->texture = target_sprite->texture;
     current_sprite->source_rect = target_sprite->source_rect;
     current_sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - target_sprite->source_rect.h};
     set_connection_bitmask(target_sprite->connection);

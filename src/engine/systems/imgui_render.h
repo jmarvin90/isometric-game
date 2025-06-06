@@ -69,16 +69,9 @@ void render_imgui_gui(
     static std::string selected_sprite_texture;
     [[maybe_unused]] static Sprite* selected_tile_sprite{ nullptr };
 
-    // TBD: make static
+    // TODO: does this need to happen every frame? Had it better be static?
     std::vector<std::pair<std::string, const Sprite*>> tile_sprites {};
-    // std::vector<std::string> tile_sprite_names {};
-
     asset_manager->get_sprites_of_type(constants::SpriteType::TILE_SPRITE, tile_sprites);
-
-    // for (const auto& [name, sprite]: tile_sprites) {
-    //     spdlog::info(name);
-    //     tile_sprite_names.push_back(name);
-    // }
 
     if (tilemap->selected_tile)
     {
@@ -116,10 +109,6 @@ void render_imgui_gui(
                 {
                     selected_sprite_texture = name;
                     tilemap->selected_tile->set_tile_base(sprite);
-                    // sprite_definition = &city_tiles.get_sprite_definition(selected_sprite_texture);
-                    // selected_tile_sprite->source_rect = sprite_definition->texture_rect;
-                    // selected_tile_sprite->offset = glm::ivec2{0, constants::TILE_BASE_HEIGHT - selected_tile_sprite->source_rect.h};
-                    // tilemap->selected_tile->set_connection_bitmask(sprite_definition->connection);
                 };
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
