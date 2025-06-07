@@ -72,7 +72,15 @@ void Game::load_tilemap()
         for (int x = 0; x < constants::MAP_SIZE_N_TILES; x++)
         {
             // TODO: sort this mess out
-            if ((x == 8 || x == 7) && y == 0)
+            if (x == 5 && y == 2) {
+                const Sprite* sprite_def = asset_manager->get_sprite("cityTiles_098.png");
+                (*tilemap)[{x, y}].set_tile_base(sprite_def);
+            }
+            else if (x == 5 && y == 3) {
+                const Sprite* sprite_def = asset_manager->get_sprite("cityTiles_097.png");
+                (*tilemap)[{x, y}].set_tile_base(sprite_def);
+            }
+            else if ((x == 8 || x == 7) && y == 0)
             {
                 const Sprite* sprite_def = asset_manager->get_sprite("buildingTiles_014.png");
                 (*tilemap)[{x, y}].set_tile_base(sprite_def);

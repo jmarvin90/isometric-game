@@ -62,11 +62,11 @@ namespace constants
     enum SpriteType
     {
         UNDEFINED = 0,
-        TILE_SPRITE = 1,
-        BUILDING_FLOOR_SPRITE = 2,
-        BUILDING_ROOF_SPRITE = 3,
-        VEHICLE_SPRITE = 4,
-        DETAIL_SPRITE = 5
+        TILE_SPRITE =               1 << 0,  // 1 (1)
+        BUILDING_FLOOR_SPRITE =     1 << 1,  // 2 (2)
+        BUILDING_ROOF_SPRITE =      1 << 2,  // 4 (3)
+        VEHICLE_SPRITE =            1 << 3,  // 8 (4)
+        DETAIL_SPRITE =             1 << 4   // 16 (5)
     };
 
     enum Directions
