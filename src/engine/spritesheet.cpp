@@ -25,23 +25,7 @@ SpriteSheet::SpriteSheet(const std::string& image_path, const std::string& atlas
     spdlog::info("Creating spritesheet for " + image_path);
 
     // Load the texture
-    SDL_Surface* surface{ IMG_Load(image_path.c_str()) };
-    if (!surface)
-    {
-        spdlog::info(
-            "Could not load texture from path: " +
-            image_path);
-    }
-
-    spritesheet = SDL_CreateTextureFromSurface(renderer, surface);
-    if (!spritesheet)
-    {
-        spdlog::info(
-            "Could not load texture from surface using image: " +
-            image_path);
-    }
-
-    SDL_FreeSurface(surface);
+    spritesheet = IMG_LoadTexture(renderer, image_path.c_str());
 
     // Load the xml Atlas file
     rapidxml::file<> xml_file{ atlas_path.c_str() };
@@ -61,10 +45,19 @@ SpriteSheet::SpriteSheet(const std::string& image_path, const std::string& atlas
             What are the implications? What's the difference to try_emplace?
         */
 
-        sprites.emplace(
-            _iternode->first_attribute("name")->value(),
-            Sprite{ spritesheet, _iternode }
-        );
+        auto sprite_emplacement_result {
+                sprites.emplace(
+                _iternode->first_attribute("name")->value(),
+                Sprite{ spritesheet, _iternode }
+            )
+        };
+
+        if (
+            sprite_emplacement_result.first->second.sprite_type == 
+            constants::SpriteType::TILE_SPRITE
+        ) {
+
+        }
     }
 }
 

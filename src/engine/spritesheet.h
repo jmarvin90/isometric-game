@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <memory>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -28,6 +29,7 @@ class SpriteSheet
 
 public:
     std::unordered_map<std::string, const Sprite> sprites;
+    std::unique_ptr<std::unordered_map<std::string, const Sprite>> vertical_aspect_sprites;
 
     SpriteSheet(const std::string& image_path, const std::string& atlas_path, SDL_Renderer* renderer);
     SpriteSheet(const SpriteSheet&) = default;
