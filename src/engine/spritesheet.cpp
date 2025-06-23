@@ -176,6 +176,10 @@ SpriteSheet::SpriteSheet(const std::string& image_path, const std::string& atlas
 
         const int height_delta {emplaced_sprite->source_rect.h - constants::STANDARD_BASE_TILE_HEIGHT};
 
+        // It's all going wrong here
+        // This portion of code is only called in case there appears to be a vertical component to the sprite
+        // however, the are some tile sprites which do not have a portion outside of the normal footprint, but
+        // which DO have a vertical component
         if (
             emplaced_sprite->sprite_type == constants::SpriteType::TILE_SPRITE &&
             height_delta > 0
@@ -184,17 +188,12 @@ SpriteSheet::SpriteSheet(const std::string& image_path, const std::string& atlas
         }
     }
 
-    if (vertical_components_surface) {
-        if (!spritesheet_vertical_components) {
-            spritesheet_vertical_components = SDL_CreateTextureFromSurface(renderer, vertical_components_surface);
-        }
-        SDL_FreeSurface(vertical_components_surface);
+    if (vertical_components_surface && !spritesheet_vertical_components) {
+        spritesheet_vertical_components = SDL_CreateTextureFromSurface(renderer, vertical_components_surface);
     }
-
-    if (mousemap_surface) {
-        SDL_FreeSurface(mousemap_surface);
-    }
-
+    
+    SDL_FreeSurface(vertical_components_surface);
+    SDL_FreeSurface(mousemap_surface);
     SDL_FreeSurface(surface);
 }
 
