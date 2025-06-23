@@ -11,7 +11,6 @@
 
 struct Sprite
 {
-    // to be replaced with an asset identifier?
     SDL_Texture* texture;
     SDL_Rect source_rect;
     uint8_t sprite_type{ 0 };

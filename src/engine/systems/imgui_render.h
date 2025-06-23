@@ -191,7 +191,7 @@ void render_imgui_gui(
 
                 registry.emplace<RigidBody>(
                     vehicle_entity,
-                    glm::vec2{-10, 5}
+                    glm::vec2{-30, 15}
                 );
             } else {
                 spdlog::info("No match on vehicle sprite!");

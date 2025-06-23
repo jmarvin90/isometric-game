@@ -75,7 +75,6 @@ glm::ivec2 MouseMap::pixel_colour_vector(const SDL_Colour& colour) const
     }
 
     return glm::ivec2{ 0, 0 };
-    ;
 }
 
 // Calculate the 'coarse' grid position tile walk map

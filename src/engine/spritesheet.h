@@ -26,6 +26,7 @@ class SpriteSheet
     const std::string image_path;
     const std::string atlas_path;
     SDL_Texture* spritesheet;
+    SDL_Texture* spritesheet_vertical_components;
 
 public:
     std::unordered_map<std::string, const Sprite> sprites;
@@ -35,6 +36,7 @@ public:
     SpriteSheet(const SpriteSheet&) = default;
     ~SpriteSheet();
 
+    bool has_vertical_components() { return spritesheet_vertical_components; };
     const Sprite* get_sprite_definition(std::string sprite_name) const;
     SDL_Texture* get_spritesheet_texture() const;
     void get_sprites_of_type(const uint8_t sprite_type, std::vector<std::pair<std::string, const Sprite*>>& out_sprites) const;
