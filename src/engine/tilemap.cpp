@@ -108,7 +108,7 @@ entt::entity Tile::add_building_level(const Sprite* sprite)
 
     // Create the necessary components
     registry.emplace<Transform>(level, world_position(), vertical_level, 0.0);
-    registry.emplace<Sprite>(level, sprite->texture, sprite->source_rect, offset);
+    registry.emplace<Sprite>(level, sprite->spritesheet, sprite->source_rect, offset);
 
     return level;
 }

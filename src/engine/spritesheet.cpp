@@ -170,7 +170,7 @@ SpriteSheet::SpriteSheet(const std::string& image_path, const std::string& atlas
         [[maybe_unused]] const Sprite* emplaced_sprite {
                 &sprites.emplace(
                 sprite_name,
-                Sprite{ spritesheet, _iternode }
+                Sprite{ this, _iternode }
             ).first->second
         };
 

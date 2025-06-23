@@ -6,12 +6,14 @@
 #include <rapidxml/rapidxml_utils.hpp>
 #include <rapidxml/rapidxml_print.hpp>
 
+#include "spritesheet.h"
 #include "constants.h"
 #include "utils.h"
 
 struct Sprite
 {
-    SDL_Texture* texture;
+    // SDL_Texture* texture;
+    SpriteSheet* spritesheet;
     SDL_Rect source_rect;
     uint8_t sprite_type{ 0 };
     glm::vec2 offset{ 0, 0 };
@@ -21,18 +23,21 @@ struct Sprite
     Sprite(const Sprite& in_sprite) = default;
 
     Sprite(
-        SDL_Texture* texture,
+        // SDL_Texture* texture,
+        SpriteSheet* spritesheet,
         const SDL_Rect source_rect,
         const glm::vec2 in_offset = { 0, 0 }
     )
-        : texture{ texture }
+        : spritesheet { spritesheet }
+        // : texture{ texture }
         , source_rect{ source_rect }
         , offset{ in_offset }
     {
     }
 
-    Sprite(SDL_Texture* texture, const rapidxml::xml_node<>* xml_definition)
-        : texture{ texture }
+    Sprite(SpriteSheet* spritesheet, const rapidxml::xml_node<>* xml_definition)
+        : spritesheet { spritesheet }
+        // : texture{ texture }
         , source_rect{
             std::atoi(xml_definition->first_attribute("x")->value()),
             std::atoi(xml_definition->first_attribute("y")->value()),

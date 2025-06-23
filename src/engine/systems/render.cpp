@@ -41,7 +41,8 @@ void Renderer::render_sprite(
 
     SDL_RenderCopyExF(
         renderer,
-        sprite.texture,
+        // sprite.texture,
+        sprite.spritesheet->get_spritesheet_texture(),
         &sprite.source_rect,
         &dest_rect,
         transform.rotation,
