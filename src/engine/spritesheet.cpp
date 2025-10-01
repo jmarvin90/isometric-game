@@ -43,6 +43,11 @@ void copy_sprite_vertical_component(
         mousemap_surface = IMG_Load(constants::MOUSE_MAP_PNG_PATH.c_str());
     }
 
+    // [[maybe_unused]]SDL_Rect top_portion {
+    //     target_sprite->source_rect.x, target_sprite->source_rect.y,
+    //     target_sprite->source_rect.w, height_delta
+    // };
+
     [[maybe_unused]]SDL_Rect top_portion {
         target_sprite->source_rect.x, target_sprite->source_rect.y,
         target_sprite->source_rect.w, height_delta
@@ -182,8 +187,9 @@ SpriteSheet::SpriteSheet(const std::string& image_path, const std::string& atlas
         // which DO have a vertical component
         if (
             emplaced_sprite->sprite_type == constants::SpriteType::TILE_SPRITE &&
-            height_delta > 0
+            emplaced_sprite->has_vertical
         ) {
+            spdlog::info(sprite_name);
             copy_sprite_vertical_component(surface, vertical_components_surface, mousemap_surface, emplaced_sprite, height_delta);
         }
     }

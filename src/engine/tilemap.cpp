@@ -126,22 +126,20 @@ void Tile::set_tile_base(const Sprite* target_sprite) {
 
     registry.remove<Sprite, Transform>(overlay_entity);
 
-    if (target_sprite->source_rect.h > constants::STANDARD_BASE_TILE_HEIGHT) {
-        std::remove_const_t<Sprite>* overlay_sprite {
-            &registry.emplace<Sprite>(overlay_entity, *target_sprite)
-        };
+    std::remove_const_t<Sprite>* overlay_sprite {
+        &registry.emplace<Sprite>(overlay_entity, *target_sprite)
+    };
 
-        std::remove_const_t<Transform>* overlay_transform {
-            &registry.emplace<Transform>(overlay_entity, registry.get<Transform>(base_entity))
-        };
+    std::remove_const_t<Transform>* overlay_transform {
+        &registry.emplace<Transform>(overlay_entity, registry.get<Transform>(base_entity))
+    };
 
-        overlay_transform->z_index = 1;
+    overlay_transform->z_index = 1;
 
-        overlay_sprite->offset = base_sprite->offset;
-        overlay_sprite->source_rect.h -= (
-            constants::MIN_TILE_DEPTH + constants::TILE_SIZE_HALF.y
-        );
-    }
+    overlay_sprite->offset = base_sprite->offset;
+    overlay_sprite->source_rect.h -= (
+        constants::MIN_TILE_DEPTH + constants::TILE_SIZE_HALF.y
+    );
 }
 
 

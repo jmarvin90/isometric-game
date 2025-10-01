@@ -18,6 +18,7 @@ struct Sprite
     uint8_t sprite_type{ 0 };
     glm::vec2 offset{ 0, 0 };
     uint8_t connection{ 0 };
+    bool has_vertical { 0 };
     uint8_t direction{ 0 };
 
     Sprite(const Sprite& in_sprite) = default;
@@ -53,6 +54,12 @@ struct Sprite
             static_cast<uint8_t>(
                 xml_definition->first_attribute("connection") ?
                 std::atoi(xml_definition->first_attribute("connection")->value())
+                : 0
+            )}
+        , has_vertical {
+            static_cast<bool>(
+                xml_definition->first_attribute("has_vertical") ?
+                std::atoi(xml_definition->first_attribute("has_vertical")->value())
                 : 0
             )}
         , direction {
