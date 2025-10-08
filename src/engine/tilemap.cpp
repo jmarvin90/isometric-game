@@ -1,270 +1,119 @@
-#include <cmath>
-#include <iostream>
-
-#include "SDL2/SDL_image.h"
-#include "SDL2/SDL.h"
-#include <spdlog/spdlog.h>
+#include <tilemap.h>
 #include <glm/glm.hpp>
+#include <optional>
+#include <spdlog/spdlog.h>
 
-#include "tilemap.h"
-#include "constants.h"
-
-#include "components/transform.h"
-#include "components/sprite.h"
-#include "utils.h"
-
-
-Tile::Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* tilemap): 
-    registry{registry}, 
-    grid_position{grid_position},
-    tilemap{tilemap},
-    entity{registry.create()}
-{}
-
-glm::ivec2 Tile::world_position() const {
-    return glm::ivec2 {
-        constants::TILEMAP_START + (
-            glm::ivec2(
-                grid_position.x - grid_position.y, 
-                grid_position.y + grid_position.x
-            ) * 
-            constants::TILE_SIZE_HALF
-        )
-    };
+Tile::Tile(entt::registry& registry, const TileMap& tilemap, const int tile_n)
+: m_entity {registry.create()}
+, m_tilemap {tilemap}
+, tile_n {tile_n}
+{
+    // Create the transform component for each tile on construction
+    registry.emplace<Transform>(
+        m_entity,
+        origin_px(),
+        0,
+        0.0
+    );
 }
 
 Tile::~Tile() {
-    registry.destroy(entity);
+    m_tilemap.registry.destroy(m_entity);
 }
 
-entt::entity Tile::add_building_level(SDL_Texture* texture, const SDL_Rect sprite_rect) {
-
-    /*
-        TODO: there's potentially some logic to be written here for 
-        e.g. ensuring that a new level isn't created above a roof
-    */
-
-    // Create the entity and get the 'z-index'
-    entt::entity& level {building_levels.emplace_back(registry.create())};
-    auto vertical_level {building_levels.size()};
-
-    // Determine the vertical offset based on the building 'level'
-    int offset = constants::GROUND_FLOOR_BUILDING_OFFSET + (
-        (vertical_level == 1) ? 0 : constants::MAX_TILE_DEPTH * (vertical_level -1)
-    );
-
-    // Create the necessary components
-    registry.emplace<Transform>(
-        level, world_position(), vertical_level, 0.0
-    );
-
-    registry.emplace<Sprite>(
-        level,
-        texture,
-        sprite_rect,
-        glm::vec2{0, offset}
-    );
-
-    return level;
+void Tile::iso_sdl_points(std::array<SDL_Point, 5>& iso_sdl_points, const glm::ivec2& offset) {
+    const glm::ivec2 centre {centre_px() + offset};
+    const glm::ivec2 origin {origin_px() + offset};
+    const glm::ivec2 diff {centre - origin};
+    iso_sdl_points[0] = SDL_Point {centre.x, origin.y};
+    iso_sdl_points[1] = SDL_Point {centre.x + diff.x, centre.y};
+    iso_sdl_points[2] = SDL_Point {centre.x, centre.y + diff.y};
+    iso_sdl_points[3] = SDL_Point {origin.x, centre.y};
+    iso_sdl_points[4] = SDL_Point {centre.x, origin.y};
 }
 
-const Tile* TileMap::scan(const glm::ivec2 from, const uint8_t direction) const {
-
-    const Tile* from_tile {&(*this)[from]};
-    if (!(direction & from_tile->m_tile_connection_bitmask)) {
-        return from_tile;
+const glm::ivec2& Tile::grid_pos() {
+    if (m_grid_pos) {
+        return m_grid_pos.value();
     }
 
-    const Tile* current_tile {from_tile};
-    bool valid {true};
-
-    while (valid) {
-        glm::ivec2 next_point {
-            current_tile->grid_position + 
-            constants::VECTORS.at(direction_index(direction))
-        };
-
-        const Tile* next_tile {&(*this)[next_point]};
-
-        if (
-            !in_bounds(next_point) or
-            !(reverse(direction) & next_tile->m_tile_connection_bitmask)
-        ) {
-            return current_tile;
-        }
-
-        current_tile = next_tile;
-
-        if (__builtin_popcount(current_tile->m_tile_connection_bitmask) > 2) {
-            valid = false;
-        }
-    }
-
-    return current_tile;
+    m_grid_pos = (
+        tile_n < m_tilemap.m_n_tiles 
+        ? glm::ivec2(tile_n, 0) 
+        : glm::ivec2(tile_n % m_tilemap.m_n_tiles, tile_n / m_tilemap.m_n_tiles)
+    );
+    return m_grid_pos.value();
 }
 
-void Tile::set_connection_bitmask(const uint8_t connection_bitmask) {
-    using namespace constants;
-
-    uint8_t tile_disconnection_bitmask {
-        uint8_t(~connection_bitmask & m_tile_connection_bitmask)
-    };
-
-    std::array<const Tile*, 4> connections{};
-    std::array<const Tile*, 4> disconnections{};
-
-    for (uint8_t direction=Directions::NORTH; direction; direction>>=1) {
-        
-        if (direction & tile_disconnection_bitmask) {
-            disconnections.at(direction_index(direction)) = tilemap->scan(grid_position, direction);
-        }
-
-        m_tile_connection_bitmask &= ~direction;
-        m_tile_connection_bitmask |= (direction & connection_bitmask);
-
-
-        if (direction & m_tile_connection_bitmask) {
-            connections.at(direction_index(direction)) = tilemap->scan(grid_position, direction);
-        }
+const glm::ivec2& Tile::origin_px() {
+    if (m_origin_px) {
+        return m_origin_px.value();
     }
 
-    for (uint8_t direction=Directions::NORTH; direction; direction>>=1) {
-        const Tile* node {disconnections.at(direction_index(direction))};
+    const glm::ivec2 movement {m_tilemap.mat * grid_pos()};
+    m_origin_px.emplace(movement + m_tilemap.origin_px);
+    return m_origin_px.value();
+}
 
-        if (node) {
-            const Tile* new_target {tilemap->scan(node->grid_position, reverse(direction))};
-            if (new_target != node) {
-                spdlog::info("Connecting via disconnection");
-                tilemap->connect(node, new_target, reverse(direction));
-                tilemap->connect(new_target, node, direction);
-            }
-        }
+const glm::ivec2& Tile::centre_px() {
+    if (m_centre_px) {
+        return m_centre_px.value();
     }
+    
+    m_centre_px.emplace(origin_px() + m_tilemap.tile_spec / 2);
+    return m_centre_px.value();
+}
+
+TileMap::TileMap(entt::registry& registry, const int n_tiles, const glm::ivec2 tile_spec)
+: registry {registry}
+, m_n_tiles {n_tiles}
+, tile_spec {tile_spec}
+, tilemap_area {tile_spec * n_tiles}
+, origin_px {(tilemap_area.x / 2) - (tile_spec.x / 2), 0}
+, mat {tile_spec.x / 2.0f, tile_spec.y / 2.0f, -tile_spec.x / 2.0f, tile_spec.y / 2.0f}
+, mat_inv {glm::inverse(mat)}
+{
+    const int n_tiles_total {n_tiles * n_tiles};
+    
+    // Reserve the correct amount of memory for the size of map
+    // TODO: check if requires tile to be copy constructible?
+    tiles.reserve(n_tiles_total);
+
+    // Calculate the grid position for each slot in the vector
+    for (int cell=0; cell<n_tiles_total; cell++) {
+        tiles.emplace_back(registry, *this, cell);
+    }
+
+    spdlog::info(
+        "Tilemap origin: " + 
+        std::to_string(origin_px.x) + ", " + std::to_string(origin_px.y)
+    );
+}
+
+Tile* TileMap::operator[](const glm::ivec2 world_position) {
+    const glm::ivec2 grid_position {world_px_to_grid(world_position)};
 
     if (
-        (m_tile_connection_bitmask == (Directions::NORTH | Directions::SOUTH)) |
-        (m_tile_connection_bitmask == (Directions::EAST | Directions::WEST))
+        grid_position.x > 0 && grid_position.y > 0 &&
+        grid_position.x < m_n_tiles && grid_position.y < m_n_tiles
     ) {
-        uint8_t direction {
-            Directions::NORTH & m_tile_connection_bitmask ? 
-            Directions::NORTH: Directions::EAST
-        };
-
-        uint8_t opposite_direction {reverse(direction)};
-
-        const Tile* start_node {connections.at(direction_index(direction))};
-        const Tile* end_node {connections.at(direction_index(opposite_direction))};
-
-        if ((start_node && end_node) && (start_node != end_node)) {
-            tilemap->connect(start_node, end_node, opposite_direction);
-            tilemap->connect(end_node, start_node, direction);
-        }
-
-    } else {
-        for (uint8_t direction=Directions::NORTH; direction; direction>>=1) {
-            const Tile* node {connections.at(direction_index(direction))};
-            if (node && (node != this)) {
-                tilemap->connect(this, node, direction);
-                tilemap->connect(node, this, reverse(direction));
-            }
-        }
-    }
-}
-
-
-// Create the vector of tile entities and load the mousemap surface.
-TileMap::TileMap(entt::registry& registry) {
-    spdlog::info("TileMap constructor called.");
-
-    // Reserve exactly the right amount of memory for the tilemap
-    tilemap.reserve(pow(constants::MAP_SIZE_N_TILES, 2));
-
-    // Emplace entities into the vector
-    for (int cell=0; cell<pow(constants::MAP_SIZE_N_TILES, 2); cell++) {
-        glm::ivec2 grid_position{};
-
-        if (cell < constants::MAP_SIZE_N_TILES) {
-            grid_position = {cell, 0};
-        } else {
-            grid_position = {
-                cell % constants::MAP_SIZE_N_TILES,
-                cell / constants::MAP_SIZE_N_TILES
-            };
-        }
-
-        tilemap.emplace_back(
-            registry, 
-            grid_position,
-            this
-        );
-    }
-}
-
-// Question re. destruction of entities
-TileMap::~TileMap() {
-    spdlog::info("TileMap destructor called.");
-}
-
-// Get an entity from tilemap position x, y
-Tile& TileMap::operator[](const glm::ivec2 position) {
-    return tilemap.at(
-        (position.y * constants::MAP_SIZE_N_TILES) + position.x
-    );
-}
-
-// Get an entity from tilemap position x, y
-const Tile& TileMap::operator[](const glm::ivec2 position) const {
-    return tilemap.at(
-        (position.y * constants::MAP_SIZE_N_TILES) + position.x
-    );
-}
-
-// Public function converting x, y tilemap coordinates to screen coordinates
-glm::ivec2 TileMap::grid_to_pixel(glm::ivec2 grid_pos) {
-    return (*this)[{grid_pos.x, grid_pos.y}].world_position();
-}
-
-// Fill up an array with world-adjusted points used to highlight a tile
-void Tile::get_tile_iso_points(
-    SDL_Point* point_array, const glm::ivec2& camera_position
-) const {
-    glm::ivec2 start_point {world_position() -= camera_position};
-    start_point.y -= constants::MIN_TILE_DEPTH;
-    
-    for (int i=0; i<5; i++) {
-        glm::ivec2 point {
-            (constants::TILE_EDGE_POINTS[i] + start_point)
-            //  + glm::ivec2{0, constants::MIN_TILE_DEPTH} 
-        };
-        point_array[i] = SDL_Point{point.x, point.y}; 
-    }
-}
-
-void TileMap::disconnect(const Tile* tile, const uint8_t direction) {
-    bool key_in_graph {graph.find(tile) != graph.end()};
-
-    if (!key_in_graph || !graph.at(tile).at(direction_index(direction))) {
-        return;
+        return &tiles.at((grid_position.y * m_n_tiles) + grid_position.x);
     }
 
-    graph.at(tile).at(direction_index(direction)) = nullptr;
+    return nullptr;
 }
 
-void TileMap::connect(
-    const Tile* origin, 
-    const Tile* termination, 
-    const uint8_t direction
-) {
+// Consider deprecating or returning const Tile&
+const glm::ivec2 TileMap::world_px_to_grid(const glm::ivec2 world_pos) const {
+    const glm::ivec2 world_pos_adjusted {world_pos - (tile_spec / 2)};
+    const glm::ivec2 centred_world_pos {world_pos_adjusted - origin_px};
+    const glm::ivec2 grid_pos_gross {mat_inv * centred_world_pos};
+    return glm::ivec2(std::round(grid_pos_gross.x), std::round(grid_pos_gross.y));
+}
 
-    if (!(graph.find(origin) != graph.end())) {
-        graph.insert({origin, std::array<const Tile*, 4>{}});
-    }
-
-    for (auto it = graph.begin(); it != graph.end(); it++) {
-        if (it->second.at(direction_index(direction)) == termination) {
-            disconnect(it->first, direction);
-        }
-    }
-
-    graph.at(origin).at(direction_index(direction)) = termination;
+// Consider deprecating
+const glm::ivec2 TileMap::grid_to_world_px(const glm::ivec2 grid_pos) const {
+    const glm::ivec2 movement {mat * grid_pos};
+    const glm::ivec2 world_pos {movement + origin_px};
+    return world_pos + (tile_spec / 2);
 }

@@ -1,79 +1,77 @@
 #ifndef TILEMAP_H
 #define TILEMAP_H
 
-#include <entt/entt.hpp>
+
 #include <vector>
+#include <entt/entt.hpp>
+#include <SDL2/SDL.h>
 #include <glm/glm.hpp>
+#include <cmath>
+#include <optional>
+#include <spdlog/spdlog.h>
+#include <functional>
 
-#include "constants.h"
-
+#include <components/transform.h>
 
 class TileMap;
 
 class Tile {
-    entt::registry& registry;
-    const glm::ivec2 grid_position;
-    TileMap* tilemap;
-    entt::entity entity;
-    std::vector<entt::entity> building_levels;
+    private:
+        entt::entity m_entity;
+        const TileMap& m_tilemap;
+        const int tile_n;
 
-    protected:
-        uint8_t m_tile_connection_bitmask {0};
+        std::optional<glm::ivec2> m_grid_pos;
+        std::optional<glm::ivec2> m_origin_px;
+        std::optional<glm::ivec2> m_centre_px;
 
     public:
-        Tile(entt::registry& registry, const glm::ivec2 grid_position, TileMap* const tilemap);
+        Tile(entt::registry& registry, const TileMap& tilemap, const int tile_n);
         ~Tile();
-        
-        // Don't need to be const if we're returning a copy
-        glm::ivec2 world_position() const;
-        glm::ivec2 get_grid_position() const { return grid_position; }
+        Tile(const Tile&) = delete;
+        Tile& operator=(const TileMap&) = delete;
+        Tile(Tile&&) noexcept = default;
+        Tile& operator=(Tile&&) noexcept = default;
 
-        entt::entity add_building_level(SDL_Texture* texture, const SDL_Rect sprite_rect);
-        entt::entity get_entity() const { return entity; }
+        const entt::entity entity() const { return m_entity; }
+        const glm::ivec2& origin_px();
+        const glm::ivec2& centre_px();
+        const glm::ivec2& grid_pos();
 
-        // Awaiting definition
-        entt::entity topmost_building_level() const { return building_levels.back(); }
-        void remove_building_level();
-
-        // Not sure on the use of an out-paramter here; what's the alternative?
-        // ... Can be pretty confident that caller has allocated 5 positions,
-        // but not 100%
-        void get_tile_iso_points(
-            SDL_Point* point_array, const glm::ivec2& camera_position
-        ) const;
-
-        uint8_t get_connection_bitmask() const { return m_tile_connection_bitmask; }
-        void set_connection_bitmask(const uint8_t connection_bitmask);
-
-        friend class TileMap;
+        // For development - delete later
+        void iso_sdl_points(std::array<SDL_Point, 5>& iso_sdl_points, const glm::ivec2& offset);
 };
 
 class TileMap {
-    // TODO: think about const Tile* const
-    std::vector<Tile> tilemap;
-    const Tile* scan(const glm::ivec2 from, const uint8_t direction) const;
+    private:
+        entt::registry& registry;
+        const int m_n_tiles;
+        const glm::ivec2 tile_spec;
+        const glm::ivec2 tilemap_area;
+        const glm::ivec2 origin_px;
+        const glm::mat2 mat;
+        const glm::mat2 mat_inv;
+        std::vector<Tile> tiles;
 
-    public: 
-        // TODO: the necessaries to make private
-        std::unordered_map<const Tile*, std::array<const Tile*, 4>> graph{};
-
-        TileMap(entt::registry& registry);
-        ~TileMap();
-
-        Tile* selected_tile {nullptr};
-
-        Tile& operator[](const glm::ivec2 position);
-        const Tile& operator[](const glm::ivec2 position) const;
-        
-        glm::ivec2 grid_to_pixel(glm::ivec2 grid_pos);
-
-        void disconnect(const Tile* tile, const uint8_t direction);
-
-        void connect(
-            const Tile* origin, const Tile* termination, const uint8_t direction
-        );
-
+    public:
         friend class Tile;
+
+        TileMap(entt::registry& registry, const int n_tiles, const glm::ivec2 tile_spec);
+        ~TileMap() = default;
+        TileMap(const TileMap&) = delete;
+
+
+        Tile* operator[](const glm::ivec2 world_position);
+
+        const glm::ivec2& area() const { return tilemap_area; }
+
+        // Consider deprecating
+        const glm::ivec2 grid_to_world_px(const glm::ivec2 grid_pos) const;
+        const glm::ivec2 world_px_to_grid(const glm::ivec2 world_pos) const;
+
+        // For testing - to be deleted
+        std::vector<Tile>& get_tiles() { return tiles; }
+
 };
 
 #endif

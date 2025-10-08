@@ -7,37 +7,27 @@
 #include <glm/glm.hpp>
 #include <entt/entt.hpp>
 
-#include "transform.h"
-#include "sprite.h"
-#include "constants.h"
+#include <sprite.h>
+#include <transform.h>
+#include <constants.h>
+#include <scene.h>
+
+class Scene;
 
 class Renderer{
 
+    SDL_Renderer* renderer;
+    SDL_Rect render_clip_rect;
+
+    void render_sprite(const glm::ivec2 camera_position, const Transform& transform, const Sprite& sprite) const;
+
     public:
-        // No reason to make this private yet?
-        SDL_Renderer* renderer;
         
         Renderer(SDL_Window* window, const SDL_DisplayMode& display_mode, uint32_t render_flags, int index);
         ~Renderer();
 
-        void render(const entt::registry& registry, const glm::ivec2& camera_position, bool render_bounding_box);
-
-    
-    private:
-        SDL_Rect render_clip_rect;
-
-        void render_sprite(
-            const glm::ivec2& camera_position,
-            const Transform& transform, 
-            const Sprite& sprite,
-            bool render_bounding_box
-        );
-
-        void render_sprites(
-            const entt::registry& registry, 
-            const glm::ivec2& camera_position,
-            bool render_bounding_box
-        );
+        void render(Scene& scene) const;
+        // void render(const glm::ivec2& camera_position, bool render_bounding_box);
 };
 
 #endif
