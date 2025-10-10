@@ -71,11 +71,16 @@ void Game::process_input() {
     }
 }
 
-void Game::update(const float delta_time) {
+void Game::update(
+    [[maybe_unused]] const float delta_time
+) {
     scene->update();
 }
 
-bool transform_comparison(const Transform& lhs, const Transform& rhs) {
+bool transform_comparison(
+    [[maybe_unused]] const Transform& lhs,
+    [[maybe_unused]] const Transform& rhs
+) {
     return true;
 }
 

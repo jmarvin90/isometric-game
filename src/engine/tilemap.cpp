@@ -2,76 +2,42 @@
 #include <glm/glm.hpp>
 #include <optional>
 #include <spdlog/spdlog.h>
+#include <tilespec.h>
+#include <components/transform.h>
+#include <components/highlight.h>
 
-Tile::Tile(entt::registry& registry, const TileMap& tilemap, const int tile_n)
-: m_entity {registry.create()}
-, m_tilemap {tilemap}
-, tile_n {tile_n}
-{
-    // Create the transform component for each tile on construction
-    registry.emplace<Transform>(
-        m_entity,
-        origin_px(),
-        0,
-        0.0
-    );
+// To delete at some stage
+std::vector<SDL_Point> iso_sdl_points(
+    const glm::ivec2 tile_spec 
+) {
+    const glm::ivec2 centre {tile_spec / 2};
+    std::vector<SDL_Point> points {};
+    points.push_back(SDL_Point {centre.x, 0});
+    points.push_back(SDL_Point {tile_spec.x, centre.y});
+    points.push_back(SDL_Point {centre.x, tile_spec.y});
+    points.push_back(SDL_Point {0, centre.y});
+    points.push_back(SDL_Point {centre.x, 0});
+    return points;
 }
 
-Tile::~Tile() {
-    m_tilemap.registry.destroy(m_entity);
-}
-
-void Tile::iso_sdl_points(std::array<SDL_Point, 5>& iso_sdl_points, const glm::ivec2& offset) {
-    const glm::ivec2 centre {centre_px() + offset};
-    const glm::ivec2 origin {origin_px() + offset};
-    const glm::ivec2 diff {centre - origin};
-    iso_sdl_points[0] = SDL_Point {centre.x, origin.y};
-    iso_sdl_points[1] = SDL_Point {centre.x + diff.x, centre.y};
-    iso_sdl_points[2] = SDL_Point {centre.x, centre.y + diff.y};
-    iso_sdl_points[3] = SDL_Point {origin.x, centre.y};
-    iso_sdl_points[4] = SDL_Point {centre.x, origin.y};
-}
-
-const glm::ivec2& Tile::grid_pos() {
-    if (m_grid_pos) {
-        return m_grid_pos.value();
+glm::ivec2 tile_n_to_grid_pos(const int tile_n, const int n_tiles) {
+    if (tile_n < n_tiles) {
+        return {tile_n, 0};
     }
-
-    m_grid_pos = (
-        tile_n < m_tilemap.m_n_tiles 
-        ? glm::ivec2(tile_n, 0) 
-        : glm::ivec2(tile_n % m_tilemap.m_n_tiles, tile_n / m_tilemap.m_n_tiles)
-    );
-    return m_grid_pos.value();
+    return {tile_n % n_tiles, tile_n / n_tiles};
 }
 
-const glm::ivec2& Tile::origin_px() {
-    if (m_origin_px) {
-        return m_origin_px.value();
+TileMap::~TileMap() {
+    for (const entt::entity entity: tiles) {
+        registry.destroy(entity);
     }
-
-    const glm::ivec2 movement {m_tilemap.mat * grid_pos()};
-    m_origin_px.emplace(movement + m_tilemap.origin_px);
-    return m_origin_px.value();
 }
 
-const glm::ivec2& Tile::centre_px() {
-    if (m_centre_px) {
-        return m_centre_px.value();
-    }
-    
-    m_centre_px.emplace(origin_px() + m_tilemap.tile_spec / 2);
-    return m_centre_px.value();
-}
-
-TileMap::TileMap(entt::registry& registry, const int n_tiles, const glm::ivec2 tile_spec)
+TileMap::TileMap(entt::registry& registry, const int n_tiles, const TileSpec tile_spec)
 : registry {registry}
 , m_n_tiles {n_tiles}
 , tile_spec {tile_spec}
-, tilemap_area {tile_spec * n_tiles}
-, origin_px {(tilemap_area.x / 2) - (tile_spec.x / 2), 0}
-, mat {tile_spec.x / 2.0f, tile_spec.y / 2.0f, -tile_spec.x / 2.0f, tile_spec.y / 2.0f}
-, mat_inv {glm::inverse(mat)}
+, m_highlighted_tile {}
 {
     const int n_tiles_total {n_tiles * n_tiles};
     
@@ -81,39 +47,62 @@ TileMap::TileMap(entt::registry& registry, const int n_tiles, const glm::ivec2 t
 
     // Calculate the grid position for each slot in the vector
     for (int cell=0; cell<n_tiles_total; cell++) {
-        tiles.emplace_back(registry, *this, cell);
+        entt::entity entity {tiles.emplace_back(registry.create())};
+        const glm::ivec2 grid_pos {tile_n_to_grid_pos(cell, m_n_tiles)};
+        const glm::ivec2 world_pos {grid_to_world_px(grid_pos)};
+        registry.emplace<Transform>(entity, world_pos, 0, 0.0);
+        registry.emplace<Highlight>(entity, SDL_Color{0, 0, 255, 255}, iso_sdl_points(tile_spec.size));
     }
-
-    spdlog::info(
-        "Tilemap origin: " + 
-        std::to_string(origin_px.x) + ", " + std::to_string(origin_px.y)
-    );
 }
 
-Tile* TileMap::operator[](const glm::ivec2 world_position) {
-    const glm::ivec2 grid_position {world_px_to_grid(world_position)};
+const glm::ivec2 TileMap::area() const {
+    return tile_spec.size * m_n_tiles;
+}
 
+const glm::ivec2 TileMap::origin_px() const {
+    return {(area().x / 2) - (tile_spec.size.x / 2), 0};
+}
+
+std::optional<entt::entity> TileMap::operator[](const glm::ivec2 grid_position) const {
     if (
         grid_position.x > 0 && grid_position.y > 0 &&
-        grid_position.x < m_n_tiles && grid_position.y < m_n_tiles
+        grid_position.x < area().x && grid_position.y < area().y
     ) {
-        return &tiles.at((grid_position.y * m_n_tiles) + grid_position.x);
+        return tiles.at((grid_position.y * m_n_tiles) + grid_position.x);
     }
+    return std::nullopt;
+}
 
-    return nullptr;
+void TileMap::highlight_tile(const glm::ivec2 grid_pos) {
+    spdlog::info(
+        "Highlighting tile at " + 
+        std::to_string(grid_pos.x) + ", " +
+        std::to_string(grid_pos.y)
+    ); 
+
+    std::optional<entt::entity> tile {(*this)[grid_pos]};
+    if (tile) {
+        m_highlighted_tile = tile.value();
+    } else {
+        m_highlighted_tile.reset();
+    }
+}
+
+const std::optional<entt::entity> TileMap::highlighted_tile() const {
+    return m_highlighted_tile;
 }
 
 // Consider deprecating or returning const Tile&
 const glm::ivec2 TileMap::world_px_to_grid(const glm::ivec2 world_pos) const {
-    const glm::ivec2 world_pos_adjusted {world_pos - (tile_spec / 2)};
-    const glm::ivec2 centred_world_pos {world_pos_adjusted - origin_px};
-    const glm::ivec2 grid_pos_gross {mat_inv * centred_world_pos};
+    const glm::ivec2 world_pos_adjusted {world_pos - (tile_spec.size / 2)};
+    const glm::ivec2 centred_world_pos {world_pos_adjusted - origin_px()};
+    const glm::ivec2 grid_pos_gross {tile_spec.matrix_inverted * centred_world_pos};
     return glm::ivec2(std::round(grid_pos_gross.x), std::round(grid_pos_gross.y));
 }
 
 // Consider deprecating
 const glm::ivec2 TileMap::grid_to_world_px(const glm::ivec2 grid_pos) const {
-    const glm::ivec2 movement {mat * grid_pos};
-    const glm::ivec2 world_pos {movement + origin_px};
-    return world_pos + (tile_spec / 2);
+    const glm::ivec2 movement {tile_spec.matrix * grid_pos};
+    const glm::ivec2 world_pos {movement + origin_px()};
+    return world_pos + (tile_spec.size / 2);
 }

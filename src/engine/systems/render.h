@@ -25,6 +25,8 @@ class Renderer{
         
         Renderer(SDL_Window* window, const SDL_DisplayMode& display_mode, uint32_t render_flags, int index);
         ~Renderer();
+        Renderer(const Renderer&) = delete;
+        Renderer operator=(const Renderer&) = delete;
 
         void render(Scene& scene) const;
         // void render(const glm::ivec2& camera_position, bool render_bounding_box);

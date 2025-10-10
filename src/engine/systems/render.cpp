@@ -3,6 +3,7 @@
 
 #include <components/sprite.h>
 #include <components/transform.h>
+#include <components/highlight.h>
 #include <systems/render.h>
 #include <scene.h>
 
@@ -65,38 +66,48 @@ void Renderer::render(Scene& scene) const {
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
-    auto sprites = scene.get_registry().view<Transform, Sprite>();
+
+    auto sprites = scene.get_registry().view<Transform>();
     const glm::ivec2 offset {scene.camera_position + scene.get_border_px()};
     const glm::ivec2 highlight_offset {0, -30};
 
     for (auto entity: sprites) {
         const auto& transform {sprites.get<Transform>(entity)};
-        const auto& sprite {sprites.get<Sprite>(entity)};
-        render_sprite(scene.camera_position, transform, sprite);
-    }
+        const auto* sprite {scene.get_registry().try_get<Sprite>(entity)};
+        const auto* highlight {scene.get_registry().try_get<Highlight>(entity)};
 
-    for (Tile& tile: scene.get_tiles()) {
-        std::array<SDL_Point, 5> points {};
+        std::optional<entt::entity> highlighted_tile {scene.tilemap.highlighted_tile()};
 
-        Tile* highlighted_tile {scene.highlighted_tile()};
-
-        tile.iso_sdl_points(
-            points, 
-            highlighted_tile && &tile == highlighted_tile
+        glm::ivec2 total_offset {
+            highlighted_tile && entity == scene.tilemap.highlighted_tile() 
             ? offset + highlight_offset 
             : offset
-        );
+        };
+        
+        if (sprite) {
+            render_sprite(scene.camera_position, transform, *sprite);
+        }
 
-        SDL_SetRenderDrawColor(
-            renderer,
-            0, 0, 255, 255
-        );
-
-        SDL_RenderDrawLines(
-            renderer,
-            points.data(),
-            5
-        );
+        if (highlight) {
+            std::vector<SDL_Point> points;
+            for (const SDL_Point& point: highlight->points) {
+                points.push_back(
+                    SDL_Point{
+                        point.x + static_cast<int>(transform.position.x) + total_offset.x, 
+                        point.y + static_cast<int>(transform.position.y) + total_offset.y
+                    }
+                );
+            }
+            SDL_SetRenderDrawColor(
+                renderer,
+                highlight->colour.r, highlight->colour.g, highlight->colour.b, highlight->colour.a
+            );
+            SDL_RenderDrawLines(
+                renderer,
+                points.data(),
+                5
+            );
+        }
     }
 
     SDL_RenderPresent(renderer);

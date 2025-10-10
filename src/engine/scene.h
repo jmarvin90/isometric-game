@@ -4,8 +4,9 @@
 #include <tilemap.h>
 #include <SDL2/SDL.h>
 #include <optional>
-
 #include <systems/render.h>
+#include <tilespec.h>
+#include <mouse_position.h>
 
 class Scene {
     private:
@@ -14,23 +15,15 @@ class Scene {
         glm::ivec2 camera_position {0,0};
         const int scene_border_px;
         const SDL_DisplayMode& display_mode;
-        
-        // Mouse info
-        uint32_t mouse_state;
-        std::optional<glm::ivec2> m_mouse_window_previous_position;
-        glm::ivec2 m_mouse_window_current_position;
-        glm::ivec2 m_mouse_world_position;
-
-        // Tilemap info
-        Tile* m_highlighted_tile;
-
+        MousePosition mouse_position;
 
     public:
         friend class Renderer;
+        const int n_tiles;
 
         Scene(
             const SDL_DisplayMode& display_mode,
-            const glm::ivec2 tile_spec,
+            const TileSpec tile_spec,
             const int n_tiles,
             const int scene_border_px
         )
@@ -38,7 +31,8 @@ class Scene {
         , tilemap {registry, n_tiles, tile_spec}
         , scene_border_px {scene_border_px}
         , display_mode {display_mode}
-        , m_highlighted_tile {nullptr}
+        , n_tiles {n_tiles}
+        , mouse_position {tilemap, camera_position, scene_border_px}
         {}
 
         Scene(const Scene&) = delete;
@@ -47,11 +41,6 @@ class Scene {
         void update();
         const entt::registry& get_registry() const { return registry; }
         const int get_border_px() const { return scene_border_px; }
-        const glm::ivec2& mouse_world_position() const { return m_mouse_world_position; }
-        Tile* highlighted_tile() { return m_highlighted_tile; }
-
-        // For testing - to be deleted
-        std::vector<Tile>& get_tiles() { return tilemap.get_tiles(); }
 };
 
 #endif
