@@ -29,7 +29,7 @@ class Game {
 
     void process_input();
     void update(const float delta_time);
-    void render();
+    void render() const;
 
     public:
 

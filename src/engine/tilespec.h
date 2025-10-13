@@ -13,7 +13,7 @@ struct TileSpec {
     , matrix_inverted {glm::inverse(matrix)} 
     {}
     ~TileSpec() = default;
-    // TileSpec(const TileSpec&) = delete;
+    TileSpec(const TileSpec&) = delete;
 };
 
 #endif

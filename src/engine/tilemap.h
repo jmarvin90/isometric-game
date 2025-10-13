@@ -18,12 +18,12 @@ class TileMap {
     private:
         entt::registry& registry;
         const int m_n_tiles;
-        const TileSpec tile_spec;
+        const TileSpec& tile_spec;
         std::vector<entt::entity> tiles;
         std::optional<entt::entity> m_highlighted_tile;
 
     public:
-        TileMap(entt::registry& registry, const int n_tiles, const TileSpec tile_spec);
+        TileMap(entt::registry& registry, const int n_tiles, const TileSpec& tile_spec);
         ~TileMap();
         TileMap(const TileMap&) = delete;
 

@@ -33,7 +33,7 @@ TileMap::~TileMap() {
     }
 }
 
-TileMap::TileMap(entt::registry& registry, const int n_tiles, const TileSpec tile_spec)
+TileMap::TileMap(entt::registry& registry, const int n_tiles, const TileSpec& tile_spec)
 : registry {registry}
 , m_n_tiles {n_tiles}
 , tile_spec {tile_spec}

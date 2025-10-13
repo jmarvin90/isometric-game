@@ -62,19 +62,19 @@ void Renderer::render_sprite(
 }
 
 // TODO: check how to (if it's possible) make the scene ref const
-void Renderer::render(Scene& scene) const {
+void Renderer::render(const Scene& scene) const {
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
-    auto sprites = scene.get_registry().view<Transform>();
-    const glm::ivec2 offset {scene.camera_position + scene.get_border_px()};
+    auto sprites = scene.registry.view<Transform>();
+    const glm::ivec2 offset {scene.camera_position + scene.scene_border_px};
     const glm::ivec2 highlight_offset {0, -30};
 
     for (auto entity: sprites) {
         const auto& transform {sprites.get<Transform>(entity)};
-        const auto* sprite {scene.get_registry().try_get<Sprite>(entity)};
-        const auto* highlight {scene.get_registry().try_get<Highlight>(entity)};
+        const auto* sprite {scene.registry.try_get<Sprite>(entity)};
+        const auto* highlight {scene.registry.try_get<Highlight>(entity)};
 
         std::optional<entt::entity> highlighted_tile {scene.tilemap.highlighted_tile()};
 

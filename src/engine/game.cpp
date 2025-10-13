@@ -84,7 +84,7 @@ bool transform_comparison(
     return true;
 }
 
-void Game::render() {
+void Game::render() const {
     renderer->render(scene.value());
 }
 

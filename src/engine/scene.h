@@ -39,8 +39,6 @@ class Scene {
         ~Scene() = default;
 
         void update();
-        const entt::registry& get_registry() const { return registry; }
-        const int get_border_px() const { return scene_border_px; }
 };
 
 #endif
