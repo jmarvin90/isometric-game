@@ -33,10 +33,10 @@ TileMap::~TileMap() {
     }
 }
 
-TileMap::TileMap(entt::registry& registry, const int n_tiles, const TileSpec& tile_spec)
+TileMap::TileMap(entt::registry& registry, const int n_tiles, const glm::ivec2 tile_size)
 : registry {registry}
 , m_n_tiles {n_tiles}
-, tile_spec {tile_spec}
+, tile_spec {tile_size}
 , m_highlighted_tile {}
 {
     const int n_tiles_total {n_tiles * n_tiles};
@@ -74,12 +74,6 @@ std::optional<entt::entity> TileMap::operator[](const glm::ivec2 grid_position) 
 }
 
 void TileMap::highlight_tile(const glm::ivec2 grid_pos) {
-    spdlog::info(
-        "Highlighting tile at " + 
-        std::to_string(grid_pos.x) + ", " +
-        std::to_string(grid_pos.y)
-    ); 
-
     std::optional<entt::entity> tile {(*this)[grid_pos]};
     if (tile) {
         m_highlighted_tile = tile.value();

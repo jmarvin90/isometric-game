@@ -5,7 +5,6 @@
 #include <SDL2/SDL.h>
 #include <optional>
 #include <systems/render.h>
-#include <tilespec.h>
 #include <mouse_position.h>
 
 class Scene {
@@ -23,12 +22,12 @@ class Scene {
 
         Scene(
             const SDL_DisplayMode& display_mode,
-            const TileSpec tile_spec,
+            const glm::ivec2 tile_size,
             const int n_tiles,
             const int scene_border_px
         )
         : registry {entt::registry()}
-        , tilemap {registry, n_tiles, tile_spec}
+        , tilemap {registry, n_tiles, tile_size}
         , scene_border_px {scene_border_px}
         , display_mode {display_mode}
         , n_tiles {n_tiles}

@@ -1,5 +1,6 @@
 #include <mouse_position.h>
 #include <SDL2/SDL.h>
+#include <spdlog/spdlog.h>
 
 void MousePosition::update() {
     m_mouse_window_previous_position = m_mouse_window_current_position;

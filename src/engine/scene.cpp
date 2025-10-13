@@ -30,11 +30,16 @@ void Scene::update() {
         (display_mode.h - mouse_position.on_screen().y) < scene_border_px &&
         (camera_position.y + display_mode.h) < tilemap.area().y
     ) {
-        camera_position += 4;
+        camera_position.y += 4;
     }
 
 
     if (mouse_position.moved()) {
+        spdlog::info(
+            "Mouse position: " + 
+            std::to_string(mouse_position.on_grid().x) + "," + 
+            std::to_string(mouse_position.on_grid().y)
+        );
         tilemap.highlight_tile(mouse_position.on_grid());
     }
 }
