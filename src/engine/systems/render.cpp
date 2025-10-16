@@ -112,10 +112,6 @@ void Renderer::render(Scene& scene, const bool debug_mode) {
         render_imgui_ui(scene);
     }
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
-    const SDL_Rect my_rect{896, 15, 256, 128};
-    SDL_RenderDrawRect(renderer, &my_rect);
-
     SDL_RenderPresent(renderer);
 }
 

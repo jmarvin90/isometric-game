@@ -64,7 +64,6 @@ TileMap::TileMap(entt::registry& registry, const int n_tiles, const glm::ivec2 t
         const glm::ivec2 world_pos {grid_to_world_px(grid_pos)};
         registry.emplace<Transform>(entity, world_pos, 0, 0.0);
         registry.emplace<Highlight>(entity, SDL_Color{0, 0, 255, 255}, iso_sdl_points(tile_spec.size));
-        registry.emplace<TileHighlight>(entity, SDL_Color{255, 0, 0, 255}, tile_points(tile_spec.size));
     }
 }
 
