@@ -20,6 +20,18 @@ std::vector<SDL_Point> iso_sdl_points(
     return points;
 }
 
+std::vector<SDL_Point> tile_points(
+    const glm::ivec2 tile_spec
+) {
+    return std::vector<SDL_Point>{
+        {0, 0},
+        {tile_spec.x, 0},
+        {tile_spec.x, tile_spec.y},
+        {0, tile_spec.y},
+        {0, 0}
+    };
+}
+
 glm::ivec2 tile_n_to_grid_pos(const int tile_n, const int n_tiles) {
     if (tile_n < n_tiles) {
         return {tile_n, 0};
@@ -52,6 +64,7 @@ TileMap::TileMap(entt::registry& registry, const int n_tiles, const glm::ivec2 t
         const glm::ivec2 world_pos {grid_to_world_px(grid_pos)};
         registry.emplace<Transform>(entity, world_pos, 0, 0.0);
         registry.emplace<Highlight>(entity, SDL_Color{0, 0, 255, 255}, iso_sdl_points(tile_spec.size));
+        registry.emplace<TileHighlight>(entity, SDL_Color{255, 0, 0, 255}, tile_points(tile_spec.size));
     }
 }
 
@@ -65,8 +78,8 @@ const glm::ivec2 TileMap::origin_px() const {
 
 std::optional<entt::entity> TileMap::operator[](const glm::ivec2 grid_position) const {
     if (
-        grid_position.x > 0 && grid_position.y > 0 &&
-        grid_position.x < area().x && grid_position.y < area().y
+        grid_position.x >= 0 && grid_position.y >= 0 &&
+        grid_position.x < m_n_tiles && grid_position.y < m_n_tiles
     ) {
         return tiles.at((grid_position.y * m_n_tiles) + grid_position.x);
     }
@@ -86,17 +99,21 @@ const std::optional<entt::entity> TileMap::highlighted_tile() const {
     return m_highlighted_tile;
 }
 
-// Consider deprecating or returning const Tile&
-const glm::ivec2 TileMap::world_px_to_grid(const glm::ivec2 world_pos) const {
+const glm::vec2 TileMap::world_px_to_grid_gross(const glm::ivec2 world_pos) const {
     const glm::ivec2 world_pos_adjusted {world_pos - (tile_spec.size / 2)};
     const glm::ivec2 centred_world_pos {world_pos_adjusted - origin_px()};
-    const glm::ivec2 grid_pos_gross {tile_spec.matrix_inverted * centred_world_pos};
-    return glm::ivec2(std::round(grid_pos_gross.x), std::round(grid_pos_gross.y));
+    return glm::vec2 {tile_spec.matrix_inverted * centred_world_pos};
+}
+
+// Consider deprecating or returning const Tile&
+const glm::ivec2 TileMap::world_px_to_grid(const glm::ivec2 world_pos) const {
+    const glm::vec2 gross {world_px_to_grid_gross(world_pos)};
+    return glm::ivec2(std::round(gross.x), std::round(gross.y));
 }
 
 // Consider deprecating
 const glm::ivec2 TileMap::grid_to_world_px(const glm::ivec2 grid_pos) const {
     const glm::ivec2 movement {tile_spec.matrix * grid_pos};
-    const glm::ivec2 world_pos {movement + origin_px()};
+    const glm::ivec2 world_pos {(movement + origin_px()) - (tile_spec.size / 2)};
     return world_pos + (tile_spec.size / 2);
 }

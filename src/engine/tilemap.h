@@ -34,6 +34,7 @@ class TileMap {
         const glm::ivec2 origin_px() const;
 
         // Consider removing
+        const glm::vec2 world_px_to_grid_gross(const glm::ivec2 world_pos) const; 
         const glm::ivec2 grid_to_world_px(const glm::ivec2 grid_pos) const;
         const glm::ivec2 world_px_to_grid(const glm::ivec2 world_pos) const;
 };

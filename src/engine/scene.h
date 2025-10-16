@@ -10,13 +10,13 @@
 class Scene {
     private:
         entt::registry registry;
-        TileMap tilemap;
         glm::ivec2 camera_position {0,0};
         const int scene_border_px;
         const SDL_DisplayMode& display_mode;
-        MousePosition mouse_position;
 
     public:
+        TileMap tilemap;
+        MousePosition mouse_position;
         friend class Renderer;
         const int n_tiles;
 

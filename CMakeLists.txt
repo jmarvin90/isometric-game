@@ -43,7 +43,7 @@ add_executable(isometric-game
 )
 
 target_compile_options(isometric-game PRIVATE
-    -Weffc++
+    # -Weffc++
     -Wextra
     -Wall
     -Werror
@@ -54,3 +54,5 @@ target_compile_options(isometric-game PRIVATE
 target_link_libraries(isometric-game PRIVATE imgui)
 
 set_property(TARGET isometric-game PROPERTY CXX_STANDARD 17)
+
+set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)

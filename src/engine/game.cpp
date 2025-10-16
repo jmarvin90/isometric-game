@@ -12,8 +12,8 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 
-#include "constants.h"
-#include "game.h"
+#include <constants.h>
+#include <game.h>
 
 Game::Game() {
     spdlog::info("Game constructor called.");
@@ -30,12 +30,12 @@ void Game::initialise() {
 
     // Create the SDL Window
     window = SDL_CreateWindow(
-        NULL,                       // title - leave blank for now
-        SDL_WINDOWPOS_CENTERED,     // Window xconstant position (centred)
-        SDL_WINDOWPOS_CENTERED,     // Window y position (centred)
-        display_mode.w,             // X res from current display mode
-        display_mode.h,             // Y res from current display mode
-        SDL_WINDOW_FULLSCREEN       // Input grabbed flag
+        NULL,                                                   // title - leave blank for now
+        SDL_WINDOWPOS_CENTERED,                                 // Window xconstant position (centred)
+        SDL_WINDOWPOS_CENTERED,                                 // Window y position (centred)
+        display_mode.w,                                         // X res from current display mode
+        display_mode.h,                                         // Y res from current display mode
+        SDL_WINDOW_FULLSCREEN | SDL_WINDOW_ALLOW_HIGHDPI        // Input grabbed flag
     );
 
     if (!window) {
@@ -44,7 +44,12 @@ void Game::initialise() {
     
     // TODO: move this somewhere smart under some smart condition
     renderer.emplace(window, display_mode, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC, -1);
-    scene.emplace(display_mode, glm::ivec2(256, 128), 16, 40);
+    scene.emplace(display_mode, glm::ivec2(256, 128), 8, 40);
+
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplSDL2_InitForSDLRenderer(window, renderer.value().renderer);
+    ImGui_ImplSDLRenderer2_Init(renderer.value().renderer);
 }
 
 void Game::process_input() {
@@ -77,15 +82,8 @@ void Game::update(
     scene->update();
 }
 
-bool transform_comparison(
-    [[maybe_unused]] const Transform& lhs,
-    [[maybe_unused]] const Transform& rhs
-) {
-    return true;
-}
-
-void Game::render() const {
-    renderer->render(scene.value());
+void Game::render() {
+    renderer->render(scene.value(), debug_mode);
 }
 
 void Game::run() {
@@ -115,7 +113,9 @@ void Game::run() {
 }
 
 void Game::destroy() {
-
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
     SDL_DestroyWindow(window);
     SDL_Quit();
 }

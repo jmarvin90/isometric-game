@@ -35,11 +35,6 @@ void Scene::update() {
 
 
     if (mouse_position.moved()) {
-        spdlog::info(
-            "Mouse position: " + 
-            std::to_string(mouse_position.on_grid().x) + "," + 
-            std::to_string(mouse_position.on_grid().y)
-        );
         tilemap.highlight_tile(mouse_position.on_grid());
     }
 }

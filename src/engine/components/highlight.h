@@ -11,4 +11,6 @@ struct Highlight {
     ~Highlight() = default;
 };
 
+struct TileHighlight: public Highlight {};
+
 #endif

@@ -27,6 +27,7 @@ class MousePosition {
 
         void update();
         bool moved() const;
+        const glm::vec2 on_grid_gross() const;
         const glm::ivec2 on_grid() const;
         const glm::ivec2 on_screen() const;
         const glm::ivec2 in_world() const;
