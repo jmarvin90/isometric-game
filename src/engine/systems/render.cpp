@@ -123,7 +123,7 @@ void Renderer::render_imgui_ui(const Scene& scene) const {
     // The mouse and world positions
     const glm::ivec2 screen_position {scene.mouse_position.on_screen()};
     const glm::ivec2 world_position {scene.mouse_position.in_world()};
-    const glm::vec2 grid_position_gross {scene.mouse_position.on_grid_gross()};
+    // const glm::vec2 grid_position_gross {scene.mouse_position.on_grid_gross()};
     const glm::ivec2 grid_position {scene.mouse_position.on_grid()};
 
     ImGui::SeparatorText("Mouse Position");
@@ -139,11 +139,11 @@ void Renderer::render_imgui_ui(const Scene& scene) const {
         std::to_string(world_position.y).c_str()
     );
 
-    ImGui::Text(
-        "Mouse Grid position (gross): (%s) (%s)",
-        std::to_string(grid_position_gross.x).c_str(),
-        std::to_string(grid_position_gross.y).c_str()
-    );
+    // ImGui::Text(
+    //     "Mouse Grid position (gross): (%s) (%s)",
+    //     std::to_string(grid_position_gross.x).c_str(),
+    //     std::to_string(grid_position_gross.y).c_str()
+    // );
 
     ImGui::Text(
         "Mouse Grid position: (%s) (%s)",

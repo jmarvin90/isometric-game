@@ -16,10 +16,10 @@
 
 class TileMap {
     private:
-        entt::registry& registry;
+        entt::registry& m_registry;
         const int m_n_tiles;
-        const TileSpec tile_spec;
-        std::vector<entt::entity> tiles;
+        const TileSpec m_tile_spec;
+        std::vector<entt::entity> m_tiles;
         std::optional<entt::entity> m_highlighted_tile;
 
     public:
@@ -32,11 +32,7 @@ class TileMap {
         const std::optional<entt::entity> highlighted_tile() const;
         const glm::ivec2 area() const;
         const glm::ivec2 origin_px() const;
-
-        // Consider removing
-        const glm::vec2 world_px_to_grid_gross(const glm::ivec2 world_pos) const; 
-        const glm::ivec2 grid_to_world_px(const glm::ivec2 grid_pos) const;
-        const glm::ivec2 world_px_to_grid(const glm::ivec2 world_pos) const;
+        const TileSpec& tile_spec() const { return m_tile_spec; }
 };
 
 #endif

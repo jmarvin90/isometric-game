@@ -1,6 +1,7 @@
 #ifndef MOUSEPOSITION_H
 #define MOUSEPOSITION_H
 
+#include <position.h>
 #include <tilemap.h>
 #include <glm/glm.hpp>
 
@@ -27,10 +28,15 @@ class MousePosition {
 
         void update();
         bool moved() const;
-        const glm::vec2 on_grid_gross() const;
-        const glm::ivec2 on_grid() const;
-        const glm::ivec2 on_screen() const;
-        const glm::ivec2 in_world() const;
+        
+        // const glm::vec2 on_grid_gross() const;
+        // const glm::ivec2 on_grid() const;
+        // const glm::ivec2 on_screen() const;
+        // const glm::ivec2 in_world() const;
+
+        const GridPosition on_grid() const;
+        const ScreenPosition on_screen() const;
+        const WorldPosition in_world() const;
 };
 
 #endif
