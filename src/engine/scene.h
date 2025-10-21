@@ -4,7 +4,7 @@
 #include <tilemap.h>
 #include <SDL2/SDL.h>
 #include <optional>
-#include <systems/render.h>
+#include <render.h>
 #include <mouse_position.h>
 
 class Scene {

@@ -7,10 +7,10 @@
 #include <memory>
 #include <optional>
 
-#include "systems/render.h"
-#include "components/transform.h"
-#include "constants.h"
-#include "scene.h"
+#include <render.h>
+#include <components/transform.h>
+#include <constants.h>
+#include <scene.h>
 
 class Game {
     bool is_running {false};

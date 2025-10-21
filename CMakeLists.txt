@@ -40,7 +40,7 @@ add_executable(isometric-game
     src/engine/scene.cpp
     src/engine/tilemap.cpp
     src/engine/mouse_position.cpp
-    src/engine/systems/render.cpp
+    src/engine/render.cpp
 )
 
 target_compile_options(isometric-game PRIVATE

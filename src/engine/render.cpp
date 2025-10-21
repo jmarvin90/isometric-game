@@ -4,7 +4,7 @@
 #include <components/sprite.h>
 #include <components/transform.h>
 #include <components/highlight.h>
-#include <systems/render.h>
+#include <render.h>
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 #include <imgui.h>
