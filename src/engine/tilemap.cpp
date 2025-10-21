@@ -12,13 +12,13 @@ std::vector<SDL_Point> iso_sdl_points(
     const glm::ivec2 tile_spec 
 ) {
     const glm::ivec2 centre {tile_spec / 2};
-    std::vector<SDL_Point> points {};
-    points.push_back(SDL_Point {centre.x, 0});
-    points.push_back(SDL_Point {tile_spec.x, centre.y});
-    points.push_back(SDL_Point {centre.x, tile_spec.y});
-    points.push_back(SDL_Point {0, centre.y});
-    points.push_back(SDL_Point {centre.x, 0});
-    return points;
+    return std::vector<SDL_Point> {
+        SDL_Point {centre.x, 0},
+        SDL_Point {tile_spec.x, centre.y},
+        SDL_Point {centre.x, tile_spec.y},
+        SDL_Point {0, centre.y},
+        SDL_Point {centre.x, 0},
+    };
 }
 
 std::vector<SDL_Point> tile_points(
