@@ -19,6 +19,7 @@ class SpriteSheet {
         );
         SpriteSheet(const SpriteSheet&) = delete;
         ~SpriteSheet();
+        const Sprite& get(const std::string name) const;
 };
 
 #endif

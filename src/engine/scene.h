@@ -31,7 +31,7 @@ class Scene {
         )
         : spritesheet {spritesheet}
         , registry {entt::registry()}
-        , tilemap {registry, n_tiles, tile_size}
+        , tilemap {registry, n_tiles, tile_size, spritesheet}
         , scene_border_px {scene_border_px}
         , display_mode {display_mode}
         , n_tiles {n_tiles}

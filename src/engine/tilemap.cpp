@@ -6,6 +6,7 @@
 #include <components/transform.h>
 #include <components/highlight.h>
 #include <position.h>
+#include <spritesheet.h>
 
 
 glm::ivec2 tile_n_to_grid_pos(const int tile_n, const int n_tiles) {
@@ -21,7 +22,12 @@ TileMap::~TileMap() {
     }
 }
 
-TileMap::TileMap(entt::registry& registry, const int n_tiles, const glm::ivec2 tile_size)
+TileMap::TileMap(
+    entt::registry& registry,
+    const int n_tiles,
+    const glm::ivec2 tile_size,
+    const SpriteSheet& spritesheet
+)
 : m_registry {registry}
 , m_n_tiles {n_tiles}
 , m_tile_spec {tile_size}
@@ -40,6 +46,7 @@ TileMap::TileMap(entt::registry& registry, const int n_tiles, const glm::ivec2 t
         const glm::ivec2 world_pos {GridPosition{(*this), grid_pos}.to_world_position()};
         registry.emplace<Transform>(entity, world_pos, 0, 0.0);
         registry.emplace<Highlight>(entity, SDL_Color{0, 0, 255, 255}, m_tile_spec.iso_points());
+        registry.emplace<Sprite>(entity, spritesheet.get("grass"));
     }
 }
 

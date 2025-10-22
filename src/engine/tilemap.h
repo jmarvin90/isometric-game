@@ -13,6 +13,7 @@
 
 #include <components/transform.h>
 #include <tilespec.h>
+#include <spritesheet.h>
 
 class TileMap {
     private:
@@ -23,7 +24,12 @@ class TileMap {
         std::optional<entt::entity> m_highlighted_tile;
 
     public:
-        TileMap(entt::registry& registry, const int n_tiles, const glm::ivec2 tile_spec);
+        TileMap(
+            entt::registry& registry,
+            const int n_tiles,
+            const glm::ivec2 tile_spec,
+            const SpriteSheet& spritesheet
+        );
         ~TileMap();
         TileMap(const TileMap&) = delete;
 

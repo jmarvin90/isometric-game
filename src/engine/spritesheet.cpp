@@ -44,6 +44,10 @@ SpriteSheet::SpriteSheet(
     }
 }
 
+const Sprite& SpriteSheet::get (const std::string name) const {
+    return sprites.at(name);
+}
+
 SpriteSheet::~SpriteSheet() {
     SDL_DestroyTexture(spritesheet);
 }
