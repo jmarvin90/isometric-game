@@ -1,8 +1,10 @@
 #include <spritesheet.h>
-// #include <rapidjson/document.h>
+#include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <spdlog/spdlog.h>
+#include <fstream>
 
 
 SpriteSheet::SpriteSheet(
@@ -27,6 +29,19 @@ SpriteSheet::SpriteSheet(
     }
 
     SDL_FreeSurface(surface);
+
+    std::ifstream input {atlas_path};
+    rapidjson::IStreamWrapper read{input};
+    rapidjson::Document my_document;
+    my_document.ParseStream(read);
+
+    for (const auto& json_object: my_document.GetArray()) {
+        sprites.try_emplace(
+            json_object["name"].GetString(),
+            json_object,
+            spritesheet
+        );
+    }
 }
 
 SpriteSheet::~SpriteSheet() {

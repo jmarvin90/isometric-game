@@ -9,6 +9,7 @@ include_directories(
     SYSTEM libs/entt/src/
     SYSTEM libs/imgui
     SYSTEM /usr/include/SDL2
+    SYSTEM libs/rapidjson/include/rapidjson
     src/engine
     src/engine/components
     src/engine/systems
@@ -41,6 +42,7 @@ add_executable(isometric-game
     src/engine/tilemap.cpp
     src/engine/mouse_position.cpp
     src/engine/render.cpp
+    src/engine/spritesheet.cpp
 )
 
 target_compile_options(isometric-game PRIVATE

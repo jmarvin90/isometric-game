@@ -3,9 +3,13 @@
 
 #include <string>
 #include <SDL2/SDL.h>
+#include <unordered_map>
+#include <components/sprite.h>
 
 class SpriteSheet {
     SDL_Texture* spritesheet;
+    std::unordered_map<std::string, Sprite> sprites;
+
 
     public:
         SpriteSheet(

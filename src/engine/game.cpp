@@ -12,6 +12,8 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 
+#include <spritesheet.h>
+
 #include <constants.h>
 #include <game.h>
 
@@ -44,7 +46,14 @@ void Game::initialise() {
     
     // TODO: move this somewhere smart under some smart condition
     renderer.emplace(window, display_mode, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC, -1);
-    scene.emplace(display_mode, glm::ivec2(256, 128), 8, 40);
+    
+    spritesheet.emplace(        
+        std::string {"assets/spritesheet_scaled.png"}, 
+        std::string {"assets/spritesheet.json"}, 
+        renderer.value().renderer
+    );
+    
+    scene.emplace(spritesheet.value(), display_mode, glm::ivec2(256, 128), 8, 40);
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();

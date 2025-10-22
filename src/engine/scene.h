@@ -6,10 +6,12 @@
 #include <optional>
 #include <render.h>
 #include <mouse_position.h>
+#include <spritesheet.h>
 
 class Scene {
     private:
         entt::registry registry;
+        const SpriteSheet& spritesheet;
         glm::ivec2 camera_position {0,0};
         const int scene_border_px;
         const SDL_DisplayMode& display_mode;
@@ -21,12 +23,14 @@ class Scene {
         const int n_tiles;
 
         Scene(
+            const SpriteSheet& spritesheet,
             const SDL_DisplayMode& display_mode,
             const glm::ivec2 tile_size,
             const int n_tiles,
             const int scene_border_px
         )
-        : registry {entt::registry()}
+        : spritesheet {spritesheet}
+        , registry {entt::registry()}
         , tilemap {registry, n_tiles, tile_size}
         , scene_border_px {scene_border_px}
         , display_mode {display_mode}

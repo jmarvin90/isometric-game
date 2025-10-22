@@ -7,31 +7,6 @@
 #include <components/highlight.h>
 #include <position.h>
 
-// To delete at some stage
-std::vector<SDL_Point> iso_sdl_points(
-    const glm::ivec2 tile_spec 
-) {
-    const glm::ivec2 centre {tile_spec / 2};
-    return std::vector<SDL_Point> {
-        SDL_Point {centre.x, 0},
-        SDL_Point {tile_spec.x, centre.y},
-        SDL_Point {centre.x, tile_spec.y},
-        SDL_Point {0, centre.y},
-        SDL_Point {centre.x, 0},
-    };
-}
-
-std::vector<SDL_Point> tile_points(
-    const glm::ivec2 tile_spec
-) {
-    return std::vector<SDL_Point>{
-        {0, 0},
-        {tile_spec.x, 0},
-        {tile_spec.x, tile_spec.y},
-        {0, tile_spec.y},
-        {0, 0}
-    };
-}
 
 glm::ivec2 tile_n_to_grid_pos(const int tile_n, const int n_tiles) {
     if (tile_n < n_tiles) {
@@ -64,7 +39,7 @@ TileMap::TileMap(entt::registry& registry, const int n_tiles, const glm::ivec2 t
         const glm::ivec2 grid_pos {tile_n_to_grid_pos(cell, m_n_tiles)};
         const glm::ivec2 world_pos {GridPosition{(*this), grid_pos}.to_world_position()};
         registry.emplace<Transform>(entity, world_pos, 0, 0.0);
-        registry.emplace<Highlight>(entity, SDL_Color{0, 0, 255, 255}, iso_sdl_points(m_tile_spec.size));
+        registry.emplace<Highlight>(entity, SDL_Color{0, 0, 255, 255}, m_tile_spec.iso_points());
     }
 }
 

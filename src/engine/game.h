@@ -11,6 +11,7 @@
 #include <components/transform.h>
 #include <constants.h>
 #include <scene.h>
+#include <spritesheet.h>
 
 class Game {
     bool is_running {false};
@@ -26,6 +27,7 @@ class Game {
     // Camera, renderer are smart pointers to allow late initialisation
     std::optional<Renderer> renderer;
     std::optional<Scene> scene;
+    std::optional<SpriteSheet> spritesheet;
 
     void process_input();
     void update(const float delta_time);
