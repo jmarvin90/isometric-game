@@ -8,18 +8,18 @@ ScreenPosition WorldPosition::to_screen_position(const glm::ivec2 camera_positio
     return ScreenPosition{m_tilemap, m_position - camera_position};
 }
 
+const glm::vec2 WorldPosition::to_grid_gross() const {
+    const glm::ivec2 world_pos_adjusted {m_position - (m_tilemap.tile_spec().size / 2)};
+    const glm::ivec2 centred_world_pos {world_pos_adjusted - m_tilemap.origin_px()};
+    return glm::vec2 {m_tilemap.tile_spec().matrix_inverted * centred_world_pos};
+}
+
 GridPosition WorldPosition::to_grid_position() const {
     const glm::vec2 gross {to_grid_gross()};
     return GridPosition{
         m_tilemap, 
         glm::ivec2(std::round(gross.x), std::round(gross.y))
     };   
-}
-
-const glm::vec2 WorldPosition::to_grid_gross() const {
-    const glm::ivec2 world_pos_adjusted {m_position - (m_tilemap.tile_spec().size / 2)};
-    const glm::ivec2 centred_world_pos {world_pos_adjusted - m_tilemap.origin_px()};
-    return glm::vec2 {m_tilemap.tile_spec().matrix_inverted * centred_world_pos};
 }
 
 const WorldPosition GridPosition::to_world_position() const {
