@@ -1,7 +1,5 @@
 # -Weffc++ causes included libs to break
-COMPILER_FLAGS =		-Werror \
-						-Wall \
-						-Wno-system-headers \
+COMPILER_FLAGS =		-Wno-system-headers \
 						-pedantic-errors
 DEBUG_FLAG = 			-ggdb
 LANG_STD = 				-std=c++17
@@ -10,11 +8,15 @@ SRC_FILES = 			./src/*.cpp \
 						./libs/imgui/*.cpp \
 						./libs/imgui/backends/imgui_impl_sdl2.cpp \
 						./libs/imgui/backends/imgui_impl_sdlrenderer2.cpp
-LINKER_FLAGS = 			-lSDL2 \
+LINKER_FLAGS = 			-L/opt/homebrew/lib \
+						-lSDL2 \
 						-lSDL2_image \
 						-lspdlog \
 						-lfmt
-INCLUDE_PATH = 			-isystem"./libs/entt/src/" -isystem"./libs/imgui" -isystem"/usr/include/SDL2/"
+INCLUDE_PATH = 			-isystem"./libs/imgui" \
+						-isystem"/opt/homebrew/include/" \
+						-isystem"/opt/homebrew/include/SDL2/"
+
 ADDITIONAL_INCLUDES =	-I"./src/engine/components/" -I"./src/engine/"
 OUTPUT = isometric-game
 
