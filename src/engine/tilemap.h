@@ -27,7 +27,8 @@ class TileMap {
         TileMap(
             entt::registry& registry,
             const int n_tiles,
-            const glm::ivec2 tile_spec,
+            const int tile_width,
+            const int tile_depth,
             const SpriteSheet& spritesheet
         );
         ~TileMap();

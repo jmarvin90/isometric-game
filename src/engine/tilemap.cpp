@@ -25,12 +25,13 @@ TileMap::~TileMap() {
 TileMap::TileMap(
     entt::registry& registry,
     const int n_tiles,
-    const glm::ivec2 tile_size,
+    const int tile_width,
+    const int tile_depth,
     const SpriteSheet& spritesheet
 )
 : m_registry {registry}
 , m_n_tiles {n_tiles}
-, m_tile_spec {tile_size}
+, m_tile_spec {tile_width, tile_depth}
 , m_highlighted_tile {}
 {
     const int n_tiles_total {n_tiles * n_tiles};
@@ -56,11 +57,11 @@ TileMap::TileMap(
 }
 
 const glm::ivec2 TileMap::area() const {
-    return m_tile_spec.size * m_n_tiles;
+    return m_tile_spec.iso_area * m_n_tiles;
 }
 
 const glm::ivec2 TileMap::origin_px() const {
-    return {(area().x / 2) - (m_tile_spec.size.x / 2), 0};
+    return {(area().x / 2) - (m_tile_spec.centre().x), 0};
 }
 
 std::optional<entt::entity> TileMap::operator[](const glm::ivec2 grid_position) const {

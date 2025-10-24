@@ -25,13 +25,14 @@ class Scene {
         Scene(
             const SpriteSheet& spritesheet,
             const SDL_DisplayMode& display_mode,
-            const glm::ivec2 tile_size,
+            const int tile_width,
+            const int tile_depth,
             const int n_tiles,
             const int scene_border_px
         )
         : spritesheet {spritesheet}
         , registry {entt::registry()}
-        , tilemap {registry, n_tiles, tile_size, spritesheet}
+        , tilemap {registry, n_tiles, tile_width, tile_depth, spritesheet}
         , scene_border_px {scene_border_px}
         , display_mode {display_mode}
         , n_tiles {n_tiles}
