@@ -11,28 +11,28 @@ void Scene::update() {
         mouse_screen_position.x < scene_border_px &&
         camera_position.x > 0
     ) {
-        camera_position.x -= 4;
+        camera_position.x -= scroll_speed;
     }
 
     if (
         (display_mode.w - mouse_screen_position.x) < scene_border_px &&
-        (camera_position.x + display_mode.w) < tilemap.area().x
+        (camera_position.x + display_mode.w) < (tilemap.area().x + scene_border_px * 2)
     ) {
-        camera_position.x += 4;
+        camera_position.x += scroll_speed;
     }
 
     if (
         mouse_screen_position.y < scene_border_px &&
         camera_position.y > 0
     ) {
-        camera_position.y -= 4;
+        camera_position.y -= scroll_speed;
     }
 
     if (
         (display_mode.h - mouse_screen_position.y) < scene_border_px &&
-        (camera_position.y + display_mode.h) < tilemap.area().y
+        (camera_position.y + display_mode.h) < (tilemap.area().y + scene_border_px * 2)
     ) {
-        camera_position.y += 4;
+        camera_position.y += scroll_speed;
     }
 
 

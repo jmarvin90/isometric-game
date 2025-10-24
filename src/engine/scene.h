@@ -15,6 +15,7 @@ class Scene {
         glm::ivec2 camera_position {0,0};
         const int scene_border_px;
         const SDL_DisplayMode& display_mode;
+        int scroll_speed;
 
     public:
         TileMap tilemap;
@@ -28,7 +29,8 @@ class Scene {
             const int tile_width,
             const int tile_depth,
             const int n_tiles,
-            const int scene_border_px
+            const int scene_border_px,
+            const int scroll_speed
         )
         : spritesheet {spritesheet}
         , registry {entt::registry()}
@@ -37,12 +39,14 @@ class Scene {
         , display_mode {display_mode}
         , n_tiles {n_tiles}
         , mouse_position {tilemap, camera_position, scene_border_px}
+        , scroll_speed {scroll_speed}
         {}
 
         Scene(const Scene&) = delete;
         ~Scene() = default;
 
         void update();
+        void set_scroll_speed(const int new_speed) { scroll_speed = new_speed; }
 };
 
 #endif
