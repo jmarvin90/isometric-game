@@ -17,7 +17,7 @@ ScreenPosition WorldPosition::to_screen_position(
 }
 
 const glm::vec2 WorldPosition::to_grid_gross() const {
-    const glm::ivec2 world_pos_adjusted {m_position - (m_tilemap.tile_spec.centre())};
+    const glm::ivec2 world_pos_adjusted {m_position - (m_tilemap.tile_spec().centre())};
     const glm::ivec2 centred_world_pos {world_pos_adjusted - m_tilemap.origin_px()};
     return glm::vec2 {m_tilemap.tile_spec().matrix_inverted * centred_world_pos};
 }
@@ -35,10 +35,10 @@ const WorldPosition GridPosition::to_world_position() const {
 
     const glm::ivec2 world_pos {
         (movement + m_tilemap.origin_px()) - 
-        (m_tilemap.tile_spec.centre())
+        (m_tilemap.tile_spec().centre())
     };
 
     return WorldPosition(
-        m_tilemap, world_pos + (m_tilemap.tile_spec.centre())
+        m_tilemap, world_pos + (m_tilemap.tile_spec().centre())
     );
 }
