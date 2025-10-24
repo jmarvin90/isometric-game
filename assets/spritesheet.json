@@ -92,18 +92,18 @@
     {
         "name": "building_short",
         "origin_x": 0,
-        "origin_y": 718,
+        "origin_y": 719,
         "width": 256,
-        "height": 210,
+        "height": 195,
         "passable": false,
         "directions": 0
     },
     {
         "name": "building_tall",
         "origin_x": 257,
-        "origin_y": 718,
+        "origin_y": 719,
         "width": 256,
-        "height": 241,
+        "height": 225,
         "passable": false,
         "directions": 0
     }
