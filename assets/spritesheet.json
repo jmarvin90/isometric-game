@@ -1,0 +1,110 @@
+[
+    {
+        "name": "grass",
+        "origin_x": 0,
+        "origin_y": 0,
+        "width": 256,
+        "height": 143,
+        "passable": false,
+        "directions": 0
+    },
+    {
+        "name": "sand",
+        "origin_x": 257,
+        "origin_y": 0,
+        "width": 256,
+        "height": 143,
+        "passable": false,
+        "directions": 0
+    },
+    {
+        "name": "water",
+        "origin_x": 0,
+        "origin_y": 144,
+        "width": 256,
+        "height": 143,
+        "passable": false,
+        "directions": 0
+    },
+    {
+        "name": "grass_ew",
+        "origin_x": 257,
+        "origin_y": 144,
+        "width": 256,
+        "height": 143,
+        "passable": true,
+        "directions": 10
+    },
+    {
+        "name": "grass_ns",
+        "origin_x": 0,
+        "origin_y": 288,
+        "width": 256,
+        "height": 143,
+        "passable": true,
+        "directions": 5
+    },
+    {
+        "name": "gass_nesw",
+        "origin_x": 257,
+        "origin_y": 288,
+        "width": 256,
+        "height": 143,
+        "passable": true,
+        "directions": 15
+    },
+    {
+        "name": "grass_es",
+        "origin_x": 0,
+        "origin_y": 431,
+        "width": 256,
+        "height": 143,
+        "passable": true,
+        "directions": 5
+    },
+    {
+        "name": "grass_sw",
+        "origin_x": 257,
+        "origin_y": 431,
+        "width": 256,
+        "height": 143,
+        "passable": true,
+        "directions": 12
+    },
+    {
+        "name": "grass_ne",
+        "origin_x": 0,
+        "origin_y": 575,
+        "width": 256,
+        "height": 143,
+        "passable": true,
+        "directions": 3
+    },
+    {
+        "name": "grass_nw",
+        "origin_x": 257,
+        "origin_y": 575,
+        "width": 256,
+        "height": 143,
+        "passable": true,
+        "directions": 9
+    },
+    {
+        "name": "building_short",
+        "origin_x": 0,
+        "origin_y": 718,
+        "width": 256,
+        "height": 210,
+        "passable": false,
+        "directions": 0
+    },
+    {
+        "name": "building_tall",
+        "origin_x": 257,
+        "origin_y": 718,
+        "width": 256,
+        "height": 241,
+        "passable": false,
+        "directions": 0
+    }
+]
