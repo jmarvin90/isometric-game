@@ -46,7 +46,12 @@ TileMap::TileMap(
         const glm::ivec2 world_pos {GridPosition{(*this), grid_pos}.to_world_position()};
         registry.emplace<Transform>(entity, world_pos, 0, 0.0);
         registry.emplace<Highlight>(entity, SDL_Color{0, 0, 255, 255}, m_tile_spec.iso_points());
-        registry.emplace<Sprite>(entity, spritesheet.get("grass"));
+        
+        if (grid_pos.y == 1) {
+            registry.emplace<Sprite>(entity, spritesheet.get("grass_ew"));
+        } else {
+            registry.emplace<Sprite>(entity, spritesheet.get("grass"));
+        }
     }
 }
 

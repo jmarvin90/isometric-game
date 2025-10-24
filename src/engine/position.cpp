@@ -1,11 +1,19 @@
 #include <position.h>
 
-WorldPosition ScreenPosition::to_world_position(const glm::ivec2 camera_position) const {
-    return WorldPosition(m_tilemap, m_position + camera_position);
+WorldPosition ScreenPosition::to_world_position(
+    const glm::ivec2 camera_position,
+    const int scene_border_px
+) const {
+    const glm::ivec2 scene_border {scene_border_px, scene_border_px};
+    return WorldPosition(m_tilemap, (m_position + camera_position) - scene_border);
 }
 
-ScreenPosition WorldPosition::to_screen_position(const glm::ivec2 camera_position) const {
-    return ScreenPosition{m_tilemap, m_position - camera_position};
+ScreenPosition WorldPosition::to_screen_position(
+    const glm::ivec2 camera_position,
+    const int scene_border_px
+) const {
+    const glm::ivec2 scene_border {scene_border_px, scene_border_px}
+;    return ScreenPosition{m_tilemap, (m_position - camera_position) + scene_border};
 }
 
 const glm::vec2 WorldPosition::to_grid_gross() const {

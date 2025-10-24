@@ -17,6 +17,10 @@ struct TileSpec {
     ~TileSpec() = default;
     TileSpec(const TileSpec&) = delete;
 
+    const glm::ivec2 centre() const {
+        return size / 2;
+    }
+
     const std::vector<SDL_Point> iso_points() const {
         const glm::ivec2 centre {size / 2};
         return {

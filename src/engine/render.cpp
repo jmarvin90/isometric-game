@@ -12,6 +12,7 @@
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <scene.h>
 #include <tilemap.h>
+#include <position.h>
 
 Renderer::Renderer(
     SDL_Window* window, 
@@ -76,7 +77,7 @@ void Renderer::render(Scene& scene, const bool debug_mode) {
     SDL_RenderClear(renderer);
     const glm::vec2 highlight_offset {0, 30};
 
-    // scene.registry.sort<Transform>(transform_comparison);
+    scene.registry.sort<Transform>(transform_comparison);
     auto sprites = scene.registry.view<Transform>();
     std::optional<entt::entity> highlighted_tile {scene.tilemap.highlighted_tile()};
 
@@ -86,25 +87,30 @@ void Renderer::render(Scene& scene, const bool debug_mode) {
         const auto* highlight {scene.registry.try_get<Highlight>(entity)};
         const auto* tile_highlight {scene.registry.try_get<TileHighlight>(entity)};
 
-        glm::vec2 offset {
-            transform.position.x + scene.camera_position.x,
-            transform.position.y + scene.camera_position.y
+        glm::ivec2 screen_position {
+            WorldPosition{scene.tilemap, transform.position}.to_screen_position(
+                scene.camera_position, scene.scene_border_px
+            )
         };
-        
+
+        if (
+            debug_mode &&
+            highlighted_tile && 
+            entity == scene.tilemap.highlighted_tile()
+        ) {
+            screen_position -= highlight_offset;
+        }
+
         if (sprite) {
-            render_sprite(offset, transform.rotation, *sprite);
+            render_sprite(screen_position, transform.rotation, *sprite);
         }
 
-        if (highlighted_tile && entity == scene.tilemap.highlighted_tile()) {
-            offset -= highlight_offset;
+        if (highlight && debug_mode) {
+            draw_lines(highlight, screen_position);
         }
 
-        if (highlight) {
-            draw_lines(highlight, offset);
-        }
-
-        if (tile_highlight) {
-            draw_lines(tile_highlight, offset);
+        if (tile_highlight && debug_mode) {
+            draw_lines(tile_highlight, screen_position);
         }
     }
 
@@ -123,7 +129,6 @@ void Renderer::render_imgui_ui(const Scene& scene) const {
     // The mouse and world positions
     const glm::ivec2 screen_position {scene.mouse_position.on_screen()};
     const glm::ivec2 world_position {scene.mouse_position.in_world()};
-    // const glm::vec2 grid_position_gross {scene.mouse_position.on_grid_gross()};
     const glm::ivec2 grid_position {scene.mouse_position.on_grid()};
 
     ImGui::SeparatorText("Mouse Position");
@@ -139,33 +144,11 @@ void Renderer::render_imgui_ui(const Scene& scene) const {
         std::to_string(world_position.y).c_str()
     );
 
-    // ImGui::Text(
-    //     "Mouse Grid position (gross): (%s) (%s)",
-    //     std::to_string(grid_position_gross.x).c_str(),
-    //     std::to_string(grid_position_gross.y).c_str()
-    // );
-
     ImGui::Text(
         "Mouse Grid position: (%s) (%s)",
         std::to_string(grid_position.x).c_str(),
         std::to_string(grid_position.y).c_str()
     );
-
-    ImGui::SeparatorText("Selected Tile Position");
-    if (scene.tilemap.highlighted_tile()) {
-        
-        // ImGui::Text(
-        //     "Selected Tile World position: (%s) (%s)", 
-        //     std::to_string(tilemap.selected_tile->world_position().x).c_str(), 
-        //     std::to_string(tilemap.selected_tile->world_position().y).c_str()
-        // );
-    
-        // ImGui::Text(
-        //     "Selected Tile Grid position: (%s) (%s)",
-        //     std::to_string(tilemap.selected_tile->get_grid_position().x).c_str(),
-        //     std::to_string(tilemap.selected_tile->get_grid_position().y).c_str()
-        // );    
-    }
 
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);

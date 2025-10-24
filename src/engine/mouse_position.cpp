@@ -15,8 +15,8 @@ bool MousePosition::moved() const {
 }
 
 const GridPosition MousePosition::on_grid() const {
-    return WorldPosition(
-        tilemap, m_mouse_window_current_position + camera_position
+    return on_screen().to_world_position(
+        camera_position, scene_border_px
     ).to_grid_position();
 }
 
@@ -25,7 +25,7 @@ const ScreenPosition MousePosition::on_screen() const {
 }
 
 const WorldPosition MousePosition::in_world() const {
-    return WorldPosition(
-        tilemap, m_mouse_window_current_position + camera_position
+    return on_screen().to_world_position(
+        camera_position, scene_border_px
     );
 }

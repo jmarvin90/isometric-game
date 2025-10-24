@@ -35,7 +35,11 @@ class GridPosition: public Position {
 class ScreenPosition: public Position {
     public:
         using Position::Position;
-        WorldPosition to_world_position(const glm::ivec2 camera_position) const;
+
+        WorldPosition to_world_position(
+            const glm::ivec2 camera_position,
+            const int scene_border_px
+        ) const;
 };
 
 
@@ -45,7 +49,11 @@ class WorldPosition: public Position {
     public:
         using Position::Position;
 
-        ScreenPosition to_screen_position(const glm::ivec2 camera_position) const;
+        ScreenPosition to_screen_position(
+            const glm::ivec2 camera_position,
+            const int scene_border_px
+        ) const;
+
         GridPosition to_grid_position() const;
 };
 
