@@ -45,12 +45,13 @@ TileMap::TileMap(
     // Calculate the grid position for each slot in the vector
     for (int cell=0; cell<n_tiles_total; cell++) {
         Tile& tile {m_tiles.emplace_back(registry)};
-        const glm::ivec2 grid_pos {tile_n_to_grid_pos(cell, m_n_tiles)};
-        const glm::ivec2 world_pos {GridPosition{(*this), grid_pos}.to_world_position()};
+        const GridPosition grid_pos {(*this), cell};
+        const glm::ivec2 world_pos {grid_pos.to_world_position()};
         registry.emplace<Transform>(tile.tile_entity, world_pos, 0, 0.0);
         registry.emplace<Highlight>(tile.tile_entity, SDL_Color{0, 0, 255, 255}, m_tile_spec.iso_points());
         
-        if (grid_pos.y == 1) {
+        // TODO: to be deleted anyway
+        if (glm::ivec2(grid_pos).y == 1) {
             registry.emplace<Sprite>(tile.tile_entity, spritesheet.get("grass_ew"));
         } else {
             registry.emplace<Sprite>(tile.tile_entity, spritesheet.get("grass"));

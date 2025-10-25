@@ -29,7 +29,11 @@ struct Tile {
 class TileMap {
     private:
         entt::registry& m_registry;
+
+    public:
         const int m_n_tiles;
+
+    private:
         const TileSpec m_tile_spec;
         std::vector<Tile> m_tiles;
         const Tile* m_highlighted_tile;

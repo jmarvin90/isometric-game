@@ -1,5 +1,18 @@
 #include <position.h>
 
+GridPosition::GridPosition(const TileMap& tilemap, const int tile_n)
+: Position {tilemap}
+{
+    if (tile_n < m_tilemap.m_n_tiles) {
+        m_position = {tile_n, 0};
+    } else {
+        m_position = {
+            tile_n % m_tilemap.m_n_tiles,
+            tile_n / m_tilemap.m_n_tiles
+        };
+    }
+}
+
 WorldPosition ScreenPosition::to_world_position(
     const glm::ivec2 camera_position,
     const int scene_border_px

@@ -10,6 +10,11 @@ class Position {
         glm::ivec2 m_position;
 
     public:
+        Position(const TileMap& tilemap)
+        : m_tilemap {tilemap}
+        , m_position {}
+        {}
+
         Position(const TileMap& tilemap, const glm::ivec2 position)
         : m_tilemap {tilemap}
         , m_position {position} 
@@ -28,6 +33,7 @@ class WorldPosition;
 class GridPosition: public Position {
     public:
         using Position::Position;
+        GridPosition(const TileMap& tilemap, const int tile_n);
         const WorldPosition to_world_position() const;
 };
 
