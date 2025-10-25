@@ -9,13 +9,6 @@
 #include <spritesheet.h>
 
 
-glm::ivec2 tile_n_to_grid_pos(const int tile_n, const int n_tiles) {
-    if (tile_n < n_tiles) {
-        return {tile_n, 0};
-    }
-    return {tile_n % n_tiles, tile_n / n_tiles};
-}
-
 TileMap::~TileMap() {
     for (const Tile& tile: m_tiles) {
         m_registry.destroy(tile.tile_entity);
