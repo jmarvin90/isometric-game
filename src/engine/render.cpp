@@ -79,7 +79,7 @@ void Renderer::render(Scene& scene, const bool debug_mode) {
 
     scene.registry.sort<Transform>(transform_comparison);
     auto sprites = scene.registry.view<Transform>();
-    std::optional<entt::entity> highlighted_tile {scene.tilemap.highlighted_tile()};
+    const Tile* highlighted_tile {scene.tilemap.highlighted_tile()};
 
     for (auto entity: sprites) {
         const auto& transform {sprites.get<Transform>(entity)};
@@ -96,7 +96,13 @@ void Renderer::render(Scene& scene, const bool debug_mode) {
         if (
             debug_mode &&
             highlighted_tile && 
-            entity == scene.tilemap.highlighted_tile()
+            (
+                entity == highlighted_tile->tile_entity ||
+                (
+                    highlighted_tile->building_entity && 
+                    entity == highlighted_tile->building_entity
+                )
+            )
         ) {
             screen_position -= highlight_offset;
         }

@@ -10,18 +10,29 @@
 #include <optional>
 #include <spdlog/spdlog.h>
 #include <functional>
+#include <memory>
 
 #include <components/transform.h>
 #include <tilespec.h>
 #include <spritesheet.h>
+
+struct Tile {
+    entt::entity tile_entity;
+    std::optional<entt::entity> building_entity;
+
+    Tile(entt::registry& registry)
+    : tile_entity {registry.create()}
+    , building_entity {std::nullopt}
+    {}
+};
 
 class TileMap {
     private:
         entt::registry& m_registry;
         const int m_n_tiles;
         const TileSpec m_tile_spec;
-        std::vector<entt::entity> m_tiles;
-        std::optional<entt::entity> m_highlighted_tile;
+        std::vector<Tile> m_tiles;
+        const Tile* m_highlighted_tile;
 
     public:
         TileMap(
@@ -33,10 +44,10 @@ class TileMap {
         );
         ~TileMap();
         TileMap(const TileMap&) = delete;
-
-        std::optional<entt::entity> operator[](const glm::ivec2 grid_position) const;
+        
+        const Tile* operator[](const glm::ivec2 grid_position) const;
         void highlight_tile(const glm::ivec2 grid_position);
-        const std::optional<entt::entity> highlighted_tile() const;
+        const Tile* highlighted_tile() const;
         const glm::ivec2 area() const;
         const glm::ivec2 origin_px() const;
         const TileSpec& tile_spec() const { return m_tile_spec; }
