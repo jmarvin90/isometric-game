@@ -24,7 +24,12 @@ struct Tile {
     : tile_entity {registry.create()}
     , building_entity {std::nullopt}
     {}
+
+    Tile(const Tile&) = delete;
+    Tile(Tile&&) = default;
+    ~Tile() = default;
 };
+
 
 class TileMap {
     private:
