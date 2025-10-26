@@ -35,6 +35,7 @@ class GridPosition: public Position {
         using Position::Position;
         GridPosition(const TileMap& tilemap, const int tile_n);
         const WorldPosition to_world_position() const;
+        bool is_valid() const;
 };
 
 
@@ -46,6 +47,7 @@ class ScreenPosition: public Position {
             const glm::ivec2 camera_position,
             const int scene_border_px
         ) const;
+        bool is_valid(const SDL_DisplayMode& display_mode) const;
 };
 
 
@@ -61,6 +63,7 @@ class WorldPosition: public Position {
         ) const;
 
         GridPosition to_grid_position() const;
+        bool is_valid(const int scene_border_px) const;
 };
 
 #endif

@@ -61,10 +61,7 @@ const glm::ivec2 TileMap::origin_px() const {
 }
 
 const Tile* TileMap::operator[](const glm::ivec2 grid_position) const {
-    if (
-        grid_position.x >= 0 && grid_position.y >= 0 &&
-        grid_position.x < m_n_tiles && grid_position.y < m_n_tiles
-    ) {
+    if (GridPosition(*this, grid_position).is_valid()) {
         return &m_tiles.at((grid_position.y * m_n_tiles) + grid_position.x);
     }
     return nullptr;

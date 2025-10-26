@@ -53,7 +53,7 @@ void Game::initialise() {
         renderer.value().renderer
     );
     
-    scene.emplace(spritesheet.value(), display_mode, 256, 28, 32, 150, 12);
+    scene.emplace(spritesheet.value(), display_mode, 256, 28, 8, 150, 12);
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();

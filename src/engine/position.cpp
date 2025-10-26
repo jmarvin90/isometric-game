@@ -55,3 +55,33 @@ const WorldPosition GridPosition::to_world_position() const {
         m_tilemap, world_pos + (m_tilemap.tile_spec().centre())
     );
 }
+
+bool GridPosition::is_valid() const {
+    return (
+        (m_position.x >= 0 && m_position.y >= 0) &&
+        (
+            m_position.x < m_tilemap.m_n_tiles && 
+            m_position.y < m_tilemap.m_n_tiles
+        )
+    );
+}
+
+bool ScreenPosition::is_valid(const SDL_DisplayMode& display_mode) const {
+    return (
+        (m_position.x >= 0 && m_position.y >= 0) &&
+        (
+            m_position.x < display_mode.w &&
+            m_position.y < display_mode.h
+        )
+    );
+}
+
+bool WorldPosition::is_valid(const int scene_border_px) const {
+    return (
+        (m_position.x >= 0 && m_position.y >= 0) &&
+        (
+            m_position.x < m_tilemap.area().x + (scene_border_px * 2) &&
+            m_position.y < m_tilemap.area().y + (scene_border_px * 2)
+        )
+    );
+}
