@@ -11,13 +11,11 @@ void MousePosition::update() {
 }
 
 bool MousePosition::moved() const {
-    return !(m_mouse_window_current_position == m_mouse_window_previous_position);
+    return (m_mouse_window_current_position != m_mouse_window_previous_position);
 }
 
 const GridPosition MousePosition::on_grid() const {
-    return on_screen().to_world_position(
-        camera_position, scene_border_px
-    ).to_grid_position();
+    return in_world().to_grid_position();
 }
 
 const ScreenPosition MousePosition::on_screen() const {

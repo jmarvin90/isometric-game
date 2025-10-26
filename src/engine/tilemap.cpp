@@ -9,6 +9,16 @@
 #include <spritesheet.h>
 
 
+bool Tile::has(const entt::entity entity) const {
+    return (
+        entity == tile_entity ||
+        (
+            building_entity.has_value() && 
+            entity == building_entity.value()
+        )
+    );
+}
+
 TileMap::~TileMap() {
     for (const Tile& tile: m_tiles) {
         m_registry.destroy(tile.tile_entity);

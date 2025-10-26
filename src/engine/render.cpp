@@ -21,6 +21,7 @@ Renderer::Renderer(
     int index
 )
     : renderer {SDL_CreateRenderer(window, index, render_flags)}
+    // TODO: fix the clip rect for scene_border_px
     , render_clip_rect{20, 20, display_mode.w - 40, display_mode.h - 40} 
     {
 
@@ -96,13 +97,7 @@ void Renderer::render(Scene& scene, const bool debug_mode) {
         if (
             debug_mode &&
             highlighted_tile && 
-            (
-                entity == highlighted_tile->tile_entity ||
-                (
-                    highlighted_tile->building_entity && 
-                    entity == highlighted_tile->building_entity
-                )
-            )
+            highlighted_tile->has(entity)
         ) {
             screen_position -= highlight_offset;
         }

@@ -28,6 +28,7 @@ struct Tile {
     Tile(const Tile&) = delete;
     Tile(Tile&&) = default;
     ~Tile() = default;
+    bool has(const entt::entity) const;
 };
 
 
