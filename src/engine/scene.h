@@ -47,6 +47,11 @@ class Scene {
 
         void update();
         void set_scroll_speed(const int new_speed) { scroll_speed = new_speed; }
+
+        void create_building_at(
+            const glm::ivec2 grid_position,
+            const std::string building_sprite_name
+        );
 };
 
 #endif

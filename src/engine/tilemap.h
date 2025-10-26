@@ -55,7 +55,7 @@ class TileMap {
         ~TileMap();
         TileMap(const TileMap&) = delete;
         
-        const Tile* operator[](const glm::ivec2 grid_position) const;
+        Tile* operator[](const glm::ivec2 grid_position);
         void highlight_tile(const glm::ivec2 grid_position);
         const Tile* highlighted_tile() const;
         const glm::ivec2 area() const;

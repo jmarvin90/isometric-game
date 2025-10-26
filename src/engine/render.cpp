@@ -68,8 +68,13 @@ bool transform_comparison(
     [[maybe_unused]] const Transform& lhs,
     [[maybe_unused]] const Transform& rhs
 ) {
-    return lhs.position.y < rhs.position.y;
-    // return true;
+    return (
+        lhs.z_index < rhs.z_index ||
+        (
+            lhs.z_index == rhs.z_index && 
+            lhs.position.y < rhs.position.y
+        )
+    );
 }
 
 // TODO: check how to (if it's possible) make the scene ref const

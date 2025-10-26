@@ -48,13 +48,13 @@ TileMap::TileMap(
     // Calculate the grid position for each slot in the vector
     for (int cell=0; cell<n_tiles_total; cell++) {
         Tile& tile {m_tiles.emplace_back(registry)};
-        const GridPosition grid_pos {(*this), cell};
-        const glm::ivec2 world_pos {grid_pos.to_world_position()};
+        const GridPosition grid_position {(*this), cell};
+        const glm::ivec2 world_pos {grid_position.to_world_position()};
         registry.emplace<Transform>(tile.tile_entity, world_pos, 0, 0.0);
         registry.emplace<Highlight>(tile.tile_entity, SDL_Color{0, 0, 255, 255}, m_tile_spec.iso_points());
         
         // TODO: to be deleted anyway
-        if (glm::ivec2(grid_pos).y == 1) {
+        if (glm::ivec2(grid_position).y == 1) {
             registry.emplace<Sprite>(tile.tile_entity, spritesheet.get("grass_ew"));
         } else {
             registry.emplace<Sprite>(tile.tile_entity, spritesheet.get("grass"));
@@ -70,15 +70,15 @@ const glm::ivec2 TileMap::origin_px() const {
     return {(area().x / 2) - (m_tile_spec.centre().x), 0};
 }
 
-const Tile* TileMap::operator[](const glm::ivec2 grid_position) const {
+Tile* TileMap::operator[](const glm::ivec2 grid_position) {
     if (GridPosition(*this, grid_position).is_valid()) {
         return &m_tiles.at((grid_position.y * m_n_tiles) + grid_position.x);
     }
     return nullptr;
 }
 
-void TileMap::highlight_tile(const glm::ivec2 grid_pos) {
-    const Tile* tile {(*this)[grid_pos]};
+void TileMap::highlight_tile(const glm::ivec2 grid_position) {
+    const Tile* tile {(*this)[grid_position]};
     if (tile) {
         m_highlighted_tile = tile;
     } else {

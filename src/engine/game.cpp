@@ -53,7 +53,8 @@ void Game::initialise() {
         renderer.value().renderer
     );
     
-    scene.emplace(spritesheet.value(), display_mode, 256, 28, 8, 150, 12);
+    scene.emplace(spritesheet.value(), display_mode, 256, 14, 8, 150, 12);
+    scene.value().create_building_at({3, 3}, "building_tall");
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
