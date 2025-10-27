@@ -63,7 +63,7 @@ void Scene::create_building_at(
 
     int vertical_offset {
         building_sprite.source_rect.h - 
-        tilemap.tile_spec().iso_area.y
+        tilemap.tile_spec().total_area.y
     };
 
     transform.position.y -= vertical_offset;
