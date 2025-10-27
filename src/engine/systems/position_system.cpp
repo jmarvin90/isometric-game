@@ -4,6 +4,8 @@
 #include <components/tilespec_component.h>
 #include <components/tilemap_component.h>
 
+#include <spdlog/spdlog.h>
+
 const WorldPosition ScreenPosition::to_world_position(entt::registry& registry) const {
     const CameraComponent& camera {registry.ctx().get<const CameraComponent>()};
     
@@ -41,12 +43,12 @@ const GridPosition WorldPosition::to_grid_position(entt::registry& registry) con
 GridPosition::GridPosition(entt::registry& registry, const int tile_n) {
     const TileMapComponent& tilemap {registry.ctx().get<TileMapComponent>()};
 
-    if (tile_n < tilemap.n_tiles) {
+    if (tile_n < tilemap.tiles_per_row) {
         position = {tile_n, 0};
     } else {
         position = {
-            tile_n % tilemap.n_tiles,
-            tile_n / tilemap.n_tiles
+            tile_n % tilemap.tiles_per_row,
+            tile_n / tilemap.tiles_per_row
         };
     }
 }

@@ -7,6 +7,7 @@
 
 #include <entt/entt.hpp>
 #include <SDL2/SDL.h>
+#include <spdlog/spdlog.h>
 
 
 class MouseSystem {

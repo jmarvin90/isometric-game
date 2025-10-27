@@ -4,6 +4,8 @@
 #include <components/camera_component.h>
 #include <components/mouse_component.h>
 
+#include <glm/glm.hpp>
+#include <spdlog/spdlog.h>
 #include <entt/entt.hpp>
 #include <SDL2/SDL.h>
 

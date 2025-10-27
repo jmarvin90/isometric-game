@@ -12,8 +12,12 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 
+#include <components/tilemap_component.h>
+#include <components/tilespec_component.h>
+
 #include <systems/mouse_system.h>
 #include <systems/camera_system.h>
+
 #include <spritesheet.h>
 #include <constants.h>
 #include <game.h>
@@ -58,6 +62,10 @@ void Game::initialise() {
         std::string {"assets/spritesheet.json"}, 
         renderer.value().renderer
     );
+    TileMapComponent& tilemap = registry.ctx().emplace<TileMapComponent>(registry, 8);
+    tilemap.emplace_tiles(registry);
+
+    spdlog::info("Registry initialisation complete");
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
