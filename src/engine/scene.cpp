@@ -35,9 +35,14 @@ void Scene::update() {
         camera_position.y += scroll_speed;
     }
 
-
-    if (mouse_position.moved()) {
-        tilemap.highlight_tile(mouse_position.on_grid());
+    // TODO: not sure on the mechanics of this; 
+    // reset_[...]() is called every frame
+    if (!debug_mode) {
+        tilemap.reset_highlighted_tile();
+    } else {
+        if (mouse_position.moved()) {
+            tilemap.highlight_tile(mouse_position.on_grid());
+        }
     }
 }
 

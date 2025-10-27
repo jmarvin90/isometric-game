@@ -40,7 +40,12 @@ class Renderer{
         );
     }
 
-    void render_sprite(const glm::vec2 position, const double rotation, const Sprite& sprite) const;
+    void render_sprite(
+        const Scene& scene,
+        const Transform& transform,
+        const Sprite& sprite
+    ) const;
+
     void render_sprites() const;
     void render_imgui_ui(const Scene& scene) const;
 

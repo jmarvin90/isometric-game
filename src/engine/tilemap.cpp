@@ -77,15 +77,37 @@ Tile* TileMap::operator[](const glm::ivec2 grid_position) {
     return nullptr;
 }
 
-void TileMap::highlight_tile(const glm::ivec2 grid_position) {
-    const Tile* tile {(*this)[grid_position]};
-    if (tile) {
-        m_highlighted_tile = tile;
-    } else {
-        m_highlighted_tile = nullptr;
+void _highlight(entt::registry& registry, entt::entity entity, int factor) {
+    Transform& transform {registry.get<Transform>(entity)};
+    transform.position.y -= (30 * factor);
+    transform.z_index += factor;
+}
+
+void Tile::highlight(entt::registry& registry, int factor=1) {
+    _highlight(registry, tile_entity, factor);
+    if (building_entity) {
+        _highlight(registry, building_entity.value(), factor);
     }
 }
 
-const Tile* TileMap::highlighted_tile() const {
+void TileMap::highlight_tile(const glm::ivec2 grid_position) {
+    reset_highlighted_tile();
+    
+    Tile* tile {(*this)[grid_position]};
+
+    if (tile) {
+        m_highlighted_tile = tile;
+        m_highlighted_tile->highlight(m_registry);
+    }
+}
+
+Tile* TileMap::highlighted_tile() {
     return m_highlighted_tile;
+}
+
+void TileMap::reset_highlighted_tile() {
+    if (m_highlighted_tile) {
+        m_highlighted_tile->highlight(m_registry, -1);
+        m_highlighted_tile = nullptr;
+    }
 }

@@ -41,24 +41,30 @@ Renderer::~Renderer() {
 }
 
 void Renderer::render_sprite(
-    const glm::vec2 position,
-    const double rotation,
+    const Scene& scene,
+    const Transform& transform,
     const Sprite& sprite
 ) const {
 
-    SDL_FRect target_rect {
-        position.x,
-        position.y,
-        static_cast<float>(sprite.source_rect.w),
-        static_cast<float>(sprite.source_rect.h)
+    const glm::ivec2 screen_position {
+        WorldPosition{scene.tilemap, transform.position}.to_screen_position(
+            scene.camera_position, scene.scene_border_px
+        )
     };
 
-    SDL_RenderCopyExF(
+    SDL_Rect target_rect {
+        screen_position.x,
+        screen_position.y,
+        sprite.source_rect.w,
+        sprite.source_rect.h
+    };
+
+    SDL_RenderCopyEx(
         renderer,
         sprite.texture,
         &sprite.source_rect,
         &target_rect,
-        rotation,
+        transform.rotation,
         NULL,
         SDL_FLIP_NONE
     );
@@ -81,15 +87,12 @@ bool transform_comparison(
 void Renderer::render(Scene& scene, const bool debug_mode) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
-    const glm::vec2 highlight_offset {0, 30};
 
     scene.registry.sort<Transform>(transform_comparison);
-    auto sprites = scene.registry.view<Transform>();
-    const Tile* highlighted_tile {scene.tilemap.highlighted_tile()};
+    auto sprites = scene.registry.view<Transform, Sprite>();
 
-    for (auto entity: sprites) {
-        const auto& transform {sprites.get<Transform>(entity)};
-        const auto* sprite {scene.registry.try_get<Sprite>(entity)};
+    for (auto [entity, transform, sprite]: sprites.each()) {
+
         const auto* highlight {scene.registry.try_get<Highlight>(entity)};
         const auto* tile_highlight {scene.registry.try_get<TileHighlight>(entity)};
 
@@ -99,17 +102,7 @@ void Renderer::render(Scene& scene, const bool debug_mode) {
             )
         };
 
-        if (
-            debug_mode &&
-            highlighted_tile && 
-            highlighted_tile->has(entity)
-        ) {
-            screen_position -= highlight_offset;
-        }
-
-        if (sprite) {
-            render_sprite(screen_position, transform.rotation, *sprite);
-        }
+        render_sprite(scene, transform, sprite);
 
         if (highlight && debug_mode) {
             draw_lines(highlight, screen_position);

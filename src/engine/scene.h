@@ -16,6 +16,7 @@ class Scene {
         const int scene_border_px;
         const SDL_DisplayMode& display_mode;
         int scroll_speed;
+        const bool& debug_mode;
 
     public:
         TileMap tilemap;
@@ -30,7 +31,8 @@ class Scene {
             const int tile_depth,
             const int n_tiles,
             const int scene_border_px,
-            const int scroll_speed
+            const int scroll_speed,
+            const bool& debug_mode
         )
         : spritesheet {spritesheet}
         , registry {entt::registry()}
@@ -40,6 +42,7 @@ class Scene {
         , n_tiles {n_tiles}
         , mouse_position {tilemap, camera_position, scene_border_px}
         , scroll_speed {scroll_speed}
+        , debug_mode {debug_mode}
         {}
 
         Scene(const Scene&) = delete;

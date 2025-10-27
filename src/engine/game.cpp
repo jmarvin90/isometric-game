@@ -53,7 +53,17 @@ void Game::initialise() {
         renderer.value().renderer
     );
     
-    scene.emplace(spritesheet.value(), display_mode, 256, 14, 8, 150, 12);
+    scene.emplace(
+        spritesheet.value(),        // Spritesheet
+        display_mode,               // SDL display mode 
+        256,                        // Tile width
+        14,                         // Tile depth
+        8,                          // Grid size
+        150,                        // Scene border px
+        12,                         // Scroll soeed
+        debug_mode                  // debug mode
+    );
+
     scene.value().create_building_at({3, 3}, "building_tall");
 
     ImGui::CreateContext();
