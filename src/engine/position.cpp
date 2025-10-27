@@ -1,4 +1,4 @@
-#include <systems/position_system.h>
+#include <position.h>
 
 #include <components/camera_component.h>
 #include <components/tilespec_component.h>

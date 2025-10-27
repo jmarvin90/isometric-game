@@ -101,7 +101,7 @@ void Game::update(
     [[maybe_unused]] const float delta_time
 ) {
     MouseSystem::update(registry);
-    CameraSystem::update(registry);
+    CameraSystem::update(registry, display_mode);
 }
 
 void Game::render() {

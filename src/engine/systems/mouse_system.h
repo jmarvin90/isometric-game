@@ -3,7 +3,7 @@
 
 #include <components/camera_component.h>
 #include <components/mouse_component.h>
-#include <systems/position_system.h>
+#include <position.h>
 
 #include <entt/entt.hpp>
 #include <SDL2/SDL.h>

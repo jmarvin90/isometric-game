@@ -13,7 +13,7 @@
 #include <components/highlight_component.h>
 #include <components/tile_component.h>
 
-#include <systems/position_system.h>
+#include <position.h>
 #include <spritesheet.h>
 
 struct Tile {

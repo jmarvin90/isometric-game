@@ -1,5 +1,5 @@
-#ifndef POSITIONSYSTEM_H
-#define POSITIONSYSTEM_H
+#ifndef POSITION_H
+#define POSITION_H
 
 #include <glm/glm.hpp>
 #include <entt/entt.hpp>
