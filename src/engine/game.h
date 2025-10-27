@@ -1,16 +1,15 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <SDL2/SDL.h>
-#include <entt/entt.hpp>
-#include <unordered_map>
 #include <memory>
 #include <optional>
 
+#include <SDL2/SDL.h>
+#include <entt/entt.hpp>
+
 #include <render.h>
-#include <components/transform.h>
+#include <components/transform_component.h>
 #include <constants.h>
-#include <scene.h>
 #include <spritesheet.h>
 
 class Game {
@@ -24,10 +23,9 @@ class Game {
     SDL_Window* window;
     SDL_DisplayMode display_mode;
 
-    // Camera, renderer are smart pointers to allow late initialisation
+    // CameraComponent, renderer are smart pointers to allow late initialisation
+    entt::registry registry;
     std::optional<Renderer> renderer;
-    std::optional<Scene> scene;
-    std::optional<SpriteSheet> spritesheet;
 
     void process_input();
     void update(const float delta_time);

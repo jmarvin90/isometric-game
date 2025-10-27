@@ -7,10 +7,9 @@
 #include <glm/glm.hpp>
 #include <entt/entt.hpp>
 
-#include <sprite.h>
-#include <transform.h>
+#include <components/sprite_component.h>
+#include <components/transform_component.h>
 #include <constants.h>
-#include <scene.h>
 
 class Scene;
 
@@ -41,13 +40,13 @@ class Renderer{
     }
 
     void render_sprite(
-        const Scene& scene,
-        const Transform& transform,
-        const Sprite& sprite
+        entt::registry& registry,
+        const TransformComponent& transform,
+        const SpriteComponent& sprite
     ) const;
 
     void render_sprites() const;
-    void render_imgui_ui(const Scene& scene) const;
+    void render_imgui_ui(entt::registry& registry) const;
 
     public:
         SDL_Renderer* renderer;
@@ -57,7 +56,7 @@ class Renderer{
         Renderer(const Renderer&) = delete;
         Renderer operator=(const Renderer&) = delete;
 
-        void render(Scene& scene, const bool debug_mode);
+        void render(entt::registry& registry, const bool debug_mode);
 };
 
 #endif

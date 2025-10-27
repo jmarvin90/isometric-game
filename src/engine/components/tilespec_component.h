@@ -1,20 +1,23 @@
-#ifndef TILESPEC_H
-#define TILESPEC_H
+#ifndef TILESPECCOMPONENT_H
+#define TILESPECCOMPONENT_H
 
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
 #include <vector>
 
-struct TileSpec {
-    const glm::ivec2 iso_area;
+struct TileSpecComponent {
+    const int width;
     const int depth;
+
+    const glm::ivec2 iso_area;
     const glm::ivec2 total_area;
     const glm::mat2 matrix;
     const glm::mat2 matrix_inverted;
 
-    TileSpec(const int width, const int depth)
-    : iso_area{width, width / 2}
+    TileSpecComponent(const int width, const int depth)
+    : width {width}
     , depth {depth}
+    , iso_area {width, width / 2}
     , total_area {iso_area.x, iso_area.y + depth}
     , matrix {
         iso_area.x / 2.0f,
@@ -24,8 +27,8 @@ struct TileSpec {
     }
     , matrix_inverted {glm::inverse(matrix)} 
     {}
-    ~TileSpec() = default;
-    TileSpec(const TileSpec&) = delete;
+    ~TileSpecComponent() = default;
+    TileSpecComponent(const TileSpecComponent&) = delete;
 
     const glm::ivec2 centre() const {
         return iso_area / 2;

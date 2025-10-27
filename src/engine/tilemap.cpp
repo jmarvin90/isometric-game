@@ -3,8 +3,8 @@
 #include <optional>
 #include <spdlog/spdlog.h>
 #include <tilespec.h>
-#include <components/transform.h>
-#include <components/highlight.h>
+#include <components/transform_component.h>
+#include <components/highlight_component.h>
 #include <position.h>
 #include <spritesheet.h>
 
@@ -50,14 +50,14 @@ TileMap::TileMap(
         Tile& tile {m_tiles.emplace_back(registry)};
         const GridPosition grid_position {(*this), cell};
         const glm::ivec2 world_pos {grid_position.to_world_position()};
-        registry.emplace<Transform>(tile.tile_entity, world_pos, 0, 0.0);
-        registry.emplace<Highlight>(tile.tile_entity, SDL_Color{0, 0, 255, 255}, m_tile_spec.iso_points());
+        registry.emplace<TransformComponent>(tile.tile_entity, world_pos, 0, 0.0);
+        registry.emplace<HighlightComponent>(tile.tile_entity, SDL_Color{0, 0, 255, 255}, m_tile_spec.iso_points());
         
         // TODO: to be deleted anyway
         if (glm::ivec2(grid_position).y == 1) {
-            registry.emplace<Sprite>(tile.tile_entity, spritesheet.get("grass_ew"));
+            registry.emplace<SpriteComponent>(tile.tile_entity, spritesheet.get("grass_ew"));
         } else {
-            registry.emplace<Sprite>(tile.tile_entity, spritesheet.get("grass"));
+            registry.emplace<SpriteComponent>(tile.tile_entity, spritesheet.get("grass"));
         }
     }
 }
@@ -78,7 +78,7 @@ Tile* TileMap::operator[](const glm::ivec2 grid_position) {
 }
 
 void _highlight(entt::registry& registry, entt::entity entity, int factor) {
-    Transform& transform {registry.get<Transform>(entity)};
+    TransformComponent& transform {registry.get<TransformComponent>(entity)};
     transform.position.y -= (30 * factor);
     transform.z_index += factor;
 }

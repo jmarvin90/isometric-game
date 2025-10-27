@@ -12,8 +12,9 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 
+#include <systems/mouse_system.h>
+#include <systems/camera_system.h>
 #include <spritesheet.h>
-
 #include <constants.h>
 #include <game.h>
 
@@ -43,28 +44,20 @@ void Game::initialise() {
     if (!window) {
         spdlog::error("Could not initialise SDL Window.");
     }
+
+    registry = entt::registry();
     
     // TODO: move this somewhere smart under some smart condition
     renderer.emplace(window, display_mode, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC, -1);
-    
-    spritesheet.emplace(        
+
+    registry.ctx().emplace<MouseComponent>();
+    registry.ctx().emplace<CameraComponent>();
+    registry.ctx().emplace<TileSpecComponent>(256, 14);
+    registry.ctx().emplace<SpriteSheet>(
         std::string {"assets/spritesheet_scaled.png"}, 
         std::string {"assets/spritesheet.json"}, 
         renderer.value().renderer
     );
-    
-    scene.emplace(
-        spritesheet.value(),        // Spritesheet
-        display_mode,               // SDL display mode 
-        256,                        // Tile width
-        14,                         // Tile depth
-        8,                          // Grid size
-        150,                        // Scene border px
-        12,                         // Scroll soeed
-        debug_mode                  // debug mode
-    );
-
-    scene.value().create_building_at({3, 3}, "building_tall");
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -99,11 +92,12 @@ void Game::process_input() {
 void Game::update(
     [[maybe_unused]] const float delta_time
 ) {
-    scene->update();
+    MouseSystem::update(registry);
+    CameraSystem::update(registry);
 }
 
 void Game::render() {
-    renderer->render(scene.value(), debug_mode);
+    renderer->render(registry, debug_mode);
 }
 
 void Game::run() {

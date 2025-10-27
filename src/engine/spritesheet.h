@@ -4,11 +4,11 @@
 #include <string>
 #include <SDL2/SDL.h>
 #include <unordered_map>
-#include <components/sprite.h>
+#include <components/sprite_component.h>
 
 class SpriteSheet {
     SDL_Texture* spritesheet;
-    std::unordered_map<std::string, Sprite> sprites;
+    std::unordered_map<std::string, SpriteComponent> sprites;
 
 
     public:
@@ -19,7 +19,7 @@ class SpriteSheet {
         );
         SpriteSheet(const SpriteSheet&) = delete;
         ~SpriteSheet();
-        const Sprite& get(const std::string name) const;
+        const SpriteComponent& get(const std::string name) const;
 };
 
 #endif

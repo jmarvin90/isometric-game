@@ -12,7 +12,7 @@
 #include <functional>
 #include <memory>
 
-#include <components/transform.h>
+#include <components/transform_component.h>
 #include <tilespec.h>
 #include <spritesheet.h>
 

@@ -44,7 +44,7 @@ SpriteSheet::SpriteSheet(
     }
 }
 
-const Sprite& SpriteSheet::get (const std::string name) const {
+const SpriteComponent& SpriteSheet::get (const std::string name) const {
     return sprites.at(name);
 }
 
