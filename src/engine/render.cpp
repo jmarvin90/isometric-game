@@ -117,7 +117,6 @@ void Renderer::render(entt::registry& registry, const bool debug_mode) {
 }
 
 void Renderer::render_imgui_ui(entt::registry& registry) const {
-    spdlog::info("Rendering IMGUI UI");
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
@@ -154,5 +153,4 @@ void Renderer::render_imgui_ui(entt::registry& registry) const {
 
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
-    spdlog::info("IMGUI render complete!");
 }

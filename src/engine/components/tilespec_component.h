@@ -11,6 +11,7 @@ struct TileSpecComponent {
 
     const glm::ivec2 iso_area;
     const glm::ivec2 total_area;
+    const glm::ivec2 centre;
     const glm::mat2 matrix;
     const glm::mat2 matrix_inverted;
 
@@ -19,6 +20,7 @@ struct TileSpecComponent {
     , depth {depth}
     , iso_area {width, width / 2}
     , total_area {iso_area.x, iso_area.y + depth}
+    , centre {iso_area / 2}
     , matrix {
         iso_area.x / 2.0f,
         iso_area.y / 2.0f,
@@ -30,18 +32,13 @@ struct TileSpecComponent {
     ~TileSpecComponent() = default;
     TileSpecComponent(const TileSpecComponent&) = delete;
 
-    const glm::ivec2 centre() const {
-        return iso_area / 2;
-    }
-
     const std::vector<SDL_Point> iso_points() const {
-        const glm::ivec2 tile_centre {centre()};
         return {
-            SDL_Point {tile_centre.x, 0},
-            SDL_Point {iso_area.x, tile_centre.y},
-            SDL_Point {tile_centre.x, iso_area.y},
-            SDL_Point {0, tile_centre.y},
-            SDL_Point {tile_centre.x, 0},
+            SDL_Point {centre.x, 0},
+            SDL_Point {iso_area.x, centre.y},
+            SDL_Point {centre.x, iso_area.y},
+            SDL_Point {0, centre.y},
+            SDL_Point {centre.x, 0},
         };
     }
 

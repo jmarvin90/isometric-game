@@ -3,9 +3,13 @@
 
 #include <glm/glm.hpp>
 #include <entt/entt.hpp>
+#include <SDL2/SDL.h>
+
+#include <components/tilemap_component.h>
 
 class Position {
     protected:
+        bool _in_min_bounds() const;
         glm::ivec2 position;
 
     public:
@@ -15,11 +19,14 @@ class Position {
 };
 
 class WorldPosition;
+class GridPosition;
 
 class ScreenPosition: public Position {
     using Position::Position;
     public:
         const WorldPosition to_world_position(entt::registry& registry) const;
+        const GridPosition to_grid_position(entt::registry& registry) const;
+        bool is_valid(const SDL_DisplayMode& display_mode) const;
 };
 
 class GridPosition: public Position {
@@ -27,7 +34,8 @@ class GridPosition: public Position {
     public:
         GridPosition(entt::registry& registry, const int tile_n);
         const WorldPosition to_world_position(entt::registry& registry) const;
-
+        bool is_valid(const TileMapComponent& tilemap) const;
+        bool is_valid(entt::registry& registry) const;
 };
 
 class WorldPosition: public Position {
@@ -36,6 +44,7 @@ class WorldPosition: public Position {
     public:
         const ScreenPosition to_screen_position(entt::registry& registry) const;
         const GridPosition to_grid_position(entt::registry& registry) const;
+        bool is_valid(entt::registry& registry) const;
 };
 
 #endif

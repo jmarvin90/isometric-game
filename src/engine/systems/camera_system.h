@@ -9,6 +9,7 @@
 #include <entt/entt.hpp>
 #include <SDL2/SDL.h>
 
+
 class CameraSystem {
     public:
         static void update(entt::registry& registry, const SDL_DisplayMode& display_mode) {
@@ -34,14 +35,14 @@ class CameraSystem {
 
             if (
                 (display_mode.w - mouse.window_current_position.x) < screen_border_px.x &&
-                camera.position.x < (tilemap.area(registry).x + (screen_border_px.x * 2))
+                (camera.position.x + display_mode.w) < (tilemap.area.x + (screen_border_px.x * 2))
             ) {
                 camera.position.x += 10;
             }
 
             if (
                 (display_mode.h - mouse.window_current_position.y) < screen_border_px.y &&
-                camera.position.y < (tilemap.area(registry).y + (screen_border_px.y * 2))
+                (camera.position.y + display_mode.h) < (tilemap.area.y + (screen_border_px.y * 2))
             ) {
                 camera.position.y += 10;
             }

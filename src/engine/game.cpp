@@ -17,6 +17,7 @@
 
 #include <systems/mouse_system.h>
 #include <systems/camera_system.h>
+#include <systems/tilemap_system.h>
 
 #include <spritesheet.h>
 #include <constants.h>
@@ -65,8 +66,6 @@ void Game::initialise() {
     TileMapComponent& tilemap = registry.ctx().emplace<TileMapComponent>(registry, 8);
     tilemap.emplace_tiles(registry);
 
-    spdlog::info("Registry initialisation complete");
-
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
     ImGui_ImplSDL2_InitForSDLRenderer(window, renderer.value().renderer);
@@ -102,6 +101,7 @@ void Game::update(
 ) {
     MouseSystem::update(registry);
     CameraSystem::update(registry, display_mode);
+    TileMapSystem::update(registry, debug_mode);
 }
 
 void Game::render() {

@@ -39,7 +39,9 @@ add_executable(isometric-game
     src/engine/game.cpp
     src/engine/render.cpp
     src/engine/spritesheet.cpp
-    src/engine/systems/position_system.cpp
+    src/engine/position.cpp
+    src/engine/components/tilemap_component.cpp
+    src/engine/systems/tilemap_system.cpp
 )
 
 target_compile_options(isometric-game PRIVATE
