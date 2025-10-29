@@ -4,12 +4,15 @@
 #include <string>
 #include <SDL2/SDL.h>
 #include <unordered_map>
+
 #include <components/sprite_component.h>
+#include <components/navigation_component.h>
+
+using TileDef = std::pair<SpriteComponent, NavigationComponent>;
 
 class SpriteSheet {
     SDL_Texture* spritesheet;
-    std::unordered_map<std::string, SpriteComponent> sprites;
-
+    std::unordered_map<std::string, TileDef> sprites;
 
     public:
         SpriteSheet(
@@ -19,7 +22,7 @@ class SpriteSheet {
         );
         SpriteSheet(const SpriteSheet&) = delete;
         ~SpriteSheet();
-        const SpriteComponent& get(const std::string name) const;
+        const TileDef& get(const std::string name) const;
 };
 
 #endif

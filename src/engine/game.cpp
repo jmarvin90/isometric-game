@@ -64,8 +64,10 @@ void Game::initialise() {
         std::string {"assets/spritesheet.json"}, 
         renderer
     );
-    TileMapComponent& tilemap = registry.ctx().emplace<TileMapComponent>(registry, 8);
-    tilemap.emplace_tiles(registry);
+    registry.ctx().emplace<TileMapComponent>(registry, 32);
+    
+    
+    TileMapSystem::emplace_tiles(registry);
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();

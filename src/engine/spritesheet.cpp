@@ -38,13 +38,14 @@ SpriteSheet::SpriteSheet(
     for (const auto& json_object: my_document.GetArray()) {
         sprites.try_emplace(
             json_object["name"].GetString(),
-            json_object,
-            spritesheet
+            SpriteComponent{json_object, spritesheet},
+            NavigationComponent{json_object}
         );
     }
 }
 
-const SpriteComponent& SpriteSheet::get (const std::string name) const {
+using TileDef = std::pair<SpriteComponent, NavigationComponent>;
+const TileDef& SpriteSheet::get (const std::string name) const {
     return sprites.at(name);
 }
 
