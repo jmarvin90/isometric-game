@@ -7,8 +7,6 @@
 struct HighlightComponent {
     SDL_Color colour;
     std::vector<SDL_Point> points;
-    HighlightComponent() = default;
-    ~HighlightComponent() = default;
 };
 
 struct TileHighlightComponentComponent: public HighlightComponent {};

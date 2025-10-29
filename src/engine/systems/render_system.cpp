@@ -23,6 +23,29 @@ bool transform_comparison(
     );
 }
 
+template <typename T>
+void draw_lines(SDL_Renderer* renderer, const T& line_component, const glm::ivec2 offset) {
+    std::vector<SDL_Point> points;
+
+    for (auto& point: line_component->points) {
+        points.push_back(SDL_Point{point.x + offset.x, point.y + offset.y});
+    }
+
+    SDL_SetRenderDrawColor(
+        renderer,
+        line_component->colour.r, 
+        line_component->colour.g,
+        line_component->colour.b, 
+        line_component->colour.a 
+    );
+
+    SDL_RenderDrawLines(
+        renderer,
+        points.data(),
+        points.size()
+    );
+}
+
 void render_sprite(
     entt::registry& registry,
     SDL_Renderer* renderer,
@@ -113,9 +136,9 @@ void RenderSystem::render(
 
         render_sprite(registry, renderer, transform, sprite);
 
-        // if (highlight && debug_mode) {
-        //     draw_lines(highlight, screen_position);
-        // }
+        if (highlight && debug_mode) {
+            draw_lines(renderer, highlight, screen_position);
+        }
 
         // if (tile_highlight && debug_mode) {
         //     draw_lines(tile_highlight, screen_position);

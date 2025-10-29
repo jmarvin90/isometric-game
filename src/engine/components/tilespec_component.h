@@ -29,8 +29,6 @@ struct TileSpecComponent {
     }
     , matrix_inverted {glm::inverse(matrix)} 
     {}
-    ~TileSpecComponent() = default;
-    TileSpecComponent(const TileSpecComponent&) = delete;
 
     const std::vector<SDL_Point> iso_points() const {
         return {
