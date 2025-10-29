@@ -18,6 +18,7 @@
 #include <systems/mouse_system.h>
 #include <systems/camera_system.h>
 #include <systems/tilemap_system.h>
+#include <systems/render_system.h>
 
 #include <spritesheet.h>
 #include <constants.h>
@@ -53,7 +54,7 @@ void Game::initialise() {
     registry = entt::registry();
     
     // TODO: move this somewhere smart under some smart condition
-    renderer.emplace(window, display_mode, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC, -1);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     registry.ctx().emplace<MouseComponent>();
     registry.ctx().emplace<CameraComponent>();
@@ -61,15 +62,15 @@ void Game::initialise() {
     registry.ctx().emplace<SpriteSheet>(
         std::string {"assets/spritesheet_scaled.png"}, 
         std::string {"assets/spritesheet.json"}, 
-        renderer.value().renderer
+        renderer
     );
     TileMapComponent& tilemap = registry.ctx().emplace<TileMapComponent>(registry, 8);
     tilemap.emplace_tiles(registry);
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
-    ImGui_ImplSDL2_InitForSDLRenderer(window, renderer.value().renderer);
-    ImGui_ImplSDLRenderer2_Init(renderer.value().renderer);
+    ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
+    ImGui_ImplSDLRenderer2_Init(renderer);
 }
 
 void Game::process_input() {
@@ -105,7 +106,7 @@ void Game::update(
 }
 
 void Game::render() {
-    renderer->render(registry, debug_mode);
+    RenderSystem::render(registry, renderer, debug_mode);
 }
 
 void Game::run() {

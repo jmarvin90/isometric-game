@@ -7,7 +7,6 @@
 #include <SDL2/SDL.h>
 #include <entt/entt.hpp>
 
-#include <render.h>
 #include <components/transform_component.h>
 #include <constants.h>
 #include <spritesheet.h>
@@ -25,7 +24,7 @@ class Game {
 
     // CameraComponent, renderer are smart pointers to allow late initialisation
     entt::registry registry;
-    std::optional<Renderer> renderer;
+    SDL_Renderer* renderer;
 
     void process_input();
     void update(const float delta_time);

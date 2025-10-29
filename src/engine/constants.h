@@ -9,7 +9,7 @@
 namespace constants {
     inline constexpr int FPS                            {60};
     inline constexpr float MILLIS_PER_FRAME             {1'000.f/FPS};
-    const std::string spritesheet {"assets/spritesheet_scaled.png"};
+    const std::string spritesheet                       {"assets/spritesheet_scaled.png"};
 }
 
 #endif
