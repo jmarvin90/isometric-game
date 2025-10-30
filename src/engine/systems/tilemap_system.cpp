@@ -121,21 +121,20 @@ namespace {
         NavigationComponent* current_nav {
             registry.try_get<NavigationComponent>(current_tile->tile_entity)
         };
-        if (!current_nav) return std::nullopt;
 
         const Direction::TDirection reverse{Direction::reverse_direction(direction)};
 
         for ([[maybe_unused]] Tile* tile: TileScan(registry, from_position, direction)) {
-            
+
             NavigationComponent* next_nav {
                 registry.try_get<NavigationComponent>(tile->tile_entity)
             };
+    
+            bool can_connect_forward {Direction::any(current_nav->directions & direction)};
+            bool can_connect_back {Direction::any(next_nav->directions & reverse)};
+            bool is_junction {__builtin_popcount(Direction::to_underlying(current_nav->directions)) > 2};
 
-            if (
-                !next_nav || 
-                !Direction::any(reverse & next_nav->directions) ||
-                __builtin_popcount(Direction::to_underlying(current_nav->directions)) > 2
-            ) {
+            if (!can_connect_forward || !can_connect_back || is_junction) {
                 return current_tile;
             }
 
