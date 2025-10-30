@@ -12,6 +12,7 @@
 #include <directions.h>
 
 #include <optional>
+#include <spdlog/spdlog.h>
 
 namespace {
 
@@ -125,11 +126,10 @@ namespace {
         const Direction::TDirection reverse{Direction::reverse_direction(direction)};
 
         for ([[maybe_unused]] Tile* tile: TileScan(registry, from_position, direction)) {
-
             NavigationComponent* next_nav {
                 registry.try_get<NavigationComponent>(tile->tile_entity)
             };
-    
+
             bool can_connect_forward {Direction::any(current_nav->directions & direction)};
             bool can_connect_back {Direction::any(next_nav->directions & reverse)};
             bool is_junction {__builtin_popcount(Direction::to_underlying(current_nav->directions)) > 2};

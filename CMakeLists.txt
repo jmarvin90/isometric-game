@@ -37,14 +37,15 @@ target_compile_options(imgui PRIVATE -w)  # disable all warnings for ImGui
 add_executable(isometric-game
     src/main.cpp
     src/engine/game.cpp
+    src/engine/spritesheet.cpp
+    src/engine/position.cpp
+    src/engine/directions.cpp
     src/engine/systems/render_system.cpp
     src/engine/systems/camera_system.cpp
     src/engine/systems/mouse_system.cpp
     src/engine/systems/tilemap_system.cpp
-    src/engine/spritesheet.cpp
-    src/engine/position.cpp
-    src/engine/components/tilemap_component.cpp
     src/engine/systems/tilemap_system.cpp
+    src/engine/components/tilemap_component.cpp
 )
 
 target_compile_options(isometric-game PRIVATE

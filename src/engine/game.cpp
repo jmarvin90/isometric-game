@@ -1,7 +1,6 @@
 #include <string>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <utility>
 
 #include <glm/glm.hpp>

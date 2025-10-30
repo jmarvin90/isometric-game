@@ -9,6 +9,8 @@
 #include <components/sprite_component.h>
 #include <components/highlight_component.h>
 #include <components/mouse_component.h>
+#include <components/navigation_component.h>
+
 
 namespace {
     bool transform_comparison(
@@ -82,6 +84,7 @@ namespace {
         ImGui::NewFrame();
 
         const MouseComponent& mouse {registry.ctx().get<const MouseComponent>()};
+        const TileMapComponent& tilemap {registry.ctx().get<const TileMapComponent>()};
 
         // The mouse and world positions
         const glm::ivec2 screen_position {mouse.window_current_position};
@@ -110,6 +113,19 @@ namespace {
             std::to_string(glm::ivec2{grid_position}.x).c_str(),
             std::to_string(glm::ivec2{grid_position}.y).c_str()
         );
+
+        if (tilemap.highlighted_tile) {
+            const NavigationComponent* nav {
+                registry.try_get<const NavigationComponent>(tilemap.highlighted_tile->tile_entity)
+            };            
+
+            if (nav) {
+                ImGui::Text(
+                    "Tile Connection Direction(s): (%d)",
+                    Direction::to_underlying(nav->directions)
+                );
+            }
+        }
 
         ImGui::Render();
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
