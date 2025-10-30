@@ -7,18 +7,13 @@
 #include <spritesheet.h>
 #include <position.h>
 
-std::vector<entt::entity> Tile::entities() const {
-    if (building_entity) {
-        return std::vector<entt::entity>{tile_entity, building_entity.value()};
-    } else {
-        return std::vector<entt::entity>{tile_entity};
-    }
-} 
+#include <optional>
+
 
 TileMapComponent::TileMapComponent(entt::registry& registry, const int tiles_per_row)
 : tiles_per_row {tiles_per_row}
 , n_tiles {tiles_per_row * tiles_per_row}
-, highlighted_tile {nullptr}
+, highlighted_tile {std::nullopt}
 {
     tiles.reserve(n_tiles);
     const TileSpecComponent& tilespec {registry.ctx().get<TileSpecComponent>()};
@@ -26,9 +21,9 @@ TileMapComponent::TileMapComponent(entt::registry& registry, const int tiles_per
     origin_px = glm::ivec2{(area / 2).x - tilespec.centre.x, 0};
 }
 
-Tile* TileMapComponent::operator[](const glm::ivec2 grid_position) {
+std::optional<Tile> TileMapComponent::operator[](const glm::ivec2 grid_position) const {
     if (!GridPosition(grid_position).is_valid(*this)) {
-        return nullptr;
+        return std::nullopt;
     }
-    return &tiles.at((grid_position.y * tiles_per_row) + grid_position.x);
+    return tiles.at((grid_position.y * tiles_per_row) + grid_position.x);
 }

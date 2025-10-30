@@ -10,109 +10,111 @@
 #include <components/highlight_component.h>
 #include <components/mouse_component.h>
 
-bool transform_comparison(
-    [[maybe_unused]] const TransformComponent& lhs,
-    [[maybe_unused]] const TransformComponent& rhs
-) {
-    return (
-        lhs.z_index < rhs.z_index ||
-        (
-            lhs.z_index == rhs.z_index && 
-            lhs.position.y < rhs.position.y
-        )
-    );
-}
-
-template <typename T>
-void draw_lines(SDL_Renderer* renderer, const T& line_component, const glm::ivec2 offset) {
-    std::vector<SDL_Point> points;
-
-    for (auto& point: line_component->points) {
-        points.push_back(SDL_Point{point.x + offset.x, point.y + offset.y});
+namespace {
+    bool transform_comparison(
+        [[maybe_unused]] const TransformComponent& lhs,
+        [[maybe_unused]] const TransformComponent& rhs
+    ) {
+        return (
+            lhs.z_index < rhs.z_index ||
+            (
+                lhs.z_index == rhs.z_index && 
+                lhs.position.y < rhs.position.y
+            )
+        );
     }
 
-    SDL_SetRenderDrawColor(
-        renderer,
-        line_component->colour.r, 
-        line_component->colour.g,
-        line_component->colour.b, 
-        line_component->colour.a 
-    );
+    template <typename T>
+    void draw_lines(SDL_Renderer* renderer, const T& line_component, const glm::ivec2 offset) {
+        std::vector<SDL_Point> points;
 
-    SDL_RenderDrawLines(
-        renderer,
-        points.data(),
-        points.size()
-    );
-}
+        for (auto& point: line_component->points) {
+            points.push_back(SDL_Point{point.x + offset.x, point.y + offset.y});
+        }
 
-void render_sprite(
-    entt::registry& registry,
-    SDL_Renderer* renderer,
-    const TransformComponent& transform,
-    const SpriteComponent& sprite
-) {
+        SDL_SetRenderDrawColor(
+            renderer,
+            line_component->colour.r, 
+            line_component->colour.g,
+            line_component->colour.b, 
+            line_component->colour.a 
+        );
 
-    const glm::ivec2 screen_position {
-        WorldPosition{transform.position}.to_screen_position(registry)
-    };
+        SDL_RenderDrawLines(
+            renderer,
+            points.data(),
+            points.size()
+        );
+    }
 
-    SDL_Rect target_rect {
-        screen_position.x,
-        screen_position.y,
-        sprite.source_rect.w,
-        sprite.source_rect.h
-    };
+    void render_sprite(
+        entt::registry& registry,
+        SDL_Renderer* renderer,
+        const TransformComponent& transform,
+        const SpriteComponent& sprite
+    ) {
 
-    SDL_RenderCopyEx(
-        renderer,
-        sprite.texture,
-        &sprite.source_rect,
-        &target_rect,
-        transform.rotation,
-        NULL,
-        SDL_FLIP_NONE
-    );
-}
+        const glm::ivec2 screen_position {
+            WorldPosition{transform.position}.to_screen_position(registry)
+        };
 
-void render_imgui_ui(entt::registry& registry, SDL_Renderer* renderer) {
-    ImGui_ImplSDLRenderer2_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-    ImGui::NewFrame();
+        SDL_Rect target_rect {
+            screen_position.x,
+            screen_position.y,
+            sprite.source_rect.w,
+            sprite.source_rect.h
+        };
 
-    const MouseComponent& mouse {registry.ctx().get<const MouseComponent>()};
+        SDL_RenderCopyEx(
+            renderer,
+            sprite.texture,
+            &sprite.source_rect,
+            &target_rect,
+            transform.rotation,
+            NULL,
+            SDL_FLIP_NONE
+        );
+    }
 
-    // The mouse and world positions
-    const glm::ivec2 screen_position {mouse.window_current_position};
+    void render_imgui_ui(entt::registry& registry, SDL_Renderer* renderer) {
+        ImGui_ImplSDLRenderer2_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
 
-    const WorldPosition world_position {
-        ScreenPosition(mouse.window_current_position).to_world_position(registry)
-    };
+        const MouseComponent& mouse {registry.ctx().get<const MouseComponent>()};
 
-    const GridPosition grid_position {world_position.to_grid_position(registry)};
+        // The mouse and world positions
+        const glm::ivec2 screen_position {mouse.window_current_position};
 
-    ImGui::SeparatorText("Mouse Position");
-    ImGui::Text(
-        "Mouse Screen position: (%s) (%s)", 
-        std::to_string(screen_position.x).c_str(), 
-        std::to_string(screen_position.y).c_str()
-    );
+        const WorldPosition world_position {
+            ScreenPosition(mouse.window_current_position).to_world_position(registry)
+        };
 
-    ImGui::Text(
-        "Mouse World position: (%s) (%s)", 
-        std::to_string(glm::ivec2{world_position}.x).c_str(), 
-        std::to_string(glm::ivec2{world_position}.y).c_str()
-    );
+        const GridPosition grid_position {world_position.to_grid_position(registry)};
 
-    ImGui::Text(
-        "Mouse Grid position: (%s) (%s)",
-        std::to_string(glm::ivec2{grid_position}.x).c_str(),
-        std::to_string(glm::ivec2{grid_position}.y).c_str()
-    );
+        ImGui::SeparatorText("Mouse Position");
+        ImGui::Text(
+            "Mouse Screen position: (%s) (%s)", 
+            std::to_string(screen_position.x).c_str(), 
+            std::to_string(screen_position.y).c_str()
+        );
 
-    ImGui::Render();
-    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
-}
+        ImGui::Text(
+            "Mouse World position: (%s) (%s)", 
+            std::to_string(glm::ivec2{world_position}.x).c_str(), 
+            std::to_string(glm::ivec2{world_position}.y).c_str()
+        );
+
+        ImGui::Text(
+            "Mouse Grid position: (%s) (%s)",
+            std::to_string(glm::ivec2{grid_position}.x).c_str(),
+            std::to_string(glm::ivec2{grid_position}.y).c_str()
+        );
+
+        ImGui::Render();
+        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
+    }
+};
 
 void RenderSystem::render(
     entt::registry& registry,

@@ -9,7 +9,7 @@
 const WorldPosition ScreenPosition::to_world_position(entt::registry& registry) const {
     const CameraComponent& camera {registry.ctx().get<const CameraComponent>()};
     
-    // Replace with scene description
+    // TODO: Replace with scene description
     const glm::ivec2 scene_border_px {150, 150};
     return WorldPosition{(position + camera.position) - scene_border_px}; 
 }
@@ -21,6 +21,7 @@ const GridPosition ScreenPosition::to_grid_position(entt::registry& registry) co
 const ScreenPosition WorldPosition::to_screen_position(entt::registry& registry) const {
     const CameraComponent& camera {registry.ctx().get<const CameraComponent>()};
 
+    // TODO: Replace with scene description
     const glm::ivec2 scene_border_px {150, 150};
     return ScreenPosition{(position - camera.position) + scene_border_px};
 }
@@ -71,7 +72,7 @@ const WorldPosition GridPosition::to_world_position(entt::registry& registry) co
     return WorldPosition{world_pos_gross + tilespec.centre};
 }
 
-bool Position::_in_min_bounds() const {
+bool IPosition::_in_min_bounds() const {
     return position.x >= 0 && position.y >= 0;
 }
 

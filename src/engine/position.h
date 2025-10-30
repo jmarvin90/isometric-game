@@ -7,30 +7,32 @@
 
 #include <components/tilemap_component.h>
 
-class Position {
+class IPosition {
     protected:
         bool _in_min_bounds() const;
         glm::ivec2 position;
 
     public:
-        Position() = default;
-        Position(const glm::ivec2 position): position {position} {} 
+        IPosition() = default;
+        IPosition(const glm::ivec2 position): position {position} {} 
         operator glm::ivec2() const { return position; }
 };
 
 class WorldPosition;
 class GridPosition;
 
-class ScreenPosition: public Position {
-    using Position::Position;
+class ScreenPosition: public IPosition {
+    using IPosition::IPosition;
     public:
         const WorldPosition to_world_position(entt::registry& registry) const;
         const GridPosition to_grid_position(entt::registry& registry) const;
         bool is_valid(const SDL_DisplayMode& display_mode) const;
 };
 
-class GridPosition: public Position {
-    using Position::Position;
+class TileMapComponent; 
+
+class GridPosition: public IPosition {
+    using IPosition::IPosition;
     public:
         GridPosition(entt::registry& registry, const int tile_n);
         const WorldPosition to_world_position(entt::registry& registry) const;
@@ -38,8 +40,8 @@ class GridPosition: public Position {
         bool is_valid(entt::registry& registry) const;
 };
 
-class WorldPosition: public Position {
-    using Position::Position;
+class WorldPosition: public IPosition {
+    using IPosition::IPosition;
     const glm::vec2 to_grid_gross(entt::registry& registry) const;
     public:
         const ScreenPosition to_screen_position(entt::registry& registry) const;

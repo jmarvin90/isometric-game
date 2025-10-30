@@ -14,11 +14,12 @@ struct Tile {
     : tile_entity {registry.create()}
     , building_entity {std::nullopt}
     {}
-
-    Tile(const Tile&) = delete;
-    Tile(Tile&&) = default;
-    ~Tile() = default;
-    std::vector<entt::entity> entities() const;
+    bool operator==(const Tile& comparator) const {
+        return (
+            tile_entity == comparator.tile_entity &&
+            building_entity == comparator.building_entity
+        );
+    }
 };
 
 
@@ -28,13 +29,13 @@ struct TileMapComponent {
     std::vector<Tile> tiles;
     glm::ivec2 area;
     glm::ivec2 origin_px;
-    Tile* highlighted_tile;
+    std::optional<Tile> highlighted_tile;
+    std::unordered_map<entt::entity, std::array<entt::entity, 4>> network;
 
     TileMapComponent(const TileMapComponent&) = delete;
     TileMapComponent(TileMapComponent&&) = default;
     TileMapComponent(entt::registry& registry, const int tiles_per_row);
-    Tile* operator[](const glm::ivec2 grid_position);
-    void emplace_tiles(entt::registry& registry);
+    std::optional<Tile> operator[](const glm::ivec2 grid_position) const;
 };
 
 #endif
