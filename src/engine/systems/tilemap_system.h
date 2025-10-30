@@ -11,13 +11,6 @@
 
 #include <optional>
 
-namespace TileMap {
-    const std::array<std::optional<Tile>, 4> neighbours(
-        const TileMapComponent& tilemap,
-        const glm::ivec2 grid_position
-    );
-};
-
 class TileMapSystem {
     public:
         static void update(entt::registry& registry, const bool debug_mode);

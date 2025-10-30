@@ -14,6 +14,66 @@
 #include <optional>
 
 namespace {
+
+    struct TileScanIterator {
+        const entt::registry& registry;
+        glm::ivec2 pos;
+        Direction::TDirection direction;
+        std::optional<Tile> current;
+        
+        TileScanIterator() = delete;
+        TileScanIterator(
+            const entt::registry& registry,
+            glm::ivec2 pos,
+            Direction::TDirection direction
+        )
+        : registry {registry}
+        , pos {pos}
+        , direction {direction}
+        , current {registry.ctx().get<TileMapComponent>()[pos]}
+        {}
+
+        Tile* operator*() { return &current.value(); };
+        // const Tile* operator->() const { return &current->value(); }
+
+        TileScanIterator& operator++() {
+            pos += Direction::directions[int(direction)].vec;
+            current = registry.ctx().get<TileMapComponent>()[pos];
+            return *this;
+        }
+
+        TileScanIterator& operator--() {
+            Direction::TDirection reversed {Direction::reverse_direction(direction)};
+            pos += Direction::directions[int(reversed)].vec;
+            current = registry.ctx().get<TileMapComponent>()[pos];
+            return *this;
+        }
+
+        bool operator!=(std::nullopt_t) const {
+            return current.has_value();
+        }
+    };
+
+    struct TileScan {
+        const entt::registry& registry;
+        glm::ivec2 start;
+        Direction::TDirection direction;
+
+        TileScan() = delete;
+        TileScan(
+            const entt::registry& registry,
+            const glm::ivec2 start,
+            const Direction::TDirection direction
+        )
+        : registry {registry}
+        , start {start}
+        , direction {direction}
+        {}
+
+        TileScanIterator begin() { return TileScanIterator(registry, start, direction);}
+        std::nullopt_t end() { return std::nullopt; }
+    };
+
     std::vector<entt::entity> get_tile_entities(const Tile tile) {
         if (tile.building_entity) {
             return std::vector<entt::entity>{
@@ -31,10 +91,8 @@ namespace {
             transform.z_index += factor;
         }
     }
-}
 
-namespace TileMap {
-    const std::array<std::optional<Tile>, 4> neighbours(
+    [[maybe_unused]] const std::array<std::optional<Tile>, 4> neighbours(
         const TileMapComponent& tilemap,
         const glm::ivec2 grid_position
     ) {
@@ -49,7 +107,45 @@ namespace TileMap {
         }
         return output;
     }
-};
+
+    [[maybe_unused]] std::optional<Tile> scan(
+        entt::registry& registry,
+        glm::ivec2 from_position,
+        Direction::TDirection direction
+    ) {
+        const TileMapComponent& tilemap {registry.ctx().get<const TileMapComponent>()};
+
+        std::optional<Tile> current_tile {tilemap[from_position]}; 
+        if (!current_tile) return std::nullopt;
+
+        NavigationComponent* current_nav {
+            registry.try_get<NavigationComponent>(current_tile->tile_entity)
+        };
+        if (!current_nav) return std::nullopt;
+
+        const Direction::TDirection reverse{Direction::reverse_direction(direction)};
+
+        for ([[maybe_unused]] Tile* tile: TileScan(registry, from_position, direction)) {
+            
+            NavigationComponent* next_nav {
+                registry.try_get<NavigationComponent>(tile->tile_entity)
+            };
+
+            if (
+                !next_nav || 
+                !Direction::any(reverse & next_nav->directions) ||
+                __builtin_popcount(Direction::to_underlying(current_nav->directions)) > 2
+            ) {
+                return current_tile;
+            }
+
+            current_nav = next_nav;
+            current_tile = *tile;
+        }
+
+        return current_tile;
+    }
+}
 
 void TileMapSystem::update(entt::registry& registry, const bool debug_mode) {
     auto& tilemap = registry.ctx().get<TileMapComponent>();
