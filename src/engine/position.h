@@ -1,52 +1,58 @@
 #ifndef POSITION_H
 #define POSITION_H
 
-#include <glm/glm.hpp>
-#include <entt/entt.hpp>
 #include <SDL2/SDL.h>
-
 #include <components/tilemap_component.h>
 
-class IPosition {
-    protected:
-        bool _in_min_bounds() const;
-        glm::ivec2 position;
+#include <entt/entt.hpp>
+#include <glm/glm.hpp>
 
-    public:
-        IPosition() = default;
-        IPosition(const glm::ivec2 position): position {position} {} 
-        operator glm::ivec2() const { return position; }
+class IPosition {
+protected:
+    bool _in_min_bounds() const;
+    glm::ivec2 position;
+
+public:
+    IPosition() = default;
+    IPosition(const glm::ivec2 position)
+        : position { position }
+    {
+    }
+    operator glm::ivec2() const { return position; }
 };
 
 class WorldPosition;
 class GridPosition;
 
-class ScreenPosition: public IPosition {
+class ScreenPosition : public IPosition {
     using IPosition::IPosition;
-    public:
-        const WorldPosition to_world_position(entt::registry& registry) const;
-        const GridPosition to_grid_position(entt::registry& registry) const;
-        bool is_valid(const SDL_DisplayMode& display_mode) const;
+
+public:
+    const WorldPosition to_world_position(entt::registry& registry) const;
+    const GridPosition to_grid_position(entt::registry& registry) const;
+    bool is_valid(const SDL_DisplayMode& display_mode) const;
 };
 
-class TileMapComponent; 
+class TileMapComponent;
 
-class GridPosition: public IPosition {
+class GridPosition : public IPosition {
     using IPosition::IPosition;
-    public:
-        GridPosition(entt::registry& registry, const int tile_n);
-        const WorldPosition to_world_position(entt::registry& registry) const;
-        bool is_valid(const TileMapComponent& tilemap) const;
-        bool is_valid(entt::registry& registry) const;
+
+public:
+    GridPosition(entt::registry& registry, const int tile_n);
+    const WorldPosition to_world_position(entt::registry& registry) const;
+    bool is_valid(const TileMapComponent& tilemap) const;
+    bool is_valid(entt::registry& registry) const;
 };
 
-class WorldPosition: public IPosition {
+class WorldPosition : public IPosition {
     using IPosition::IPosition;
     const glm::vec2 to_grid_gross(entt::registry& registry) const;
-    public:
-        const ScreenPosition to_screen_position(entt::registry& registry) const;
-        const GridPosition to_grid_position(entt::registry& registry) const;
-        bool is_valid(entt::registry& registry) const;
+
+public:
+    const ScreenPosition to_screen_position(entt::registry& registry) const;
+    const GridPosition to_grid_position(entt::registry& registry) const;
+    bool is_valid(entt::registry& registry) const;
 };
 
 #endif

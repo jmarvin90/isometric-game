@@ -1,23 +1,22 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <memory>
-#include <optional>
-
 #include <SDL2/SDL.h>
-#include <entt/entt.hpp>
-
 #include <components/transform_component.h>
 #include <constants.h>
 #include <spritesheet.h>
 
+#include <entt/entt.hpp>
+#include <memory>
+#include <optional>
+
 class Game {
-    bool is_running {false};
-    bool debug_mode {false};
+    bool is_running { false };
+    bool debug_mode { false };
 
     // Has to be default initialised because it's referenced in Game::update()
-    int millis_previous_frame{};    
-    uint64_t _last_time{0};
+    int millis_previous_frame {};
+    uint64_t _last_time { 0 };
 
     SDL_Window* window;
     SDL_DisplayMode display_mode;
@@ -30,18 +29,16 @@ class Game {
     void update(const float delta_time);
     void render();
 
-    public:
+public:
+    Game();
+    ~Game();
 
-        Game();
-        ~Game();
+    Game(const Game&) = delete;
+    Game operator=(const Game&) = delete;
 
-        Game(const Game&) = delete;
-        Game operator=(const Game&) = delete;
-
-        void initialise();
-        void run();
-        void destroy();
-        
+    void initialise();
+    void run();
+    void destroy();
 };
 
 #endif

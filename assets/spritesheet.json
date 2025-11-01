@@ -33,7 +33,7 @@
         "width": 256,
         "height": 143,
         "passable": true,
-        "directions": 10
+        "directions": 5
     },
     {
         "name": "grass_ns",
@@ -42,7 +42,7 @@
         "width": 256,
         "height": 143,
         "passable": true,
-        "directions": 5
+        "directions": 10
     },
     {
         "name": "gass_nesw",
@@ -60,7 +60,7 @@
         "width": 256,
         "height": 143,
         "passable": true,
-        "directions": 5
+        "directions": 6
     },
     {
         "name": "grass_sw",
@@ -69,7 +69,7 @@
         "width": 256,
         "height": 143,
         "passable": true,
-        "directions": 12
+        "directions": 3
     },
     {
         "name": "grass_ne",
@@ -78,7 +78,7 @@
         "width": 256,
         "height": 143,
         "passable": true,
-        "directions": 3
+        "directions": 12
     },
     {
         "name": "grass_nw",

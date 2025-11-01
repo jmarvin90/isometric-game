@@ -1,54 +1,47 @@
-#include <spritesheet.h>
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
 #include <spdlog/spdlog.h>
+#include <spritesheet.h>
+
 #include <fstream>
 
-
-SpriteSheet::SpriteSheet(
-    const std::string spritesheet_path,
-    const std::string atlas_path, 
-    SDL_Renderer* renderer
-) {
-    SDL_Surface* surface {IMG_Load(spritesheet_path.c_str())};
+SpriteSheet::SpriteSheet(const std::string spritesheet_path,
+    const std::string atlas_path,
+    SDL_Renderer* renderer)
+{
+    SDL_Surface* surface { IMG_Load(spritesheet_path.c_str()) };
     if (!surface) {
-        spdlog::info(
-            "Could not load texture from path: " +
-            spritesheet_path
-        );
+        spdlog::info("Could not load texture from path: " + spritesheet_path);
     };
 
     spritesheet = SDL_CreateTextureFromSurface(renderer, surface);
     if (!spritesheet) {
-        spdlog::info(
-            "Could not load texture from surface using image: " +
-            spritesheet_path
-        );
+        spdlog::info("Could not load texture from surface using image: " + spritesheet_path);
     }
 
     SDL_FreeSurface(surface);
 
-    std::ifstream input {atlas_path};
-    rapidjson::IStreamWrapper read{input};
+    std::ifstream input { atlas_path };
+    rapidjson::IStreamWrapper read { input };
     rapidjson::Document my_document;
     my_document.ParseStream(read);
 
-    for (const auto& json_object: my_document.GetArray()) {
-        sprites.try_emplace(
-            json_object["name"].GetString(),
-            SpriteComponent{json_object, spritesheet},
-            NavigationComponent{json_object}
-        );
+    for (const auto& json_object : my_document.GetArray()) {
+        sprites.try_emplace(json_object["name"].GetString(),
+            SpriteComponent { json_object, spritesheet },
+            NavigationComponent { json_object });
     }
 }
 
 using TileDef = std::pair<SpriteComponent, NavigationComponent>;
-const TileDef& SpriteSheet::get (const std::string name) const {
+const TileDef& SpriteSheet::get(const std::string name) const
+{
     return sprites.at(name);
 }
 
-SpriteSheet::~SpriteSheet() {
+SpriteSheet::~SpriteSheet()
+{
     SDL_DestroyTexture(spritesheet);
 }
