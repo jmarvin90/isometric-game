@@ -62,3 +62,5 @@ target_link_libraries(isometric-game PRIVATE imgui)
 set_property(TARGET isometric-game PROPERTY CXX_STANDARD 17)
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+
+file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
