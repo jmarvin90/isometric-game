@@ -16,178 +16,176 @@
 
 namespace {
 
-struct TileScanIterator {
-    entt::registry& registry;
-    TileMapComponent& tilemap;
-    glm::ivec2 pos;
-    Direction::TDirection direction;
-    std::optional<Tile> current;
+    struct TileScanIterator {
+        entt::registry& registry;
+        TileMapComponent& tilemap;
+        glm::ivec2 pos;
+        Direction::TDirection direction;
+        std::optional<Tile> current;
 
-    TileScanIterator() = delete;
-    TileScanIterator(entt::registry& registry,
-        glm::ivec2 pos,
-        Direction::TDirection direction)
-        : registry { registry }
-        , tilemap { registry.ctx().get<TileMapComponent>() }
-        , pos { pos }
-        , direction { direction }
-        , current { tilemap[pos] }
-    {
-    }
-
-    Tile* operator*() { return &current.value(); };
-    // const Tile* operator->() const { return &current->value(); }
-
-    TileScanIterator& operator++()
-    {
-        pos += Direction::directions[Direction::index_position(direction)].vec;
-        current = tilemap[pos];
-        return *this;
-    }
-
-    TileScanIterator& operator--()
-    {
-        Direction::TDirection reversed { Direction::reverse_direction(direction) };
-        pos += Direction::directions[Direction::index_position(reversed)].vec;
-        current = tilemap[pos];
-        return *this;
-    }
-
-    bool operator!=(std::nullopt_t) const { return current.has_value(); }
-};
-
-struct TileScan {
-    entt::registry& registry;
-    glm::ivec2 start;
-    Direction::TDirection direction;
-
-    TileScan() = delete;
-    TileScan(entt::registry& registry,
-        const glm::ivec2 start,
-        const Direction::TDirection direction)
-        : registry { registry }
-        , start { start }
-        , direction { direction }
-    {
-    }
-
-    TileScanIterator begin()
-    {
-        return TileScanIterator(registry, start, direction);
-    }
-    std::nullopt_t end() { return std::nullopt; }
-};
-
-std::vector<entt::entity> get_tile_entities(const Tile tile)
-{
-    if (tile.building_entity) {
-        return std::vector<entt::entity> { tile.tile_entity,
-            tile.building_entity.value() };
-    }
-    return std::vector<entt::entity> { tile.tile_entity };
-}
-
-void apply_highlight(entt::registry& registry,
-    const Tile tile,
-    int factor = 1)
-{
-    for (entt::entity entity : get_tile_entities(tile)) {
-        TransformComponent& transform { registry.get<TransformComponent>(entity) };
-        transform.position.y -= (30 * factor);
-        transform.z_index += factor;
-    }
-}
-
-[[maybe_unused]] const std::array<std::optional<Tile>, 4> neighbours(
-    const TileMapComponent& tilemap,
-    const glm::ivec2 grid_position)
-{
-    std::array<std::optional<Tile>, 4> output {};
-    output.fill(std::nullopt);
-
-    for (Direction::DirectionInfo direction : Direction::directions) {
-        GridPosition proposed { grid_position + direction.vec };
-        if (tilemap[proposed]) {
-            output[static_cast<int>(direction.direction)] = tilemap[proposed].value();
+        TileScanIterator() = delete;
+        TileScanIterator(entt::registry& registry,
+            glm::ivec2 pos,
+            Direction::TDirection direction)
+            : registry { registry }
+            , tilemap { registry.ctx().get<TileMapComponent>() }
+            , pos { pos }
+            , direction { direction }
+            , current { tilemap[pos] }
+        {
         }
-    }
-    return output;
-}
 
-[[maybe_unused]] std::optional<Tile> scan(entt::registry& registry,
-    glm::ivec2 from_position,
-    Direction::TDirection direction)
-{
-    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+        Tile* operator*() { return &current.value(); };
+        // const Tile* operator->() const { return &current->value(); }
 
-    std::optional<Tile> current_tile { tilemap[from_position] };
-    if (!current_tile)
-        return std::nullopt;
+        TileScanIterator& operator++()
+        {
+            pos += Direction::directions[Direction::index_position(direction)].vec;
+            current = tilemap[pos];
+            return *this;
+        }
 
-    NavigationComponent* current_nav {
-        registry.try_get<NavigationComponent>(current_tile->tile_entity)
+        TileScanIterator& operator--()
+        {
+            Direction::TDirection reversed { Direction::reverse_direction(direction) };
+            pos += Direction::directions[Direction::index_position(reversed)].vec;
+            current = tilemap[pos];
+            return *this;
+        }
+
+        bool operator!=(std::nullopt_t) const { return current.has_value(); }
     };
 
-    const Direction::TDirection reverse { Direction::reverse_direction(direction) };
+    struct TileScan {
+        entt::registry& registry;
+        glm::ivec2 start;
+        Direction::TDirection direction;
 
-    for ([[maybe_unused]] Tile* tile :
-        TileScan(registry, from_position, direction)) {
-            if (tile->tile_entity == current_tile->tile_entity) continue;
-
-        NavigationComponent* next_nav {
-            registry.try_get<NavigationComponent>(tile->tile_entity)
-        };
-
-        [[maybe_unused]] const GridPositionComponent next_pos {registry.get<const GridPositionComponent>(tile->tile_entity)};
-
-        bool curr_can_connect_forward {
-            Direction::any(current_nav->directions & direction)
-        };
-        bool next_can_connect_back { Direction::any(next_nav->directions & reverse) };
-
-        if (!curr_can_connect_forward || !next_can_connect_back) {
-            return current_tile;
+        TileScan() = delete;
+        TileScan(entt::registry& registry,
+            const glm::ivec2 start,
+            const Direction::TDirection direction)
+            : registry { registry }
+            , start { start }
+            , direction { direction }
+        {
         }
 
-        current_nav = next_nav;
-        current_tile = *tile;
+        TileScanIterator begin()
+        {
+            return TileScanIterator(registry, start, direction);
+        }
+        std::nullopt_t end() { return std::nullopt; }
+    };
 
-        [[maybe_unused]] bool is_junction { Direction::is_junction(next_nav->directions) };
-        if (is_junction) {
-            spdlog::info(
-                "From position " + 
-                std::to_string(next_pos.grid_position.x) + "," +
-                std::to_string(next_pos.grid_position.y) + "; in direction: " + 
-                std::to_string(Direction::to_underlying(direction)) + " " 
-                "early out for junction"
-            );
-            return current_tile;
+    std::vector<entt::entity> get_tile_entities(const Tile tile)
+    {
+        if (tile.building_entity) {
+            return std::vector<entt::entity> { tile.tile_entity,
+                tile.building_entity.value() };
+        }
+        return std::vector<entt::entity> { tile.tile_entity };
+    }
+
+    void apply_highlight(entt::registry& registry,
+        const Tile tile,
+        int factor = 1)
+    {
+        for (entt::entity entity : get_tile_entities(tile)) {
+            TransformComponent& transform { registry.get<TransformComponent>(entity) };
+            transform.position.y -= (30 * factor);
+            transform.z_index += factor;
         }
     }
 
-    return current_tile;
-}
+    [[maybe_unused]] const std::array<std::optional<Tile>, 4> neighbours(
+        const TileMapComponent& tilemap,
+        const glm::ivec2 grid_position)
+    {
+        std::array<std::optional<Tile>, 4> output {};
+        output.fill(std::nullopt);
 
-void entity_connect(entt::registry& registry, entt::entity lhs, entt::entity rhs, Direction::TDirection direction) {
-    if (lhs == rhs) return;
-
-    ConnectionsComponent* lhs_conn {registry.try_get<ConnectionsComponent>(lhs)};
-    ConnectionsComponent* rhs_conn {registry.try_get<ConnectionsComponent>(rhs)};
-    
-    if (!lhs_conn) {
-        lhs_conn = &registry.emplace<ConnectionsComponent>(lhs);
+        for (Direction::DirectionInfo direction : Direction::directions) {
+            GridPosition proposed { grid_position + direction.vec };
+            if (tilemap[proposed]) {
+                output[static_cast<int>(direction.direction)] = tilemap[proposed].value();
+            }
+        }
+        return output;
     }
 
-    if (!rhs_conn) {
-        rhs_conn = &registry.emplace<ConnectionsComponent>(rhs);
+    [[maybe_unused]] std::optional<Tile> scan(entt::registry& registry,
+        glm::ivec2 from_position,
+        Direction::TDirection direction)
+    {
+        const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+
+        std::optional<Tile> current_tile { tilemap[from_position] };
+        if (!current_tile)
+            return std::nullopt;
+
+        NavigationComponent* current_nav {
+            registry.try_get<NavigationComponent>(current_tile->tile_entity)
+        };
+
+        const Direction::TDirection reverse { Direction::reverse_direction(direction) };
+
+        for ([[maybe_unused]] Tile* tile :
+            TileScan(registry, from_position, direction)) {
+            if (tile->tile_entity == current_tile->tile_entity)
+                continue;
+
+            NavigationComponent* next_nav {
+                registry.try_get<NavigationComponent>(tile->tile_entity)
+            };
+
+            [[maybe_unused]] const GridPositionComponent next_pos { registry.get<const GridPositionComponent>(tile->tile_entity) };
+
+            bool curr_can_connect_forward {
+                Direction::any(current_nav->directions & direction)
+            };
+            bool next_can_connect_back { Direction::any(next_nav->directions & reverse) };
+
+            if (!curr_can_connect_forward || !next_can_connect_back) {
+                return current_tile;
+            }
+
+            current_nav = next_nav;
+            current_tile = *tile;
+
+            [[maybe_unused]] bool is_junction { Direction::is_junction(next_nav->directions) };
+            if (is_junction) {
+                spdlog::info(
+                    "From position " + std::to_string(next_pos.grid_position.x) + "," + std::to_string(next_pos.grid_position.y) + "; in direction: " + std::to_string(Direction::to_underlying(direction)) + " "
+                                                                                                                                                                                                              "early out for junction");
+                return current_tile;
+            }
+        }
+
+        return current_tile;
     }
 
-    spdlog::info("Attempting emplacement");
+    void entity_connect(entt::registry& registry, entt::entity lhs, entt::entity rhs, Direction::TDirection direction)
+    {
+        if (lhs == rhs)
+            return;
 
-    lhs_conn->connections[Direction::index_position(direction)] = rhs;
-    rhs_conn->connections[Direction::index_position(Direction::reverse_direction(direction))] = lhs;
-}
+        ConnectionsComponent* lhs_conn { registry.try_get<ConnectionsComponent>(lhs) };
+        ConnectionsComponent* rhs_conn { registry.try_get<ConnectionsComponent>(rhs) };
 
+        if (!lhs_conn) {
+            lhs_conn = &registry.emplace<ConnectionsComponent>(lhs);
+        }
+
+        if (!rhs_conn) {
+            rhs_conn = &registry.emplace<ConnectionsComponent>(rhs);
+        }
+
+        spdlog::info("Attempting emplacement");
+
+        lhs_conn->connections[Direction::index_position(direction)] = rhs;
+        rhs_conn->connections[Direction::index_position(Direction::reverse_direction(direction))] = lhs;
+    }
 
 } // namespace
 
@@ -300,24 +298,25 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
 
 void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
 {
-    const NavigationComponent& nav {registry.get<const NavigationComponent>(entity)};
-    const GridPositionComponent grid_pos {registry.get<const GridPositionComponent>(entity)};
-    bool is_junction {Direction::is_junction(nav.directions)};
+    const NavigationComponent& nav { registry.get<const NavigationComponent>(entity) };
+    const GridPositionComponent grid_pos { registry.get<const GridPositionComponent>(entity) };
+    bool is_junction { Direction::is_junction(nav.directions) };
 
     std::array<std::optional<Tile>, 4> connections_array {};
     connections_array.fill(std::nullopt);
 
     for (int i = 0; i <= 3; i++) {
-        Direction::TDirection direction {uint8_t(1<<i)};
-        std::optional<Tile> termination {scan(registry, grid_pos.grid_position, direction)};
+        Direction::TDirection direction { uint8_t(1 << i) };
+        std::optional<Tile> termination { scan(registry, grid_pos.grid_position, direction) };
         connections_array[Direction::index_position(direction)] = termination;
     }
 
     for (int i = 0; i <= 3; i++) {
-        Direction::TDirection direction {uint8_t(1<<i)};
-        std::optional<Tile>& tile {connections_array[Direction::index_position(direction)]};
-        std::optional<Tile>& reverse_tile {connections_array[Direction::index_position(Direction::reverse_direction(direction))]};
-        if (!tile || tile == reverse_tile) continue;
+        Direction::TDirection direction { uint8_t(1 << i) };
+        std::optional<Tile>& tile { connections_array[Direction::index_position(direction)] };
+        std::optional<Tile>& reverse_tile { connections_array[Direction::index_position(Direction::reverse_direction(direction))] };
+        if (!tile || tile == reverse_tile)
+            continue;
         if (is_junction || !reverse_tile) {
             entity_connect(registry, entity, tile->tile_entity, direction);
         } else {

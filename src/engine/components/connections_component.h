@@ -1,8 +1,8 @@
 #ifndef CONNECTIONSCOMPONENT_H
 #define CONNECTIONSCOMPONENT_H
 
-#include <entt/entt.hpp>
 #include <array>
+#include <entt/entt.hpp>
 #include <optional>
 
 struct ConnectionsComponent {

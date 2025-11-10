@@ -13,109 +13,109 @@
 #include <tilespec_component.h>
 
 namespace {
-bool transform_comparison([[maybe_unused]] const TransformComponent& lhs,
-    [[maybe_unused]] const TransformComponent& rhs)
-{
-    return (lhs.z_index < rhs.z_index || (lhs.z_index == rhs.z_index && lhs.position.y < rhs.position.y));
-}
-
-template <typename T>
-void draw_lines(SDL_Renderer* renderer,
-    const T& line_component,
-    const glm::ivec2 offset)
-{
-    std::vector<SDL_Point> points;
-
-    for (auto& point : line_component->points) {
-        points.push_back(SDL_Point { point.x + offset.x, point.y + offset.y });
+    bool transform_comparison([[maybe_unused]] const TransformComponent& lhs,
+        [[maybe_unused]] const TransformComponent& rhs)
+    {
+        return (lhs.z_index < rhs.z_index || (lhs.z_index == rhs.z_index && lhs.position.y < rhs.position.y));
     }
 
-    SDL_SetRenderDrawColor(renderer, line_component->colour.r,
-        line_component->colour.g, line_component->colour.b,
-        line_component->colour.a);
+    template <typename T>
+    void draw_lines(SDL_Renderer* renderer,
+        const T& line_component,
+        const glm::ivec2 offset)
+    {
+        std::vector<SDL_Point> points;
 
-    SDL_RenderDrawLines(renderer, points.data(), points.size());
-}
+        for (auto& point : line_component->points) {
+            points.push_back(SDL_Point { point.x + offset.x, point.y + offset.y });
+        }
 
-void render_sprite(entt::registry& registry,
-    SDL_Renderer* renderer,
-    const TransformComponent& transform,
-    const SpriteComponent& sprite)
-{
-    const glm::ivec2 screen_position {
-        WorldPosition { transform.position }.to_screen_position(registry)
-    };
+        SDL_SetRenderDrawColor(renderer, line_component->colour.r,
+            line_component->colour.g, line_component->colour.b,
+            line_component->colour.a);
 
-    SDL_Rect target_rect { screen_position.x, screen_position.y,
-        sprite.source_rect.w, sprite.source_rect.h };
+        SDL_RenderDrawLines(renderer, points.data(), points.size());
+    }
 
-    SDL_RenderCopyEx(renderer, sprite.texture, &sprite.source_rect, &target_rect,
-        transform.rotation, NULL, SDL_FLIP_NONE);
-}
-
-void render_imgui_ui(entt::registry& registry, SDL_Renderer* renderer)
-{
-    ImGui_ImplSDLRenderer2_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-    ImGui::NewFrame();
-
-    const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
-    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
-
-    // The mouse and world positions
-    const glm::ivec2 screen_position { mouse.window_current_position };
-
-    const WorldPosition world_position {
-        ScreenPosition(mouse.window_current_position)
-            .to_world_position(registry)
-    };
-
-    const GridPosition grid_position { world_position.to_grid_position(registry) };
-
-    ImGui::SeparatorText("Mouse Position");
-    ImGui::Text("Mouse Screen position: (%s) (%s)",
-        std::to_string(screen_position.x).c_str(),
-        std::to_string(screen_position.y).c_str());
-
-    ImGui::Text("Mouse World position: (%s) (%s)",
-        std::to_string(glm::ivec2 { world_position }.x).c_str(),
-        std::to_string(glm::ivec2 { world_position }.y).c_str());
-
-    ImGui::Text("Mouse Grid position: (%s) (%s)",
-        std::to_string(glm::ivec2 { grid_position }.x).c_str(),
-        std::to_string(glm::ivec2 { grid_position }.y).c_str());
-
-    if (tilemap.highlighted_tile) {
-        const NavigationComponent* nav { registry.try_get<const NavigationComponent>(
-            tilemap.highlighted_tile->tile_entity) };
-
-        const ConnectionsComponent* conns {
-            registry.try_get<const ConnectionsComponent>(
-                tilemap.highlighted_tile->tile_entity)
+    void render_sprite(entt::registry& registry,
+        SDL_Renderer* renderer,
+        const TransformComponent& transform,
+        const SpriteComponent& sprite)
+    {
+        const glm::ivec2 screen_position {
+            WorldPosition { transform.position }.to_screen_position(registry)
         };
 
-        if (conns) {
-            for (std::optional<entt::entity> entity : conns->connections) {
-                if (!entity)
-                    continue;
-                const GridPositionComponent& connected_pos {
-                    registry.get<const GridPositionComponent>(entity.value())
-                };
+        SDL_Rect target_rect { screen_position.x, screen_position.y,
+            sprite.source_rect.w, sprite.source_rect.h };
 
-                ImGui::Text("Tile Connection: (%d),(%d)", connected_pos.grid_position.x,
-                    connected_pos.grid_position.y);
+        SDL_RenderCopyEx(renderer, sprite.texture, &sprite.source_rect, &target_rect,
+            transform.rotation, NULL, SDL_FLIP_NONE);
+    }
+
+    void render_imgui_ui(entt::registry& registry, SDL_Renderer* renderer)
+    {
+        ImGui_ImplSDLRenderer2_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+
+        const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
+        const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+
+        // The mouse and world positions
+        const glm::ivec2 screen_position { mouse.window_current_position };
+
+        const WorldPosition world_position {
+            ScreenPosition(mouse.window_current_position)
+                .to_world_position(registry)
+        };
+
+        const GridPosition grid_position { world_position.to_grid_position(registry) };
+
+        ImGui::SeparatorText("Mouse Position");
+        ImGui::Text("Mouse Screen position: (%s) (%s)",
+            std::to_string(screen_position.x).c_str(),
+            std::to_string(screen_position.y).c_str());
+
+        ImGui::Text("Mouse World position: (%s) (%s)",
+            std::to_string(glm::ivec2 { world_position }.x).c_str(),
+            std::to_string(glm::ivec2 { world_position }.y).c_str());
+
+        ImGui::Text("Mouse Grid position: (%s) (%s)",
+            std::to_string(glm::ivec2 { grid_position }.x).c_str(),
+            std::to_string(glm::ivec2 { grid_position }.y).c_str());
+
+        if (tilemap.highlighted_tile) {
+            const NavigationComponent* nav { registry.try_get<const NavigationComponent>(
+                tilemap.highlighted_tile->tile_entity) };
+
+            const ConnectionsComponent* conns {
+                registry.try_get<const ConnectionsComponent>(
+                    tilemap.highlighted_tile->tile_entity)
+            };
+
+            if (conns) {
+                for (std::optional<entt::entity> entity : conns->connections) {
+                    if (!entity)
+                        continue;
+                    const GridPositionComponent& connected_pos {
+                        registry.get<const GridPositionComponent>(entity.value())
+                    };
+
+                    ImGui::Text("Tile Connection: (%d),(%d)", connected_pos.grid_position.x,
+                        connected_pos.grid_position.y);
+                }
+            }
+
+            if (nav) {
+                ImGui::Text("Tile Connection Direction(s): (%d)",
+                    Direction::to_underlying(nav->directions));
             }
         }
 
-        if (nav) {
-            ImGui::Text("Tile Connection Direction(s): (%d)",
-                Direction::to_underlying(nav->directions));
-        }
+        ImGui::Render();
+        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
     }
-
-    ImGui::Render();
-    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
-}
 }; // namespace
 
 void RenderSystem::render(entt::registry& registry,
