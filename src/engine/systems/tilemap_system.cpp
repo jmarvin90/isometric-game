@@ -132,36 +132,63 @@ void apply_highlight(entt::registry& registry,
 
     for ([[maybe_unused]] Tile* tile :
         TileScan(registry, from_position, direction)) {
+            if (tile->tile_entity == current_tile->tile_entity) continue;
+
         NavigationComponent* next_nav {
             registry.try_get<NavigationComponent>(tile->tile_entity)
         };
-        ConnectionsComponent* next_conns {
-            registry.try_get<ConnectionsComponent>(tile->tile_entity)
-        };
 
-        // TODO: if this sets the only non-null dir to null, we should remove the
-        // component; a means should be created by which components can be
-        // deleted in case all of their directions are null
-        if (next_conns) {
-            next_conns->connections[Direction::index_position(direction)] = std::nullopt;
-        }
+        [[maybe_unused]] const GridPositionComponent next_pos {registry.get<const GridPositionComponent>(tile->tile_entity)};
 
         bool curr_can_connect_forward {
             Direction::any(current_nav->directions & direction)
         };
         bool next_can_connect_back { Direction::any(next_nav->directions & reverse) };
-        bool is_junction { Direction::is_junction(current_nav->directions) };
 
-        if (!curr_can_connect_forward || !next_can_connect_back || is_junction) {
+        if (!curr_can_connect_forward || !next_can_connect_back) {
             return current_tile;
         }
 
         current_nav = next_nav;
         current_tile = *tile;
+
+        [[maybe_unused]] bool is_junction { Direction::is_junction(next_nav->directions) };
+        if (is_junction) {
+            spdlog::info(
+                "From position " + 
+                std::to_string(next_pos.grid_position.x) + "," +
+                std::to_string(next_pos.grid_position.y) + "; in direction: " + 
+                std::to_string(Direction::to_underlying(direction)) + " " 
+                "early out for junction"
+            );
+            return current_tile;
+        }
     }
 
     return current_tile;
 }
+
+void entity_connect(entt::registry& registry, entt::entity lhs, entt::entity rhs, Direction::TDirection direction) {
+    if (lhs == rhs) return;
+
+    ConnectionsComponent* lhs_conn {registry.try_get<ConnectionsComponent>(lhs)};
+    ConnectionsComponent* rhs_conn {registry.try_get<ConnectionsComponent>(rhs)};
+    
+    if (!lhs_conn) {
+        lhs_conn = &registry.emplace<ConnectionsComponent>(lhs);
+    }
+
+    if (!rhs_conn) {
+        rhs_conn = &registry.emplace<ConnectionsComponent>(rhs);
+    }
+
+    spdlog::info("Attempting emplacement");
+
+    lhs_conn->connections[Direction::index_position(direction)] = rhs;
+    rhs_conn->connections[Direction::index_position(Direction::reverse_direction(direction))] = lhs;
+}
+
+
 } // namespace
 
 void TileMapSystem::update(entt::registry& registry, const bool debug_mode)
@@ -273,53 +300,28 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
 
 void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
 {
-    const GridPositionComponent& grid_position {
-        registry.get<const GridPositionComponent>(entity)
-    };
-    const NavigationComponent& nav {
-        registry.get<const NavigationComponent>(entity)
-    };
+    const NavigationComponent& nav {registry.get<const NavigationComponent>(entity)};
+    const GridPositionComponent grid_pos {registry.get<const GridPositionComponent>(entity)};
+    bool is_junction {Direction::is_junction(nav.directions)};
 
-    for (uint8_t direction = 1; direction <= 8; direction = direction << 1) {
-        Direction::TDirection dir { direction };
-        Direction::TDirection reverse { Direction::reverse_direction(dir) };
+    std::array<std::optional<Tile>, 4> connections_array {};
+    connections_array.fill(std::nullopt);
 
-        if (!Direction::any(dir & nav.directions))
-            continue;
+    for (int i = 0; i <= 3; i++) {
+        Direction::TDirection direction {uint8_t(1<<i)};
+        std::optional<Tile> termination {scan(registry, grid_pos.grid_position, direction)};
+        connections_array[Direction::index_position(direction)] = termination;
+    }
 
-        std::optional<Tile> terminating_tile {
-            scan(registry, grid_position.grid_position, dir)
-        };
-        const GridPositionComponent& terminating_tile_pos {
-            registry.get<const GridPositionComponent>(
-                terminating_tile->tile_entity)
-        };
-
-        ConnectionsComponent* connections {
-            registry.try_get<ConnectionsComponent>(terminating_tile->tile_entity)
-        };
-        std::optional<Tile> reverse_terminating_tile {
-            scan(registry, terminating_tile_pos.grid_position, reverse)
-        };
-        ConnectionsComponent* reverse_connections {
-            registry.try_get<ConnectionsComponent>(
-                reverse_terminating_tile->tile_entity)
-        };
-
-        if (terminating_tile == reverse_terminating_tile)
-            continue;
-
-        if (!connections) {
-            connections = &registry.emplace<ConnectionsComponent>(
-                terminating_tile->tile_entity);
+    for (int i = 0; i <= 3; i++) {
+        Direction::TDirection direction {uint8_t(1<<i)};
+        std::optional<Tile>& tile {connections_array[Direction::index_position(direction)]};
+        std::optional<Tile>& reverse_tile {connections_array[Direction::index_position(Direction::reverse_direction(direction))]};
+        if (!tile || tile == reverse_tile) continue;
+        if (is_junction || !reverse_tile) {
+            entity_connect(registry, entity, tile->tile_entity, direction);
+        } else {
+            entity_connect(registry, entity, reverse_tile->tile_entity, direction);
         }
-
-        if (!reverse_connections) {
-            reverse_connections = &registry.emplace<ConnectionsComponent>(
-                reverse_terminating_tile->tile_entity);
-        }
-
-        connections->connections[Direction::index_position(reverse)] = reverse_terminating_tile->tile_entity;
-        reverse_connections->connections[Direction::index_position(dir)] = terminating_tile->tile_entity;
     }
 }

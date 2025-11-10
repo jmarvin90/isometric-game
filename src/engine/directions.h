@@ -28,6 +28,10 @@ constexpr TDirection operator&(const TDirection lhs, const TDirection rhs)
     return static_cast<TDirection>(to_underlying(lhs) & to_underlying(rhs));
 }
 
+constexpr TDirection operator!(const TDirection op) {
+    return static_cast<TDirection>((!to_underlying(op)) & 15);
+}
+
 constexpr bool any(const TDirection d)
 {
     return to_underlying(d) & 15;
