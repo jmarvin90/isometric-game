@@ -1,6 +1,5 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
-#include <components/connections_component.h>
 #include <components/grid_position_component.h>
 #include <components/highlight_component.h>
 #include <components/mouse_component.h>
@@ -89,24 +88,6 @@ namespace {
             const NavigationComponent* nav { registry.try_get<const NavigationComponent>(
                 tilemap.highlighted_tile->tile_entity) };
 
-            const ConnectionsComponent* conns {
-                registry.try_get<const ConnectionsComponent>(
-                    tilemap.highlighted_tile->tile_entity)
-            };
-
-            if (conns) {
-                for (std::optional<entt::entity> entity : conns->connections) {
-                    if (!entity)
-                        continue;
-                    const GridPositionComponent& connected_pos {
-                        registry.get<const GridPositionComponent>(entity.value())
-                    };
-
-                    ImGui::Text("Tile Connection: (%d),(%d)", connected_pos.grid_position.x,
-                        connected_pos.grid_position.y);
-                }
-            }
-
             if (nav) {
                 ImGui::Text("Tile Connection Direction(s): (%d)",
                     Direction::to_underlying(nav->directions));
@@ -127,7 +108,7 @@ void RenderSystem::render(entt::registry& registry,
 
     registry.sort<TransformComponent>(transform_comparison);
     auto sprites = registry.view<TransformComponent, SpriteComponent>();
-    const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
+    [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
 
     for (auto [entity, transform, sprite] : sprites.each()) {
         [[maybe_unused]] const auto* highlight {
@@ -138,10 +119,6 @@ void RenderSystem::render(entt::registry& registry,
             registry.try_get<TileHighlightComponentComponent>(entity)
         };
 
-        [[maybe_unused]] const auto* conns {
-            registry.try_get<ConnectionsComponent>(entity)
-        };
-
         glm::ivec2 screen_position {
             WorldPosition(transform.position).to_screen_position(registry)
         };
@@ -150,28 +127,6 @@ void RenderSystem::render(entt::registry& registry,
 
         if (highlight && debug_mode) {
             draw_lines(renderer, highlight, screen_position);
-        }
-
-        if (conns && debug_mode) {
-            for (auto tile : conns->connections) {
-                if (!tile)
-                    continue;
-
-                const TransformComponent& conn_transform {
-                    registry.get<const TransformComponent>(tile.value())
-                };
-
-                const glm::ivec2 conn_position {
-                    WorldPosition(conn_transform.position).to_screen_position(registry)
-                };
-
-                SDL_RenderDrawLine(
-                    renderer,
-                    screen_position.x + tilespec.centre.x,
-                    (screen_position.y + tilespec.centre.y) - 15,
-                    conn_position.x + tilespec.centre.x,
-                    (conn_position.y + tilespec.centre.y) - 15);
-            }
         }
 
         // if (tile_highlight && debug_mode) {

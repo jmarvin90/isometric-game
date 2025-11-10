@@ -64,9 +64,6 @@ void Game::initialise()
         std::string { "assets/spritesheet.json" }, renderer);
     registry.ctx().emplace<TileMapComponent>(registry, 8);
 
-    registry.on_construct<NavigationComponent>()
-        .connect<&TileMapSystem::connect>();
-
     TileMapSystem::emplace_tiles(registry);
 
     ImGui::CreateContext();
