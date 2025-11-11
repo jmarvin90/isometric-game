@@ -5,7 +5,7 @@ namespace Direction {
     {
         using Bits = std::underlying_type_t<TDirection>;
         Bits bits { static_cast<Bits>(direction) };
-        return TDirection((bits >> 2 | bits << 2) & 15);
+        return TDirection((bits >> 4 | bits << 4));
     }
 
     bool is_junction(Direction::TDirection direction)
