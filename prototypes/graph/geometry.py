@@ -1,89 +1,122 @@
 from __future__ import annotations
-from enum import Enum
-# from graph.constants import directions_dict
+import enum
 import math
-import functools
 
-class Point:
+class Direction(enum.Enum):
+    NORTH = 1 << 0
+    NORTH_EAST = 1 << 1
+    EAST = 1 << 2
+    SOUTH_EAST = 1 << 3
+    SOUTH = 1 << 4
+    SOUTH_WEST = 1 << 5
+    WEST = 1 << 6
+    NORTH_WEST = 1 << 7
+    NO_DIRECTION = 0
+
+
+class Vector:
     def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
 
-    def __key(self) -> tuple:
-        return (self.x, self.y)
-
-    def __hash__(self) -> int:
-        return hash(self.__key())
-
     def __str__(self) -> str:
-        return f"{self.x},{self.y}"
+        return f"({self.x},{self.y})"
 
-    def __add__(self, point: Point) -> Point:
-        return Point(
-            self.x + point.x,
-            self.y + point.y
-        )
+    def __eq__(self, query: Vector) -> bool:
+        return self.x == query.x and self.y == query.y
     
-    def __mul__(self, multiple: int) -> Point:
-        return Point(
-            self.x * multiple,
-            self.y * multiple
-        )
+    def __sub__(self, query: Vector) -> Vector:
+        return Vector(self.x - query.x, self.y - query.y)
     
-    def __eq__(self, comparator: Point) -> bool:
-        return (
-            self.x == comparator.x and 
-            self.y == comparator.y
-        )
+    def __add__(self, point: Vector) -> Vector:
+        return Vector(self.x + point.x, self.y + point.y)
     
-    def __abs__(self) -> Point:
-        return Point(
-            abs(self.x), abs(self.y)
-        )
+    def adjacent_to(self, point: Vector) -> bool:
+        comparison = self - point
+        return max(abs(comparison.x), abs(comparison.y)) == 1
     
-    def __sub__(self, comparator: Point) -> Point:
-        return Point(
-            self.x - comparator.x, self.y - comparator.y
-        )  
-    
-    @functools.cached_property
-    def vector_direction(self) -> Point:
-        return Point(
+    @property
+    def direction(self) -> Direction:
+        vec = (
             int(math.copysign(1, self.x)) if self.x != 0 else 0,
             int(math.copysign(1, self.y)) if self.y != 0 else 0
         )
-    
-    @functools.cached_property
-    def vector_direction_bitmask(self) -> int:
-        for direction, vector in directions_dict.items():
-            if vector == self.vector_direction:
-                return direction
+        return reverse_directions_dict[vec]
 
-
-    def is_adjacent_to(self, comparator: Point):
-        diff = abs(self - comparator)
-        return diff.x <= 1 and diff.y <= 1 and diff != Point(0, 0)
-
-    
-class Directions(Enum):
-    NORTH = 8
-    EAST = 4
-    SOUTH = 2
-    WEST = 1
-    NO_DIRECTION = 0
 
 directions_dict = {
-    Directions.NORTH.value: Point(0, -1),
-    Directions.EAST.value: Point(1, 0),
-    Directions.SOUTH.value: Point(0, 1),
-    Directions.WEST.value: Point(-1, 0),
-    Directions.NO_DIRECTION.value: Point(0, 0)
+    Direction.NORTH: Vector(0, -1),
+    Direction.NORTH_EAST: Vector(1, -1),
+    Direction.EAST: Vector(1, 0),
+    Direction.SOUTH_EAST: Vector(1, 1),
+    Direction.SOUTH: Vector(0, 1),
+    Direction.SOUTH_WEST: Vector(-1, 1),
+    Direction.WEST: Vector(-1, 0),
+    Direction.NORTH_WEST: Vector(-1, -1),
+    Direction.NO_DIRECTION: Vector(0, 0)
 }
 
 reverse_directions_dict = {
-    Point(0, -1): Directions.NORTH.value,
-    Point(1, 0): Directions.EAST.value,
-    Point(0, 1): Directions.SOUTH.value,
-    Point(-1, 0): Directions.WEST.value,
-    Point(0, 0): Directions.NO_DIRECTION.value
+    (0, -1): Direction.NORTH.value,  
+    (1, -1): Direction.NORTH_EAST.value,
+    (1, 0): Direction.EAST.value, 
+    (1, 1): Direction.SOUTH_EAST.value,
+    (0, 1): Direction.SOUTH.value,
+    (-1, 1): Direction.SOUTH_WEST.value,
+    (-1, 0): Direction.WEST.value,
+    (-1, -1): Direction.NORTH_WEST.value,
+    (0, 0): Direction.NO_DIRECTION.value
 }
+
+
+class Segment:
+    _next_id = 0
+   
+    def __init__(self, origin: Vector, termination: Vector):
+        self.origin = origin
+        self.termination = termination
+        self.id = Segment._next_id
+        Segment._next_id += 1
+
+    def __str__(self) -> str:
+        return f"{self.origin} -> {self.termination}"
+
+    @property
+    def directions(self) -> int:
+        return (
+            (self.origin - self.termination).direction |
+            (self.termination - self.origin).direction
+        )
+    
+    @property
+    def is_orphan(self) -> bool:
+        return self.origin == self.termination
+
+    def __contains__(self, query: Vector) -> bool:
+        # Vertical segment: x is constant
+        if self.origin.x == self.termination.x == query.x:
+            y1, y2 = self.origin.y, self.termination.y
+            return min(y1, y2) <= query.y <= max(y1, y2)
+
+        # Horizontal segment: y is constant
+        if self.origin.y == self.termination.y == query.y:
+            x1, x2 = self.origin.x, self.termination.x
+            return min(x1, x2) <= query.x <= max(x1, x2)
+
+        return False
+
+class Segments:
+    def __init__(self):
+        self.segments = {}
+
+    def add_segment(self, origin: Vector, termination: Vector) -> Segment:
+        new_segment = Segment(origin, termination)
+        self.segments[new_segment.id] = new_segment
+        return new_segment
+
+    def remove_segment(self, id: int) -> None:
+        del self.segments[id]
+
+    def get_segment(self, id: int) -> Segment | None:
+        return self.segments[id]
+ 
