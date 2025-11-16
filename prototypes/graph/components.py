@@ -1,9 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from geometry import Vector
 
 @dataclass
-class SegmentComponent:
-    segment_id: int
+class ConnectionsComponent:
+    connections: list = field(default_factory = lambda: [None] * 8)
 
 @dataclass
 class NavigationComponent:
