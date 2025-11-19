@@ -5,23 +5,17 @@
 #include <glm/glm.hpp>
 
 /*
-        1
-    128     2
-64              4
-    32      8
-        16
+    1
+  8   2
+    4
 */
 
 namespace Direction {
     enum class TDirection : uint8_t {
         NORTH = 1 << 0,
-        NORTH_WEST = 1 << 1,
-        WEST = 1 << 2,
-        SOUTH_WEST = 1 << 3,
-        SOUTH = 1 << 4,
-        SOUTH_EAST = 1 << 5,
-        EAST = 1 << 6,
-        NORTH_EAST = 1 << 7
+        WEST = 1 << 1,
+        SOUTH = 1 << 2,
+        EAST = 1 << 3
     };
 
     template <typename T>

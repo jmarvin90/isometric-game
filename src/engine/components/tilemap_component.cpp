@@ -21,7 +21,7 @@ TileMapComponent::TileMapComponent(entt::registry& registry,
     origin_px = glm::ivec2 { (area / 2).x - tilespec.centre.x, 0 };
 }
 
-std::optional<Tile> TileMapComponent::operator[](
+std::optional<entt::entity> TileMapComponent::operator[](
     const glm::ivec2 grid_position)
 {
     int index_pos { (grid_position.y * tiles_per_row) + grid_position.x };
@@ -33,7 +33,7 @@ std::optional<Tile> TileMapComponent::operator[](
     return tiles.at(index_pos);
 }
 
-std::optional<Tile> TileMapComponent::operator[](
+std::optional<entt::entity> TileMapComponent::operator[](
     const glm::ivec2 grid_position) const
 {
     int index_pos { (grid_position.y * tiles_per_row) + grid_position.x };

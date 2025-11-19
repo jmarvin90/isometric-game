@@ -85,8 +85,9 @@ namespace {
             std::to_string(glm::ivec2 { grid_position }.y).c_str());
 
         if (tilemap.highlighted_tile) {
-            const NavigationComponent* nav { registry.try_get<const NavigationComponent>(
-                tilemap.highlighted_tile->tile_entity) };
+            const NavigationComponent* nav {
+                registry.try_get<const NavigationComponent>(tilemap.highlighted_tile.value())
+            };
 
             if (nav) {
                 ImGui::Text("Tile Connection Direction(s): (%d)",

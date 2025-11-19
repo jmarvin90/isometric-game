@@ -20,7 +20,7 @@ namespace {
         TileMapComponent& tilemap;
         glm::ivec2 pos;
         Direction::TDirection direction;
-        std::optional<Tile> current;
+        std::optional<entt::entity> current;
 
         TileScanIterator() = delete;
         TileScanIterator(entt::registry& registry,
@@ -34,7 +34,7 @@ namespace {
         {
         }
 
-        Tile* operator*() { return &current.value(); };
+        entt::entity operator*() { return current.value(); };
         // const Tile* operator->() const { return &current->value(); }
 
         TileScanIterator& operator++()
@@ -77,68 +77,36 @@ namespace {
         std::nullopt_t end() { return std::nullopt; }
     };
 
-    std::vector<entt::entity> get_tile_entities(const Tile tile)
-    {
-        if (tile.building_entity) {
-            return std::vector<entt::entity> { tile.tile_entity,
-                tile.building_entity.value() };
-        }
-        return std::vector<entt::entity> { tile.tile_entity };
-    }
-
     void apply_highlight(entt::registry& registry,
-        const Tile tile,
+        const entt::entity tile,
         int factor = 1)
     {
-        for (entt::entity entity : get_tile_entities(tile)) {
-            TransformComponent& transform { registry.get<TransformComponent>(entity) };
-            transform.position.y -= (30 * factor);
-            transform.z_index += factor;
-        }
+        TransformComponent& transform { registry.get<TransformComponent>(tile) };
+        transform.position.y -= (30 * factor);
+        transform.z_index += factor;
     }
 
-    [[maybe_unused]] const std::array<std::optional<Tile>, 4> neighbours(
-        const TileMapComponent& tilemap,
-        const glm::ivec2 grid_position)
-    {
-        std::array<std::optional<Tile>, 4> output {};
-        output.fill(std::nullopt);
-
-        for (Direction::DirectionInfo direction : Direction::directions) {
-            GridPosition proposed { grid_position + direction.vec };
-            if (tilemap[proposed]) {
-                output[static_cast<int>(direction.direction)] = tilemap[proposed].value();
-            }
-        }
-        return output;
-    }
-
-    [[maybe_unused]] std::optional<Tile> scan(entt::registry& registry,
+    [[maybe_unused]] std::optional<entt::entity> scan(entt::registry& registry,
         glm::ivec2 from_position,
         Direction::TDirection direction)
     {
         const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
         const Direction::TDirection reverse { Direction::reverse_direction(direction) };
 
-        std::optional<Tile> current_tile { tilemap[from_position] };
+        std::optional<entt::entity> current_tile { tilemap[from_position] };
 
         if (!current_tile)
             return std::nullopt;
 
-        NavigationComponent current_nav {
-            registry.get<const NavigationComponent>(current_tile->tile_entity)
-        };
+        NavigationComponent current_nav { registry.get<const NavigationComponent>(current_tile.value()) };
 
-        for ([[maybe_unused]] Tile* tile :
-            TileScan(registry, from_position, direction)) {
-            if (tile->tile_entity == current_tile->tile_entity)
+        for ([[maybe_unused]] entt::entity tile : TileScan(registry, from_position, direction)) {
+            if (tile == current_tile)
                 continue;
 
-            NavigationComponent next_nav {
-                registry.get<const NavigationComponent>(tile->tile_entity)
-            };
+            NavigationComponent next_nav { registry.get<const NavigationComponent>(tile) };
 
-            [[maybe_unused]] const GridPositionComponent next_pos { registry.get<const GridPositionComponent>(tile->tile_entity) };
+            [[maybe_unused]] const GridPositionComponent next_pos { registry.get<const GridPositionComponent>(tile) };
 
             bool curr_can_connect_forward { Direction::any(current_nav.directions & direction) };
             bool next_can_connect_back { Direction::any(next_nav.directions & reverse) };
@@ -148,7 +116,7 @@ namespace {
             }
 
             current_nav = next_nav;
-            current_tile = *tile;
+            current_tile = tile;
 
             [[maybe_unused]] bool is_junction { Direction::is_junction(next_nav.directions) };
             if (is_junction) {
@@ -182,7 +150,7 @@ void TileMapSystem::update(entt::registry& registry, const bool debug_mode)
         ScreenPosition(mouse.window_current_position).to_grid_position(registry)
     };
 
-    std::optional<Tile> new_tile = tilemap[grid_position];
+    std::optional<entt::entity> new_tile = tilemap[grid_position];
 
     if (new_tile == tilemap.highlighted_tile) {
         return;
@@ -208,18 +176,16 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet&>() };
 
     for (int i = 0; i < tilemap.n_tiles; i++) {
-        Tile& tile { tilemap.tiles.emplace_back(registry) };
+        entt::entity tile { tilemap.tiles.emplace_back(registry.create()) };
 
         const GridPosition grid_position { registry, i };
         const glm::ivec2 world_position { grid_position.to_world_position(registry) };
 
-        registry.emplace<TransformComponent>(tile.tile_entity, world_position, 0,
-            0.0);
+        registry.emplace<TransformComponent>(tile, world_position, 0, 0.0);
 
-        registry.emplace<HighlightComponent>(
-            tile.tile_entity, SDL_Color { 0, 0, 255, 255 }, tilespec.iso_points());
+        registry.emplace<HighlightComponent>(tile, SDL_Color { 0, 0, 255, 255 }, tilespec.iso_points());
 
-        registry.emplace<GridPositionComponent>(tile.tile_entity, grid_position);
+        registry.emplace<GridPositionComponent>(tile, grid_position);
 
         std::string tile_handle {};
 
@@ -261,9 +227,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             tile_handle = "grass";
         }
 
-        registry.emplace<SpriteComponent>(tile.tile_entity,
-            spritesheet.get(tile_handle).first);
-        registry.emplace<NavigationComponent>(tile.tile_entity,
-            spritesheet.get(tile_handle).second);
+        registry.emplace<SpriteComponent>(tile, spritesheet.get(tile_handle).first);
+        registry.emplace<NavigationComponent>(tile, spritesheet.get(tile_handle).second);
     }
 }

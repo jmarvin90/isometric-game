@@ -33,7 +33,7 @@
         "width": 256,
         "height": 143,
         "passable": true,
-        "directions": 68
+        "directions": 10
     },
     {
         "name": "grass_ns",
@@ -42,7 +42,7 @@
         "width": 256,
         "height": 143,
         "passable": true,
-        "directions": 17
+        "directions": 5
     },
     {
         "name": "gass_nesw",
@@ -51,7 +51,7 @@
         "width": 256,
         "height": 143,
         "passable": true,
-        "directions": 85
+        "directions": 15
     },
     {
         "name": "grass_es",
@@ -60,7 +60,7 @@
         "width": 256,
         "height": 143,
         "passable": true,
-        "directions": 20
+        "directions": 6
     },
     {
         "name": "grass_sw",
@@ -69,7 +69,7 @@
         "width": 256,
         "height": 143,
         "passable": true,
-        "directions": 80
+        "directions": 12
     },
     {
         "name": "grass_ne",
@@ -78,7 +78,7 @@
         "width": 256,
         "height": 143,
         "passable": true,
-        "directions": 5
+        "directions": 3
     },
     {
         "name": "grass_nw",
@@ -87,7 +87,7 @@
         "width": 256,
         "height": 143,
         "passable": true,
-        "directions": 65
+        "directions": 9
     },
     {
         "name": "building_short",
