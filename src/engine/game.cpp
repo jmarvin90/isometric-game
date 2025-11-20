@@ -1,6 +1,7 @@
 #include <SDL2/SDL_image.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
+#include <components/junction_component.h>
 #include <components/tilemap_component.h>
 #include <components/tilespec_component.h>
 #include <constants.h>
@@ -63,6 +64,8 @@ void Game::initialise()
         std::string { "assets/spritesheet_scaled.png" },
         std::string { "assets/spritesheet.json" }, renderer);
     registry.ctx().emplace<TileMapComponent>(registry, 8);
+
+    registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
 
     TileMapSystem::emplace_tiles(registry);
 

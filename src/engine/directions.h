@@ -36,12 +36,12 @@ namespace Direction {
 
     constexpr TDirection operator!(const TDirection op)
     {
-        return static_cast<TDirection>(!to_underlying(op));
+        return static_cast<TDirection>((!to_underlying(op)) & 15);
     }
 
     constexpr bool any(const TDirection d)
     {
-        return to_underlying(d);
+        return to_underlying(d) & 15;
     }
 
     struct DirectionInfo {
@@ -50,10 +50,12 @@ namespace Direction {
     };
 
     constexpr std::array<DirectionInfo, 4> directions {
-        { { TDirection::WEST, { -1, 0 } },
-            { TDirection::SOUTH, { 0, 1 } },
+        {
+            { TDirection::NORTH, { 0, -1 } },
             { TDirection::EAST, { 1, 0 } },
-            { TDirection::NORTH, { 0, -1 } } }
+            { TDirection::SOUTH, { 0, 1 } },
+            { TDirection::WEST, { -1, 0 } },
+        }
     };
 
     TDirection reverse_direction(const TDirection direction);

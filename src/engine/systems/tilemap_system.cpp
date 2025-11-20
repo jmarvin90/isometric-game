@@ -1,5 +1,6 @@
 #include <components/grid_position_component.h>
 #include <components/highlight_component.h>
+#include <components/junction_component.h>
 #include <components/navigation_component.h>
 #include <components/sprite_component.h>
 #include <components/tilemap_component.h>
@@ -10,6 +11,7 @@
 #include <spritesheet.h>
 #include <systems/tilemap_system.h>
 
+#include <algorithm>
 #include <array>
 #include <optional>
 
@@ -127,6 +129,47 @@ namespace {
         return current_tile;
     }
 
+    void _disconnect(entt::registry& registry, const entt::entity entity, const Direction::TDirection direction)
+    {
+        auto junctions = registry.view<JunctionComponent>();
+
+        for (auto [entity, junction] : junctions.each()) {
+            uint8_t index_pos { Direction::index_position(direction) };
+            std::optional<entt::entity> connection { junction.connections[index_pos] };
+
+            if (connection && connection.value() == entity) {
+                junction.connections[index_pos] = std::nullopt;
+            }
+
+            bool no_values {
+                std::none_of(
+                    junction.connections.begin(),
+                    junction.connections.end(),
+                    [](auto const& opt) { return opt.has_value(); })
+            };
+
+            if (no_values) {
+                registry.remove<JunctionComponent>(entity);
+            }
+        }
+    }
+
+    void _connect(
+        entt::registry& registry,
+        const entt::entity from_entity,
+        const entt::entity to_entity,
+        Direction::TDirection direction)
+    {
+        _disconnect(registry, to_entity, direction);
+        JunctionComponent* junction { registry.try_get<JunctionComponent>(from_entity) };
+
+        if (!junction) {
+            junction = &registry.emplace<JunctionComponent>(from_entity);
+        }
+
+        junction->connections[Direction::index_position(direction)] = to_entity;
+    }
+
 } // namespace
 
 void TileMapSystem::update(entt::registry& registry, const bool debug_mode)
@@ -182,9 +225,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
         const glm::ivec2 world_position { grid_position.to_world_position(registry) };
 
         registry.emplace<TransformComponent>(tile, world_position, 0, 0.0);
-
         registry.emplace<HighlightComponent>(tile, SDL_Color { 0, 0, 255, 255 }, tilespec.iso_points());
-
         registry.emplace<GridPositionComponent>(tile, grid_position);
 
         std::string tile_handle {};
@@ -229,5 +270,44 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
 
         registry.emplace<SpriteComponent>(tile, spritesheet.get(tile_handle).first);
         registry.emplace<NavigationComponent>(tile, spritesheet.get(tile_handle).second);
+    }
+}
+
+void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
+{
+    auto [nav, pos] = registry.get<NavigationComponent, GridPositionComponent>(entity);
+    bool is_junction { Direction::is_junction(nav.directions) };
+    std::array<std::optional<entt::entity>, 4> connections {};
+
+    for (uint8_t i = 0; i < 4; i++) {
+        Direction::TDirection direction { uint8_t(1 << i) };
+
+        if (!(Direction::any(direction & nav.directions)))
+            continue;
+
+        connections[Direction::index_position(direction)] = scan(registry, pos.grid_position, direction);
+    }
+
+    for (uint8_t i = 0; i < 4; i++) {
+        Direction::TDirection direction { uint8_t(1 << i) };
+        Direction::TDirection reverse_direction { Direction::reverse_direction(direction) };
+        uint8_t index_position { Direction::index_position(direction) };
+        uint8_t reverse_index_position { Direction::index_position(reverse_direction) };
+
+        std::optional<entt::entity> conn { connections[index_position] };
+        std::optional<entt::entity> reverse_conn { connections[reverse_index_position] };
+
+        if (!conn.has_value() or conn.value() == entity)
+            continue;
+
+        if (is_junction || !reverse_conn.has_value()) {
+            _connect(registry, entity, conn.value(), direction);
+        } else {
+            _connect(
+                registry,
+                reverse_conn.value(),
+                conn.value(),
+                direction);
+        }
     }
 }
