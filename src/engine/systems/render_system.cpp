@@ -6,6 +6,7 @@
 #include <components/navigation_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
+#include <components/junction_component.h>
 #include <imgui.h>
 #include <position.h>
 #include <systems/render_system.h>
@@ -89,9 +90,25 @@ namespace {
                 registry.try_get<const NavigationComponent>(tilemap.highlighted_tile.value())
             };
 
+            const JunctionComponent* conns {
+                registry.try_get<const JunctionComponent>(tilemap.highlighted_tile.value())
+            };
+
             if (nav) {
                 ImGui::Text("Tile Connection Direction(s): (%d)",
                     Direction::to_underlying(nav->directions));
+            }
+
+            if(conns) {
+                for (auto conn: conns->connections) {
+                    if (conn) {
+                        glm::ivec2 pos {registry.get<GridPositionComponent>(conn.value()).grid_position};
+                        ImGui::Text(
+                            "Tile connection destination: (%d,%d)",
+                            pos.x, pos.y
+                        );
+                    }
+                }
             }
         }
 

@@ -133,7 +133,7 @@ namespace {
     {
         auto junctions = registry.view<JunctionComponent>();
 
-        for (auto [entity, junction] : junctions.each()) {
+        for (auto [joined_entity, junction] : junctions.each()) {
             uint8_t index_pos { Direction::index_position(direction) };
             std::optional<entt::entity> connection { junction.connections[index_pos] };
 
@@ -149,7 +149,7 @@ namespace {
             };
 
             if (no_values) {
-                registry.remove<JunctionComponent>(entity);
+                registry.remove<JunctionComponent>(joined_entity);
             }
         }
     }
@@ -297,10 +297,10 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
         std::optional<entt::entity> conn { connections[index_position] };
         std::optional<entt::entity> reverse_conn { connections[reverse_index_position] };
 
-        if (!conn.has_value() or conn.value() == entity)
+        if (!conn or conn.value() == entity)
             continue;
 
-        if (is_junction || !reverse_conn.has_value()) {
+        if (is_junction || !reverse_conn) {
             _connect(registry, entity, conn.value(), direction);
         } else {
             _connect(
