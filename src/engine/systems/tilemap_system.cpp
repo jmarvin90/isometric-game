@@ -133,46 +133,6 @@ namespace {
         }
     }
 
-<<<<<<< HEAD
-    [[maybe_unused]] void _connect(entt::registry& registry, const entt::entity from_entity, const entt::entity to_entity, const Direction::TDirection direction)
-    {
-        _disconnect(registry, to_entity, direction);
-
-        const Direction::TDirection reverse_direction { Direction::reverse_direction(direction) };
-        JunctionComponent* junctions { registry.try_get<JunctionComponent>(from_entity) };
-
-        if (!junctions) {
-            junctions = &registry.emplace<JunctionComponent>(from_entity);
-        }
-
-        *junctions->connections[Direction::index_position(reverse_direction)] = to_entity;
-    }
-=======
-    void _disconnect(entt::registry& registry, const entt::entity entity, const Direction::TDirection direction)
-    {
-        auto junctions = registry.view<JunctionComponent>();
-
-        for (auto [joined_entity, junction] : junctions.each()) {
-            uint8_t index_pos { Direction::index_position(direction) };
-            std::optional<entt::entity> connection { junction.connections[index_pos] };
-
-            if (connection && connection.value() == entity) {
-                junction.connections[index_pos] = std::nullopt;
-            }
-
-            bool no_values {
-                std::none_of(
-                    junction.connections.begin(),
-                    junction.connections.end(),
-                    [](auto const& opt) { return opt.has_value(); })
-            };
-
-            if (no_values) {
-                registry.remove<JunctionComponent>(joined_entity);
-            }
-        }
-    }
-
     void _connect(
         entt::registry& registry,
         const entt::entity from_entity,
@@ -189,7 +149,6 @@ namespace {
         junction->connections[Direction::index_position(direction)] = to_entity;
     }
 
->>>>>>> aabf8340903dacb60f73be0ba46d51da107e0d74
 } // namespace
 
 void TileMapSystem::update(entt::registry& registry, const bool debug_mode)
@@ -295,7 +254,6 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
 
 void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
 {
-<<<<<<< HEAD
     auto [nav, pos] { registry.get<NavigationComponent, GridPositionComponent>(entity) };
     bool is_junction { Direction::is_junction(nav.directions) };
 
@@ -325,41 +283,6 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
         } else {
             spdlog::info("Connecting entities {} and {}", int(query_pos.value()), int(reversed_query_pos.value()));
             _connect(registry, query_pos.value(), reversed_query_pos.value(), direction);
-=======
-    auto [nav, pos] = registry.get<NavigationComponent, GridPositionComponent>(entity);
-    bool is_junction { Direction::is_junction(nav.directions) };
-    std::array<std::optional<entt::entity>, 4> connections {};
-
-    for (uint8_t i = 0; i < 4; i++) {
-        Direction::TDirection direction { uint8_t(1 << i) };
-
-        if (!(Direction::any(direction & nav.directions)))
-            continue;
-
-        connections[Direction::index_position(direction)] = scan(registry, pos.grid_position, direction);
-    }
-
-    for (uint8_t i = 0; i < 4; i++) {
-        Direction::TDirection direction { uint8_t(1 << i) };
-        Direction::TDirection reverse_direction { Direction::reverse_direction(direction) };
-        uint8_t index_position { Direction::index_position(direction) };
-        uint8_t reverse_index_position { Direction::index_position(reverse_direction) };
-
-        std::optional<entt::entity> conn { connections[index_position] };
-        std::optional<entt::entity> reverse_conn { connections[reverse_index_position] };
-
-        if (!conn or conn.value() == entity)
-            continue;
-
-        if (is_junction || !reverse_conn) {
-            _connect(registry, entity, conn.value(), direction);
-        } else {
-            _connect(
-                registry,
-                reverse_conn.value(),
-                conn.value(),
-                direction);
->>>>>>> aabf8340903dacb60f73be0ba46d51da107e0d74
         }
     }
 }
