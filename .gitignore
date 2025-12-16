@@ -1,6 +1,9 @@
 # Build artifacts
 build/*
 
+# Any Python bytecode
+**/*.pyc
+
 # Old assets
 assets_old/*
 
