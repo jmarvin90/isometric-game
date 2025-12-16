@@ -12,6 +12,7 @@
 
 namespace Direction {
     enum class TDirection : uint8_t {
+        NO_DIRECTION = 0,
         NORTH = 1 << 0,
         WEST = 1 << 1,
         SOUTH = 1 << 2,
@@ -38,6 +39,10 @@ namespace Direction {
     {
         return static_cast<TDirection>((!to_underlying(op)) & 15);
     }
+
+    constexpr TDirection operator>>(const TDirection lhs, const int places);
+
+    constexpr TDirection operator<<(const TDirection lhs, const int places);
 
     constexpr bool any(const TDirection d)
     {

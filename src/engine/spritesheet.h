@@ -5,21 +5,30 @@
 #include <components/navigation_component.h>
 #include <components/sprite_component.h>
 
+#include <optional>
 #include <string>
 #include <unordered_map>
 
-using TileDef = std::pair<SpriteComponent, NavigationComponent>;
+struct SpriteSheetEntry {
+    SpriteComponent sprite_definition;
+    std::optional<NavigationComponent> navigation_definition;
+    SpriteSheetEntry(SpriteComponent sprite_def, std::optional<NavigationComponent> nav_def)
+        : sprite_definition { sprite_def }
+        , navigation_definition { nav_def }
+    {
+    }
+};
 
 class SpriteSheet {
     SDL_Texture* spritesheet;
-    std::unordered_map<std::string, TileDef> sprites;
+    std::unordered_map<std::string, SpriteSheetEntry> sprites;
 
 public:
     SpriteSheet(const std::string spritesheet_path,
         const std::string atlas_path,
         SDL_Renderer* renderer);
     ~SpriteSheet();
-    const TileDef& get(const std::string name) const;
+    const SpriteSheetEntry& get(const std::string name) const;
 
     SpriteSheet(const SpriteSheet&) = delete;
     SpriteSheet& operator=(const SpriteSheet&) = delete;

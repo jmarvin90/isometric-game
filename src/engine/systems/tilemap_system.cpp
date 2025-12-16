@@ -69,11 +69,11 @@ namespace {
 
             if (!current_can_connect_forward || !next_can_connect_back) {
                 current = std::nullopt;
-                return *this;
+            } else {
+                current = next_tile;
+                pos = next_pos;
             }
 
-            current = next_tile;
-            pos = next_pos;
             return *this;
         }
 
@@ -247,8 +247,12 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             tile_handle = "grass";
         }
 
-        registry.emplace<SpriteComponent>(tile, spritesheet.get(tile_handle).first);
-        registry.emplace<NavigationComponent>(tile, spritesheet.get(tile_handle).second);
+        // TODO: check for copies
+        const SpriteSheetEntry& spritedef { spritesheet.get(tile_handle) };
+        registry.emplace<SpriteComponent>(tile, spritedef.sprite_definition);
+        if (spritedef.navigation_definition) {
+            registry.emplace<NavigationComponent>(tile, spritedef.navigation_definition.value());
+        }
     }
 }
 
@@ -260,15 +264,19 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
     std::array<std::optional<entt::entity>, 4> positions {};
     positions.fill(std::nullopt);
 
-    for (int i = 0; i < 4; i++) {
-        Direction::TDirection direction { uint8_t(1 << i) };
+    for (
+        Direction::TDirection direction { Direction::TDirection::NORTH };
+        direction != Direction::TDirection::NO_DIRECTION;
+        direction = direction >> 1) {
         for (auto next_pos : TileScan(registry, pos.grid_position, direction)) {
             positions[Direction::index_position(direction)] = next_pos;
         }
     }
 
-    for (uint i = 0; i < 4; i++) {
-        Direction::TDirection direction { uint8_t(1 << i) };
+    for (
+        Direction::TDirection direction { Direction::TDirection::NORTH };
+        direction != Direction::TDirection::NO_DIRECTION;
+        direction = direction >> 1) {
         Direction::TDirection reverse_direction { Direction::reverse_direction(direction) };
 
         const auto& query_pos { positions[Direction::index_position(direction)] };

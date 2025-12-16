@@ -6,6 +6,7 @@
 #include <spritesheet.h>
 
 #include <fstream>
+#include <optional>
 
 SpriteSheet::SpriteSheet(const std::string spritesheet_path,
     const std::string atlas_path,
@@ -31,12 +32,11 @@ SpriteSheet::SpriteSheet(const std::string spritesheet_path,
     for (const auto& json_object : my_document.GetArray()) {
         sprites.try_emplace(json_object["name"].GetString(),
             SpriteComponent { json_object, spritesheet },
-            NavigationComponent { json_object });
+            json_object.HasMember("directions") ? std::make_optional<NavigationComponent>(json_object) : std::nullopt);
     }
 }
 
-using TileDef = std::pair<SpriteComponent, NavigationComponent>;
-const TileDef& SpriteSheet::get(const std::string name) const
+const SpriteSheetEntry& SpriteSheet::get(const std::string name) const
 {
     return sprites.at(name);
 }

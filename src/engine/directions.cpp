@@ -3,9 +3,7 @@
 namespace Direction {
     TDirection reverse_direction(const TDirection direction)
     {
-        using Bits = std::underlying_type_t<TDirection>;
-        Bits bits { static_cast<Bits>(direction) };
-        return TDirection((bits >> 2 | bits << 2) & 15);
+        return direction >> 2 | direction << 2;
     }
 
     bool is_junction(Direction::TDirection direction)
@@ -16,5 +14,17 @@ namespace Direction {
     uint8_t index_position(Direction::TDirection direction)
     {
         return __builtin_ctz(to_underlying(direction));
+    }
+
+    constexpr TDirection operator>>(const Direction::TDirection lhs, const int places)
+    {
+        uint8_t bits { Direction::to_underlying(lhs) };
+        return Direction::TDirection((bits << places) & 15);
+    }
+
+    constexpr TDirection operator<<(const Direction::TDirection lhs, const int places)
+    {
+        uint8_t bits { Direction::to_underlying(lhs) };
+        return Direction::TDirection((bits >> places) & 15);
     }
 }; // namespace Direction
