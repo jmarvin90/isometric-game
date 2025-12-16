@@ -44,7 +44,7 @@ void Game::initialise()
         SDL_WINDOWPOS_CENTERED, // Window y position (centred)
         display_mode.w, // X res from current display mode
         display_mode.h, // Y res from current display mode
-        SDL_WINDOW_FULLSCREEN | SDL_WINDOW_ALLOW_HIGHDPI // Input grabbed flag
+        SDL_WINDOW_FULLSCREEN // | SDL_WINDOW_ALLOW_HIGHDPI // Input grabbed flag
     );
 
     if (!window) {
@@ -65,6 +65,8 @@ void Game::initialise()
         std::string { "assets/spritesheet_scaled.png" },
         std::string { "assets/spritesheet.json" }, renderer);
     registry.ctx().emplace<TileMapComponent>(registry, 8);
+
+    registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
 
     TileMapSystem::emplace_tiles(registry);
 

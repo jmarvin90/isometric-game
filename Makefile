@@ -5,6 +5,8 @@ DEBUG_FLAG = 			-ggdb
 LANG_STD = 				-std=c++17
 SRC_FILES = 			./src/*.cpp \
 						./src/engine/*.cpp \
+						./src/engine/systems/*.cpp \
+						./src/engine/components/*.cpp \
 						./libs/imgui/*.cpp \
 						./libs/imgui/backends/imgui_impl_sdl2.cpp \
 						./libs/imgui/backends/imgui_impl_sdlrenderer2.cpp
@@ -23,7 +25,6 @@ OUTPUT = isometric-game
 build:
 	g++ \
 		${DEBUG_FLAG} \
-		${COMPILER_FLAGS} \
 		${LANG_STD}  \
 		${SRC_FILES} \
 		${LINKER_FLAGS} \

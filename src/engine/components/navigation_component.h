@@ -7,14 +7,14 @@
 struct NavigationComponent {
     Direction::TDirection directions;
     NavigationComponent(int directions)
-        : directions { directions }
+        : directions { static_cast<uint8_t>(directions) }
     {
     }
 
     NavigationComponent(const rapidjson::Value& json_object)
         : directions { (json_object.HasMember("directions") && json_object["directions"].IsInt())
-                ? json_object["directions"].GetInt()
-                : 0 }
+                ? static_cast<uint8_t>(json_object["directions"].GetInt())
+                : static_cast<uint8_t>(0) }
     {
     }
 };

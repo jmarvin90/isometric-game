@@ -18,9 +18,13 @@ public:
     SpriteSheet(const std::string spritesheet_path,
         const std::string atlas_path,
         SDL_Renderer* renderer);
-    SpriteSheet(const SpriteSheet&) = delete;
     ~SpriteSheet();
     const TileDef& get(const std::string name) const;
+
+    SpriteSheet(const SpriteSheet&) = delete;
+    SpriteSheet& operator=(const SpriteSheet&) = delete;
+    SpriteSheet(SpriteSheet&&) = default;
+    SpriteSheet& operator=(SpriteSheet&&) = default;
 };
 
 #endif
