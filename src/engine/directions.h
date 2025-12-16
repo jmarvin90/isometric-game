@@ -50,10 +50,10 @@ namespace Direction {
     };
 
     constexpr std::array<DirectionInfo, 4> directions {
-        { { TDirection::WEST, { -1, 0 } },
+        { { TDirection::NORTH, { 0, -1 } },
+            { TDirection::WEST, { -1, 0 } },
             { TDirection::SOUTH, { 0, 1 } },
-            { TDirection::EAST, { 1, 0 } },
-            { TDirection::NORTH, { 0, -1 } } }
+            { TDirection::EAST, { 1, 0 } } }
     };
 
     TDirection reverse_direction(const TDirection direction);

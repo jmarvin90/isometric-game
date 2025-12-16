@@ -38,7 +38,7 @@ class Registry:
     def destroy(self, id: int) -> None:
         self.entities.remove(id)
 
-    def add_component(self, entity: Entity, _type: Any, *args: Any) -> None:
+    def add_component(self, entity: Entity, _type: Any, *args: Any) -> Any:
         if not entity in self.components.keys():
             self.components[entity] = {_type: _type(*args)}
         else:
@@ -46,6 +46,8 @@ class Registry:
 
         if _type in self.callbacks.keys():
             self.callbacks[_type](self, entity)
+
+        return self.components[entity][_type]
 
     def remove_component(self, entity: Entity, _type: Any) -> None:
         if (

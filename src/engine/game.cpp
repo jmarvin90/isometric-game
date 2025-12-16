@@ -1,6 +1,7 @@
 #include <SDL2/SDL_image.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
+#include <components/navigation_component.h>
 #include <components/tilemap_component.h>
 #include <components/tilespec_component.h>
 #include <constants.h>
@@ -52,9 +53,10 @@ void Game::initialise()
 
     registry = entt::registry();
 
+    registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
+
     // TODO: move this somewhere smart under some smart condition
-    renderer = SDL_CreateRenderer(
-        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     registry.ctx().emplace<MouseComponent>();
     registry.ctx().emplace<CameraComponent>();

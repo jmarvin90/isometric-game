@@ -63,15 +63,14 @@ def _connect(registry: Registry, from_pos: Vector, to_pos: Vector, direction: Di
 
     tilemap = registry.context_get(TileMap)
     from_ent = tilemap[from_pos]
-    from_conn = registry.get_component(from_ent, ConnectionsComponent)
 
-    if not from_conn:
-        conns = [None] * 8
-        conns[utils.count_trailing_zeros(direction.value)] = to_pos
-        registry.add_component(from_ent, ConnectionsComponent, conns)
-    else:
-        conns = registry.get_component(from_ent, ConnectionsComponent)
-        conns[utils.count_trailing_zeros] = to_pos
+    from_conn = (
+        registry.get_component(from_ent, ConnectionsComponent) or
+        registry.add_component(from_ent, ConnectionsComponent, [None]*8)
+    )
+    
+    # TODO: check if this is shallow or deep; might not be working
+    from_conn.connections[utils.count_trailing_zeros(direction.value)] = to_pos
 
 
 class NavigationSystem:
