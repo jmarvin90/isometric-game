@@ -2,6 +2,7 @@
 #include <components/highlight_component.h>
 #include <components/junction_component.h>
 #include <components/navigation_component.h>
+#include <components/segment_component.h>
 #include <components/sprite_component.h>
 #include <components/tilemap_component.h>
 #include <components/tilespec_component.h>
@@ -13,94 +14,50 @@
 
 #include <algorithm>
 #include <array>
-#include <optional>
+#include <vector>
 
 namespace {
 
-    struct TileScanIterator {
-        entt::registry& registry;
-        TileMapComponent& tilemap;
-        glm::ivec2 start_pos;
-        glm::ivec2 pos;
-        Direction::TDirection direction;
-        Direction::TDirection reverse_direction;
-        glm::ivec2 direction_vec;
-        std::optional<entt::entity> current;
+    std::vector<entt::entity> scan(
+        [[maybe_unused]] const entt::registry& registry,
+        [[maybe_unused]] entt::entity origin,
+        [[maybe_unused]] Direction::TDirection direction)
+    {
+        const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+        glm::ivec2 direction_vector { Direction::direction_vectors[direction] };
+        entt::entity current { origin };
+        Direction::TDirection reverse_direction { Direction::reverse_direction(direction) };
 
-        TileScanIterator() = delete;
-        TileScanIterator(entt::registry& registry,
-            glm::ivec2 pos,
-            Direction::TDirection direction)
-            : registry { registry }
-            , tilemap { registry.ctx().get<TileMapComponent>() }
-            , start_pos { pos }
-            , pos { pos }
-            , direction { direction }
-            , reverse_direction { Direction::reverse_direction(direction) }
-            , direction_vec { Direction::directions[Direction::index_position(direction)].vec }
-            , current { tilemap[pos] }
-        {
-        }
+        std::vector<entt::entity> output { current };
 
-        entt::entity operator*() { return current.value(); };
-        // const Tile* operator->() const { return &current->value(); }
+        while (true) {
+            glm::ivec2 current_position { registry.get<const GridPositionComponent>(current).grid_position };
+            glm::ivec2 next_position { current_position + direction_vector };
 
-        TileScanIterator& operator++()
-        {
-            glm::ivec2 next_pos { pos + direction_vec };
-            std::optional<entt::entity> next_tile { tilemap[next_pos] };
+            entt::entity next { tilemap[next_position] };
 
-            if (!next_tile) {
-                current = std::nullopt;
-                return *this;
+            if (next == entt::null) {
+                return output;
             }
 
-            const NavigationComponent* current_nav_component { registry.try_get<const NavigationComponent>(current.value()) };
-            const NavigationComponent* next_nav_component { registry.try_get<const NavigationComponent>(next_tile.value()) };
+            const NavigationComponent& current_nav { registry.get<const NavigationComponent>(current) };
+            const NavigationComponent* next_nav { registry.try_get<const NavigationComponent>(next) };
 
-            if (
-                !current_nav_component || !next_nav_component || (pos != start_pos && Direction::is_junction(current_nav_component->directions))) {
-                current = std::nullopt;
-                return *this;
+            if (!next_nav || (current != origin && Direction::is_junction(current_nav.directions))) {
+                return output;
             }
 
-            bool current_can_connect_forward { Direction::any(current_nav_component->directions & direction) };
-            bool next_can_connect_back { Direction::any(next_nav_component->directions & reverse_direction) };
+            bool current_can_connect_forward { Direction::any(current_nav.directions & direction) };
+            bool next_can_connect_back { Direction::any(next_nav->directions & reverse_direction) };
 
             if (!current_can_connect_forward || !next_can_connect_back) {
-                current = std::nullopt;
-            } else {
-                current = next_tile;
-                pos = next_pos;
+                return output;
             }
 
-            return *this;
+            current = next;
+            output.emplace_back(current);
         }
-
-        bool operator!=(std::nullopt_t) const { return current.has_value(); }
-    };
-
-    struct TileScan {
-        entt::registry& registry;
-        glm::ivec2 start;
-        Direction::TDirection direction;
-
-        TileScan() = delete;
-        TileScan(entt::registry& registry,
-            const glm::ivec2 start,
-            const Direction::TDirection direction)
-            : registry { registry }
-            , start { start }
-            , direction { direction }
-        {
-        }
-
-        TileScanIterator begin()
-        {
-            return TileScanIterator(registry, start, direction);
-        }
-        std::nullopt_t end() { return std::nullopt; }
-    };
+    }
 
     void apply_highlight(entt::registry& registry,
         const entt::entity tile,
@@ -111,44 +68,6 @@ namespace {
         transform.z_index += factor;
     }
 
-    [[maybe_unused]] void _disconnect(entt::registry& registry, entt::entity entity, const Direction::TDirection direction)
-    {
-        const Direction::TDirection reverse_direction { Direction::reverse_direction(direction) };
-
-        auto junctions = registry.view<JunctionComponent>();
-        for (auto [connected_entity, junction] : junctions.each()) {
-            auto& connection { junction.connections[Direction::index_position(reverse_direction)] };
-
-            if (connection && connection == entity) {
-                connection = std::nullopt;
-            }
-
-            bool no_values = std::none_of(
-                junction.connections.begin(),
-                junction.connections.end(),
-                [](auto const& opt) { return opt.has_value(); });
-
-            if (no_values)
-                registry.remove<JunctionComponent>(connected_entity);
-        }
-    }
-
-    void _connect(
-        entt::registry& registry,
-        const entt::entity from_entity,
-        const entt::entity to_entity,
-        Direction::TDirection direction)
-    {
-        _disconnect(registry, to_entity, direction);
-        JunctionComponent* junction { registry.try_get<JunctionComponent>(from_entity) };
-
-        if (!junction) {
-            junction = &registry.emplace<JunctionComponent>(from_entity);
-        }
-
-        junction->connections[Direction::index_position(direction)] = to_entity;
-    }
-
 } // namespace
 
 void TileMapSystem::update(entt::registry& registry, const bool debug_mode)
@@ -157,9 +76,9 @@ void TileMapSystem::update(entt::registry& registry, const bool debug_mode)
     const auto& mouse = registry.ctx().get<const MouseComponent>();
 
     if (!debug_mode) {
-        if (tilemap.highlighted_tile) {
-            apply_highlight(registry, tilemap.highlighted_tile.value(), -1);
-            tilemap.highlighted_tile = std::nullopt;
+        if (tilemap.highlighted_tile != entt::null) {
+            apply_highlight(registry, tilemap.highlighted_tile, -1);
+            tilemap.highlighted_tile = entt::null;
         }
         return;
     }
@@ -172,18 +91,18 @@ void TileMapSystem::update(entt::registry& registry, const bool debug_mode)
         ScreenPosition(mouse.window_current_position).to_grid_position(registry)
     };
 
-    std::optional<entt::entity> new_tile = tilemap[grid_position];
+    entt::entity new_tile = tilemap[grid_position];
 
     if (new_tile == tilemap.highlighted_tile) {
         return;
     }
 
-    if (tilemap.highlighted_tile) {
-        apply_highlight(registry, tilemap.highlighted_tile.value(), -1);
+    if (tilemap.highlighted_tile != entt::null) {
+        apply_highlight(registry, tilemap.highlighted_tile, -1);
     }
 
-    if (new_tile) {
-        apply_highlight(registry, new_tile.value());
+    if (new_tile != entt::null) {
+        apply_highlight(registry, new_tile);
     }
 
     tilemap.highlighted_tile = new_tile;
@@ -256,41 +175,96 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     }
 }
 
-void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
+void _create_junction(
+    entt::registry& registry,
+    entt::entity junction_id,
+    entt::entity segment_id,
+    Direction::TDirection direction)
 {
-    auto [nav, pos] { registry.get<NavigationComponent, GridPositionComponent>(entity) };
-    bool is_junction { Direction::is_junction(nav.directions) };
+    JunctionComponent* current_junction { registry.try_get<JunctionComponent>(junction_id) };
 
-    std::array<std::optional<entt::entity>, 4> positions {};
-    positions.fill(std::nullopt);
-
-    for (
-        Direction::TDirection direction { Direction::TDirection::NORTH };
-        direction != Direction::TDirection::NO_DIRECTION;
-        direction = direction >> 1) {
-        for (auto next_pos : TileScan(registry, pos.grid_position, direction)) {
-            positions[Direction::index_position(direction)] = next_pos;
+    if (current_junction) {
+        entt::entity current_seg { current_junction->connections[Direction::index_position(direction)] };
+        if (current_seg != entt::null) {
+            registry.destroy(current_seg);
         }
+    } else {
+        current_junction = &registry.emplace<JunctionComponent>(junction_id);
     }
 
+    current_junction->connections[Direction::index_position(direction)] = segment_id;
+}
+
+void _create_segment(
+    [[maybe_unused]] entt::registry& registry,
+    [[maybe_unused]] std::vector<entt::entity> segment,
+    [[maybe_unused]] Direction::TDirection direction)
+{
+    if (segment.front() == segment.back() || segment.empty()) {
+        return;
+    }
+
+    entt::entity segment_id { registry.create() };
+    [[maybe_unused]] SegmentComponent& seg { registry.emplace<SegmentComponent>(segment_id, segment.front(), segment.back()) };
+
+    if (segment.empty())
+        return;
+
+    for (entt::entity entity : segment) {
+        if (entity == segment.back()) {
+            _create_junction(registry, entity, segment_id, Direction::reverse_direction(direction));
+        } else if (entity == segment.front()) {
+            _create_junction(registry, entity, segment_id, direction);
+        } else {
+            NavigationComponent* nav { registry.try_get<NavigationComponent>(entity) };
+            nav->segment_id = segment_id;
+        }
+    }
+}
+
+void TileMapSystem::connect(
+    [[maybe_unused]] entt::registry& registry,
+    [[maybe_unused]] entt::entity entity)
+{
+    const NavigationComponent& current_nav { registry.get<const NavigationComponent>(entity) };
+    bool is_junction { Direction::is_junction(current_nav.directions) };
+
+    [[maybe_unused]] const GridPositionComponent gridpos { registry.get<const GridPositionComponent>(entity) };
+
+    std::array<std::vector<entt::entity>, 4> connections;
+
     for (
         Direction::TDirection direction { Direction::TDirection::NORTH };
         direction != Direction::TDirection::NO_DIRECTION;
         direction = direction >> 1) {
-        Direction::TDirection reverse_direction { Direction::reverse_direction(direction) };
+        connections[Direction::index_position(direction)] = scan(registry, entity, direction);
+    }
 
-        const auto& query_pos { positions[Direction::index_position(direction)] };
-        const auto& reversed_query_pos { positions[Direction::index_position(reverse_direction)] };
+    if (is_junction) {
+        for (
+            Direction::TDirection direction { Direction::TDirection::NORTH };
+            direction != Direction::TDirection::NO_DIRECTION;
+            direction = direction >> 1) {
+            _create_segment(registry, connections[Direction::index_position(direction)], direction);
+        }
+    } else {
+        for (auto direction : { Direction::TDirection::NORTH, Direction::TDirection::WEST }) {
+            Direction::TDirection opposite { direction >> 2 };
+            auto& left { connections[Direction::index_position(direction)] };
+            auto& right { connections[Direction::index_position(opposite)] };
 
-        if (!query_pos || query_pos.value() == entity)
-            continue;
+            // TODO: make this better; _create_segment assumes vector size > 1
+            if (left.size() == 1 && right.size() == 1)
+                continue;
 
-        if (is_junction) {
-            spdlog::info("Connecting entities {} and {}", int(entity), int(query_pos.value()));
-            _connect(registry, entity, query_pos.value(), direction);
-        } else {
-            spdlog::info("Connecting entities {} and {}", int(query_pos.value()), int(reversed_query_pos.value()));
-            _connect(registry, query_pos.value(), reversed_query_pos.value(), direction);
+            if (right.size() == 1)
+                _create_segment(registry, left, direction);
+            else if (left.size() == 1)
+                _create_segment(registry, left, direction);
+            else {
+                left.insert(left.end(), right.begin(), right.end());
+                _create_segment(registry, left, direction);
+            }
         }
     }
 }

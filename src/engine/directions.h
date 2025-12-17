@@ -1,8 +1,12 @@
 #ifndef DIRECTIONS_H
 #define DIRECTIONS_H
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+
 #include <array>
 #include <glm/glm.hpp>
+#include <unordered_map>
 
 /*
     1
@@ -49,17 +53,19 @@ namespace Direction {
         return to_underlying(d) & 15;
     }
 
-    struct DirectionInfo {
-        TDirection direction;
-        glm::ivec2 vec;
+    inline std::unordered_map<TDirection, glm::ivec2> direction_vectors {
+        { TDirection::NORTH, { 0, -1 } },
+        { TDirection::EAST, { 1, 0 } },
+        { TDirection::SOUTH, { 0, 1 } },
+        { TDirection::WEST, { -1, 0 } },
     };
 
-    constexpr std::array<DirectionInfo, 4> directions {
+    inline std::unordered_map<glm::ivec2, TDirection> vector_directions {
         {
-            { TDirection::NORTH, { 0, -1 } },
-            { TDirection::EAST, { 1, 0 } },
-            { TDirection::SOUTH, { 0, 1 } },
-            { TDirection::WEST, { -1, 0 } },
+            { { 0, -1 }, TDirection::NORTH },
+            { { 1, 0 }, TDirection::EAST },
+            { { 0, 1 }, TDirection::SOUTH },
+            { { -1, 0 }, TDirection::WEST },
         }
     };
 

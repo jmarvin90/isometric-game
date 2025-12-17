@@ -40,7 +40,7 @@ class GridPosition : public IPosition {
 
 public:
     GridPosition(entt::registry& registry, const int tile_n);
-    const WorldPosition to_world_position(entt::registry& registry) const;
+    const WorldPosition to_world_position(const entt::registry& registry) const;
     bool is_valid(const TileMapComponent& tilemap) const;
     bool is_valid(entt::registry& registry) const;
 };
@@ -50,7 +50,8 @@ class WorldPosition : public IPosition {
     const glm::vec2 to_grid_gross(entt::registry& registry) const;
 
 public:
-    const ScreenPosition to_screen_position(entt::registry& registry) const;
+    WorldPosition(const entt::registry& registry, const entt::entity entity);
+    const ScreenPosition to_screen_position(const entt::registry& registry) const;
     const GridPosition to_grid_position(entt::registry& registry) const;
     bool is_valid(entt::registry& registry) const;
 };

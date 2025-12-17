@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <components/camera_component.h>
 #include <components/tilespec_component.h>
+#include <components/transform_component.h>
 #include <position.h>
 #include <spdlog/spdlog.h>
 
@@ -21,7 +22,7 @@ const GridPosition ScreenPosition::to_grid_position(
 }
 
 const ScreenPosition WorldPosition::to_screen_position(
-    entt::registry& registry) const
+    const entt::registry& registry) const
 {
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
 
@@ -59,8 +60,14 @@ GridPosition::GridPosition(entt::registry& registry, const int tile_n)
     }
 }
 
+WorldPosition::WorldPosition(const entt::registry& registry, const entt::entity entity)
+    : IPosition(registry.try_get<const TransformComponent>(entity)->position)
+{
+}
+
+// TODO - why not const
 const WorldPosition GridPosition::to_world_position(
-    entt::registry& registry) const
+    const entt::registry& registry) const
 {
     const TileSpecComponent& tilespec {
         registry.ctx().get<const TileSpecComponent>()

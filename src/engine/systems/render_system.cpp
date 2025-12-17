@@ -2,15 +2,18 @@
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <components/grid_position_component.h>
 #include <components/highlight_component.h>
+#include <components/junction_component.h>
 #include <components/mouse_component.h>
 #include <components/navigation_component.h>
+#include <components/segment_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
-#include <components/junction_component.h>
 #include <imgui.h>
 #include <position.h>
 #include <systems/render_system.h>
 #include <tilespec_component.h>
+
+#include <entt/entt.hpp>
 
 namespace {
     bool transform_comparison([[maybe_unused]] const TransformComponent& lhs,
@@ -85,35 +88,31 @@ namespace {
             std::to_string(glm::ivec2 { grid_position }.x).c_str(),
             std::to_string(glm::ivec2 { grid_position }.y).c_str());
 
-        if (tilemap.highlighted_tile) {
+        if (tilemap.highlighted_tile != entt::null) {
             const NavigationComponent* nav {
-                registry.try_get<const NavigationComponent>(tilemap.highlighted_tile.value())
-            };
-
-            const JunctionComponent* conns {
-                registry.try_get<const JunctionComponent>(tilemap.highlighted_tile.value())
+                registry.try_get<const NavigationComponent>(tilemap.highlighted_tile)
             };
 
             if (nav) {
                 ImGui::Text("Tile Connection Direction(s): (%d)",
                     Direction::to_underlying(nav->directions));
             }
-
-            if(conns) {
-                for (auto conn: conns->connections) {
-                    if (conn) {
-                        glm::ivec2 pos {registry.get<GridPositionComponent>(conn.value()).grid_position};
-                        ImGui::Text(
-                            "Tile connection destination: (%d,%d)",
-                            pos.x, pos.y
-                        );
-                    }
-                }
-            }
         }
 
         ImGui::Render();
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
+    }
+
+    [[maybe_unused]] void render_segment_lines(const entt::registry& registry, SDL_Renderer* renderer)
+    {
+
+        auto segments = registry.view<SegmentComponent>();
+
+        for (auto [entity, segment] : segments.each()) {
+            glm::ivec2 start { WorldPosition { registry, segment.start }.to_screen_position(registry) };
+            glm::ivec2 end { WorldPosition { registry, segment.end }.to_screen_position(registry) };
+            SDL_RenderDrawLine(renderer, start.x, start.y, end.x, end.y);
+        }
     }
 }; // namespace
 
@@ -154,6 +153,7 @@ void RenderSystem::render(entt::registry& registry,
 
     if (debug_mode) {
         render_imgui_ui(registry, renderer);
+        render_segment_lines(registry, renderer);
     }
 
     SDL_RenderPresent(renderer);
