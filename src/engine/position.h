@@ -28,8 +28,8 @@ class ScreenPosition : public IPosition {
     using IPosition::IPosition;
 
 public:
-    const WorldPosition to_world_position(entt::registry& registry) const;
-    const GridPosition to_grid_position(entt::registry& registry) const;
+    const WorldPosition to_world_position(const entt::registry& registry) const;
+    const GridPosition to_grid_position(const entt::registry& registry) const;
     bool is_valid(const SDL_DisplayMode& display_mode) const;
 };
 
@@ -39,21 +39,21 @@ class GridPosition : public IPosition {
     using IPosition::IPosition;
 
 public:
-    GridPosition(entt::registry& registry, const int tile_n);
+    GridPosition(const entt::registry& registry, const int tile_n);
     const WorldPosition to_world_position(const entt::registry& registry) const;
     bool is_valid(const TileMapComponent& tilemap) const;
-    bool is_valid(entt::registry& registry) const;
+    bool is_valid(const entt::registry& registry) const;
 };
 
 class WorldPosition : public IPosition {
     using IPosition::IPosition;
-    const glm::vec2 to_grid_gross(entt::registry& registry) const;
+    const glm::vec2 to_grid_gross(const entt::registry& registry) const;
 
 public:
     WorldPosition(const entt::registry& registry, const entt::entity entity);
     const ScreenPosition to_screen_position(const entt::registry& registry) const;
-    const GridPosition to_grid_position(entt::registry& registry) const;
-    bool is_valid(entt::registry& registry) const;
+    const GridPosition to_grid_position(const entt::registry& registry) const;
+    bool is_valid(const entt::registry& registry) const;
 };
 
 #endif

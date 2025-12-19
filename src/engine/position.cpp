@@ -6,7 +6,7 @@
 #include <spdlog/spdlog.h>
 
 const WorldPosition ScreenPosition::to_world_position(
-    entt::registry& registry) const
+    const entt::registry& registry) const
 {
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
 
@@ -16,7 +16,7 @@ const WorldPosition ScreenPosition::to_world_position(
 }
 
 const GridPosition ScreenPosition::to_grid_position(
-    entt::registry& registry) const
+    const entt::registry& registry) const
 {
     return to_world_position(registry).to_grid_position(registry);
 }
@@ -31,7 +31,7 @@ const ScreenPosition WorldPosition::to_screen_position(
     return ScreenPosition { (position - camera.position) + scene_border_px };
 }
 
-const glm::vec2 WorldPosition::to_grid_gross(entt::registry& registry) const
+const glm::vec2 WorldPosition::to_grid_gross(const entt::registry& registry) const
 {
     const TileSpecComponent& tile_spec { registry.ctx().get<TileSpecComponent>() };
     const TileMapComponent& tilemap { registry.ctx().get<TileMapComponent>() };
@@ -42,14 +42,14 @@ const glm::vec2 WorldPosition::to_grid_gross(entt::registry& registry) const
 }
 
 const GridPosition WorldPosition::to_grid_position(
-    entt::registry& registry) const
+    const entt::registry& registry) const
 {
     const glm::vec2 gross_position { to_grid_gross(registry) };
     return GridPosition(
         glm::ivec2 { std::round(gross_position.x), std::round(gross_position.y) });
 }
 
-GridPosition::GridPosition(entt::registry& registry, const int tile_n)
+GridPosition::GridPosition(const entt::registry& registry, const int tile_n)
 {
     const TileMapComponent& tilemap { registry.ctx().get<TileMapComponent>() };
 
@@ -96,13 +96,13 @@ bool GridPosition::is_valid(const TileMapComponent& tilemap) const
     return (_in_min_bounds() && (position.x < tilemap.tiles_per_row && position.y < tilemap.tiles_per_row));
 }
 
-bool GridPosition::is_valid(entt::registry& registry) const
+bool GridPosition::is_valid(const entt::registry& registry) const
 {
     const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
     return (_in_min_bounds() && (position.x < tilemap.tiles_per_row && position.y < tilemap.tiles_per_row));
 }
 
-bool WorldPosition::is_valid(entt::registry& registry) const
+bool WorldPosition::is_valid(const entt::registry& registry) const
 {
     const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
     return (_in_min_bounds() && (position.x < tilemap.area.x && position.y < tilemap.area.y));
