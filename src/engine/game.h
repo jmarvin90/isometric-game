@@ -2,13 +2,7 @@
 #define GAME_H
 
 #include <SDL2/SDL.h>
-#include <components/transform_component.h>
-#include <constants.h>
-#include <spritesheet.h>
-
 #include <entt/entt.hpp>
-#include <memory>
-#include <optional>
 
 class Game {
     bool is_running { false };
