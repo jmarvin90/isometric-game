@@ -71,6 +71,83 @@ namespace {
         transform.z_index += factor;
     }
 
+    void remove_segment_from_junction(
+        entt::registry& registry,
+        entt::entity junction_id,
+        entt::entity segment_id,
+        Direction::TDirection direction)
+    {
+        JunctionComponent& junction { registry.get<JunctionComponent>(junction_id) };
+        entt::entity& current_segment_connection { junction.connections[Direction::index_position(direction)] };
+
+        if (current_segment_connection == segment_id) {
+            current_segment_connection = entt::null;
+        }
+
+        if (std::all_of(junction.connections.begin(), junction.connections.end(), [](entt::entity i) { return i == entt::null; })) {
+            registry.remove<JunctionComponent>(junction_id);
+        }
+    }
+
+    void delete_segment(
+        [[maybe_unused]] entt::registry& registry,
+        [[maybe_unused]] entt::entity segment_id)
+    {
+        SegmentComponent& segment { registry.get<SegmentComponent>(segment_id) };
+        std::vector<entt::entity> segment_entities { scan(registry, segment.start, segment.direction) };
+        for (entt::entity entity : segment_entities) {
+            if (entity == segment.start) {
+                remove_segment_from_junction(registry, entity, segment_id, segment.direction);
+            } else if (entity == segment.end) {
+                remove_segment_from_junction(registry, entity, segment_id, Direction::reverse_direction(segment.direction));
+            } else {
+                NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
+                nav.segment_id = entt::null;
+            }
+        }
+
+        registry.destroy(segment_id);
+    }
+
+    void emplace_segment_at_junction(
+        entt::registry& registry,
+        entt::entity junction_id,
+        entt::entity segment_id,
+        Direction::TDirection direction)
+    {
+        JunctionComponent* junction { registry.try_get<JunctionComponent>(junction_id) };
+
+        if (junction && junction->connections[Direction::index_position(direction)] != entt::null) {
+            delete_segment(registry, junction->connections[Direction::index_position(direction)]);
+        }
+
+        if (!junction) {
+            junction = &registry.emplace<JunctionComponent>(junction_id);
+        }
+
+        junction->connections[Direction::index_position(direction)] = segment_id;
+    }
+
+    void _create_segment(
+        [[maybe_unused]] entt::registry& registry,
+        [[maybe_unused]] std::vector<entt::entity> segment,
+        [[maybe_unused]] Direction::TDirection direction)
+    {
+        entt::entity segment_id { registry.create() };
+        registry.emplace<SegmentComponent>(segment_id, segment.front(), segment.back(), direction);
+
+        for (entt::entity entity : segment) {
+            if (entity == segment.front()) {
+                emplace_segment_at_junction(registry, entity, segment_id, direction);
+            } else if (entity == segment.back()) {
+                emplace_segment_at_junction(registry, entity, segment_id, Direction::reverse_direction(direction));
+            } else {
+                NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
+                nav.segment_id = segment_id;
+            }
+        }
+    }
+
 } // namespace
 
 void TileMapSystem::update(entt::registry& registry, const bool debug_mode)
@@ -178,82 +255,6 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     }
 }
 
-void _remove_segment_from_junction(
-    entt::registry& registry,
-    entt::entity junction_id,
-    entt::entity segment_id,
-    Direction::TDirection direction)
-{
-    JunctionComponent& junction { registry.get<JunctionComponent>(junction_id) };
-
-    if (junction.connections[Direction::index_position(direction)] == segment_id) {
-        junction.connections[Direction::index_position(direction)] = entt::null;
-    }
-
-    if (std::all_of(junction.connections.begin(), junction.connections.end(), [](entt::entity i) { return i == entt::null; })) {
-        registry.remove<JunctionComponent>(junction_id);
-    }
-}
-
-void _delete_segment(
-    [[maybe_unused]] entt::registry& registry,
-    [[maybe_unused]] entt::entity segment_id)
-{
-    SegmentComponent& segment { registry.get<SegmentComponent>(segment_id) };
-    std::vector<entt::entity> segment_entities { scan(registry, segment.start, segment.direction) };
-    for (entt::entity entity : segment_entities) {
-        if (entity == segment.start) {
-            _remove_segment_from_junction(registry, entity, segment_id, segment.direction);
-        } else if (entity == segment.end) {
-            _remove_segment_from_junction(registry, entity, segment_id, Direction::reverse_direction(segment.direction));
-        } else {
-            NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
-            nav.segment_id = entt::null;
-        }
-    }
-
-    registry.destroy(segment_id);
-}
-
-void _emplace_segment_at_junction(
-    entt::registry& registry,
-    entt::entity junction_id,
-    entt::entity segment_id,
-    Direction::TDirection direction)
-{
-    JunctionComponent* junction { registry.try_get<JunctionComponent>(junction_id) };
-
-    if (junction && junction->connections[Direction::index_position(direction)] != entt::null) {
-        _delete_segment(registry, junction->connections[Direction::index_position(direction)]);
-    }
-
-    if (!junction) {
-        junction = &registry.emplace<JunctionComponent>(junction_id);
-    }
-
-    junction->connections[Direction::index_position(direction)] = segment_id;
-}
-
-void _create_segment(
-    [[maybe_unused]] entt::registry& registry,
-    [[maybe_unused]] std::vector<entt::entity> segment,
-    [[maybe_unused]] Direction::TDirection direction)
-{
-    entt::entity segment_id { registry.create() };
-    registry.emplace<SegmentComponent>(segment_id, segment.front(), segment.back(), direction);
-
-    for (entt::entity entity : segment) {
-        if (entity == segment.front()) {
-            _emplace_segment_at_junction(registry, entity, segment_id, direction);
-        } else if (entity == segment.back()) {
-            _emplace_segment_at_junction(registry, entity, segment_id, Direction::reverse_direction(direction));
-        } else {
-            NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
-            nav.segment_id = segment_id;
-        }
-    }
-}
-
 void TileMapSystem::connect(
     [[maybe_unused]] entt::registry& registry,
     [[maybe_unused]] entt::entity entity)
@@ -291,4 +292,13 @@ void TileMapSystem::connect(
             _create_segment(registry, segment, direction);
         }
     }
+}
+
+void TileMapSystem::disconnect(
+    entt::registry& registry,
+    entt::entity entity)
+{
+    const NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
+    if (nav.segment_id == entt::null)
+        return;
 }
