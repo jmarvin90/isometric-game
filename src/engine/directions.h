@@ -14,6 +14,7 @@
     4
 */
 
+// TODO - investigate entt enum bitmask
 namespace Direction {
     enum class TDirection : uint8_t {
         NO_DIRECTION = 0,
@@ -69,7 +70,7 @@ namespace Direction {
         }
     };
 
-    TDirection reverse_direction(const TDirection direction);
+    TDirection reverse(const TDirection direction);
 
     bool is_junction(Direction::TDirection direction);
 

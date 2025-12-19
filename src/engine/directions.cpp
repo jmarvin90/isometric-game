@@ -1,7 +1,7 @@
 #include <directions.h>
 
 namespace Direction {
-    TDirection reverse_direction(const TDirection direction)
+    TDirection reverse(const TDirection direction)
     {
         return direction >> 2 | direction << 2;
     }
