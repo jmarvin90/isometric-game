@@ -128,7 +128,7 @@ namespace {
         junction->connections[Direction::index_position(direction)] = segment_id;
     }
 
-    void _create_segment(
+    void create_segment(
         [[maybe_unused]] entt::registry& registry,
         [[maybe_unused]] std::vector<entt::entity> segment,
         [[maybe_unused]] Direction::TDirection direction)
@@ -278,7 +278,7 @@ void TileMapSystem::connect(
             Direction::TDirection direction { Direction::TDirection::NORTH };
             direction != Direction::TDirection::NO_DIRECTION;
             direction = direction >> 1) {
-            _create_segment(registry, connections[Direction::index_position(direction)], direction);
+            create_segment(registry, connections[Direction::index_position(direction)], direction);
         }
     } else {
         for (auto direction : { Direction::TDirection::NORTH, Direction::TDirection::WEST }) {
@@ -289,7 +289,7 @@ void TileMapSystem::connect(
             segment.reserve(left.size() + right.size() - 1);
             segment.insert(segment.end(), left.begin(), left.end());
             segment.insert(segment.end(), right.begin() + 1, right.end());
-            _create_segment(registry, segment, direction);
+            create_segment(registry, segment, direction);
         }
     }
 }
