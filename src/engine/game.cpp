@@ -60,7 +60,7 @@ void Game::initialise()
     registry.ctx().emplace<SpriteSheet>(
         std::string { "assets/spritesheet_scaled.png" },
         std::string { "assets/spritesheet.json" }, renderer);
-    registry.ctx().emplace<TileMapComponent>(registry, 8);
+    registry.ctx().emplace<TileMapComponent>(registry, 128);
 
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
 
@@ -103,7 +103,7 @@ void Game::update([[maybe_unused]] const float delta_time)
 
 void Game::render()
 {
-    RenderSystem::render(registry, renderer, debug_mode);
+    RenderSystem::render(registry, renderer, display_mode, debug_mode);
 }
 
 void Game::run()

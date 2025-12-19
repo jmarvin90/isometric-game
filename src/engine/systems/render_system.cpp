@@ -1,5 +1,6 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
+#include <camera_component.h>
 #include <components/grid_position_component.h>
 #include <components/highlight_component.h>
 #include <components/junction_component.h>
@@ -15,9 +16,10 @@
 
 #include <entt/entt.hpp>
 
+int total_count { 0 };
+
 namespace {
-    bool transform_comparison([[maybe_unused]] const TransformComponent& lhs,
-        [[maybe_unused]] const TransformComponent& rhs)
+    [[maybe_unused]] bool transform_comparison(const TransformComponent& lhs, const TransformComponent& rhs)
     {
         return (lhs.z_index < rhs.z_index || (lhs.z_index == rhs.z_index && lhs.position.y < rhs.position.y));
     }
@@ -42,6 +44,7 @@ namespace {
 
     void render_sprite(entt::registry& registry,
         SDL_Renderer* renderer,
+        const SDL_Rect camera_rect,
         const TransformComponent& transform,
         const SpriteComponent& sprite)
     {
@@ -52,6 +55,11 @@ namespace {
         SDL_Rect target_rect { screen_position.x, screen_position.y,
             sprite.source_rect.w, sprite.source_rect.h };
 
+        if (!SDL_HasIntersection(&target_rect, &camera_rect)) {
+            return;
+        }
+
+        total_count++;
         SDL_RenderCopyEx(renderer, sprite.texture, &sprite.source_rect, &target_rect,
             transform.rotation, NULL, SDL_FLIP_NONE);
     }
@@ -118,6 +126,7 @@ namespace {
 
 void RenderSystem::render(entt::registry& registry,
     SDL_Renderer* renderer,
+    const SDL_DisplayMode& display_mode,
     [[maybe_unused]] const bool debug_mode)
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
@@ -140,16 +149,21 @@ void RenderSystem::render(entt::registry& registry,
             WorldPosition(transform.position).to_screen_position(registry)
         };
 
-        render_sprite(registry, renderer, transform, sprite);
+        [[maybe_unused]] SDL_Rect camera_rect { 0, 0, display_mode.w, display_mode.h };
+        render_sprite(registry, renderer, camera_rect, transform, sprite);
 
-        if (highlight && debug_mode) {
-            draw_lines(renderer, highlight, screen_position);
-        }
-
-        // if (tile_highlight && debug_mode) {
-        //     draw_lines(tile_highlight, screen_position);
+        // if (highlight && debug_mode) {
+        //     draw_lines(renderer, highlight, screen_position);
         // }
+
+        // TODO: prevent unecessary line draws using https://wiki.libsdl.org/SDL2/SDL_IntersectRectAndLine
+        if (tile_highlight && debug_mode) {
+            draw_lines(tile_highlight, screen_position);
+        }
     }
+
+    spdlog::info(total_count);
+    total_count = 0;
 
     if (debug_mode) {
         render_imgui_ui(registry, renderer);
