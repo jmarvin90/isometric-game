@@ -58,7 +58,6 @@ WorldPosition::WorldPosition(const entt::registry& registry, const entt::entity 
 {
 }
 
-// TODO - why not const
 const WorldPosition GridPosition::to_world_position(
     const entt::registry& registry) const
 {

@@ -62,6 +62,7 @@ namespace {
         }
     }
 
+    // TODO - not really a tilemap system issue
     void apply_highlight(entt::registry& registry,
         const entt::entity tile,
         int factor = 1)
