@@ -24,18 +24,6 @@ TileMapComponent::TileMapComponent(entt::registry& registry,
 }
 
 entt::entity TileMapComponent::operator[](
-    const glm::ivec2 grid_position)
-{
-    int index_pos { (grid_position.y * tiles_per_row) + grid_position.x };
-
-    if (!GridPosition(grid_position).is_valid(*this) || static_cast<int>(tiles.size()) <= index_pos) {
-        return entt::null;
-    }
-
-    return tiles.at(index_pos);
-}
-
-entt::entity TileMapComponent::operator[](
     const glm::ivec2 grid_position) const
 {
     int index_pos { (grid_position.y * tiles_per_row) + grid_position.x };

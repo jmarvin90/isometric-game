@@ -19,7 +19,6 @@ struct TileMapComponent {
     TileMapComponent(const TileMapComponent&) = delete;
     TileMapComponent(TileMapComponent&&) = default;
     TileMapComponent(entt::registry& registry, const int tiles_per_row);
-    entt::entity operator[](const glm::ivec2 grid_position);
     entt::entity operator[](const glm::ivec2 grid_position) const;
 };
 
