@@ -25,7 +25,7 @@ namespace {
     {
         const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
         glm::ivec2 direction_vector { Direction::direction_vectors[direction] };
-        Direction::TDirection reverse_direction { Direction::reverse_direction(direction) };
+        Direction::TDirection reverse { Direction::reverse(direction) };
 
         entt::entity current { origin };
         std::vector<entt::entity> output { current };
@@ -49,7 +49,7 @@ namespace {
             }
 
             bool current_can_connect_forward { Direction::any(current_nav->directions & direction) };
-            bool next_can_connect_back { Direction::any(next_nav->directions & reverse_direction) };
+            bool next_can_connect_back { Direction::any(next_nav->directions & reverse) };
 
             if (!current_can_connect_forward || !next_can_connect_back) {
                 return output;
@@ -99,7 +99,7 @@ namespace {
             if (entity == segment.start) {
                 remove_segment_from_junction(registry, entity, segment_id, segment.direction);
             } else if (entity == segment.end) {
-                remove_segment_from_junction(registry, entity, segment_id, Direction::reverse_direction(segment.direction));
+                remove_segment_from_junction(registry, entity, segment_id, Direction::reverse(segment.direction));
             } else {
                 NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
                 nav.segment_id = entt::null;
@@ -140,7 +140,7 @@ namespace {
             if (entity == segment.front()) {
                 emplace_segment_at_junction(registry, entity, segment_id, direction);
             } else if (entity == segment.back()) {
-                emplace_segment_at_junction(registry, entity, segment_id, Direction::reverse_direction(direction));
+                emplace_segment_at_junction(registry, entity, segment_id, Direction::reverse(direction));
             } else {
                 NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
                 nav.segment_id = segment_id;
