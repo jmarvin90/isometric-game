@@ -1,43 +1,39 @@
 #ifndef SPRITESHEET_H
 #define SPRITESHEET_H
 
-#include <unordered_map>
-#include <optional>
-
 #include <SDL2/SDL.h>
+#include <components/navigation_component.h>
+#include <components/sprite_component.h>
+
+#include <optional>
 #include <string>
+#include <unordered_map>
 
-
-class SpriteDefinition {
-    public:
-        SDL_Rect texture_rect;
-        uint8_t connection;
-        SpriteDefinition() = default;
-        SpriteDefinition(SDL_Rect texture_rect, uint8_t connection): texture_rect{texture_rect}, connection{connection} {};
-        ~SpriteDefinition() = default;
+struct SpriteSheetEntry {
+    SpriteComponent sprite_definition;
+    std::optional<NavigationComponent> navigation_definition;
+    SpriteSheetEntry(SpriteComponent sprite_def, std::optional<NavigationComponent> nav_def)
+        : sprite_definition { sprite_def }
+        , navigation_definition { nav_def }
+    {
+    }
 };
 
 class SpriteSheet {
-    const std::string image_path;
-    const std::string atlas_path;
     SDL_Texture* spritesheet;
+    std::unordered_map<std::string, SpriteSheetEntry> sprites;
 
-    public:
-        std::unordered_map<std::string, const SpriteDefinition> sprites;
+public:
+    SpriteSheet(const std::string spritesheet_path,
+        const std::string atlas_path,
+        SDL_Renderer* renderer);
+    ~SpriteSheet();
+    const SpriteSheetEntry& get(const std::string name) const;
 
-        SpriteSheet(const std::string& image_path,  const std::string& atlas_path, SDL_Renderer* renderer);
-        SpriteSheet(const SpriteSheet&) = default;
-        ~SpriteSheet();
-
-        const SpriteDefinition& get_sprite_definition(const std::string& sprite_name) const;
-        
-        // Not yet implemented/used
-        const SDL_Rect& get_sprite_rect(const std::string& sprite_name) const;
-        SDL_Texture* get_spritesheet_texture() const;
-
-        // Perhaps doesn't need to be std::optional for now as some conditions on before
-        // the lookup can give us confidence on whether we'll return a value or not
-        const std::optional<std::string_view> reverse_lookup(const SDL_Rect& target_rect) const;
+    SpriteSheet(const SpriteSheet&) = delete;
+    SpriteSheet& operator=(const SpriteSheet&) = delete;
+    SpriteSheet(SpriteSheet&&) = default;
+    SpriteSheet& operator=(SpriteSheet&&) = default;
 };
 
 #endif

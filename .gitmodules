@@ -1,6 +1,12 @@
-[submodule "libs/imgui"]
-	path = libs/imgui
-	url = https://github.com/ocornut/imgui.git
 [submodule "libs/entt"]
 	path = libs/entt
 	url = https://github.com/skypjack/entt.git
+[submodule "libs/imgui"]
+	path = libs/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "libs/rapidjson"]
+	path = libs/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+[submodule "libs/sdl2"]
+	path = libs/sdl2
+	url = https://github.com/libsdl-org/SDL.git
