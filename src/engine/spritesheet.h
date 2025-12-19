@@ -12,6 +12,11 @@
 struct SpriteSheetEntry {
     SpriteComponent sprite_definition;
     std::optional<NavigationComponent> navigation_definition;
+    SpriteSheetEntry(SpriteComponent sprite_def, std::optional<NavigationComponent> nav_def)
+        : sprite_definition { sprite_def }
+        , navigation_definition { nav_def }
+    {
+    }
 };
 
 class SpriteSheet {
