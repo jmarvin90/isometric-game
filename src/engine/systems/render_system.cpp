@@ -13,15 +13,29 @@
 #include <position.h>
 #include <systems/render_system.h>
 #include <tilespec_component.h>
+#include <constants.h>
 
 #include <entt/entt.hpp>
+
+#include <vector>
+#include <utility>
+#include <algorithm>
 
 int total_count { 0 };
 
 namespace {
-    [[maybe_unused]] bool transform_comparison(const TransformComponent& lhs, const TransformComponent& rhs)
-    {
-        return (lhs.z_index < rhs.z_index || (lhs.z_index == rhs.z_index && lhs.position.y < rhs.position.y));
+
+    [[maybe_unused]] bool transform_comparison(
+        const std::pair<const TransformComponent*, const SpriteComponent*> lhs, 
+        const std::pair<const TransformComponent*, const SpriteComponent*> rhs
+    ) {
+        return (
+            lhs.first->z_index < rhs.first->z_index || 
+            (
+                lhs.first->z_index == rhs.first->z_index && 
+                lhs.first->position.y < rhs.first->position.y
+            )
+        );
     }
 
     template <typename T>
@@ -31,37 +45,15 @@ namespace {
     {
         std::vector<SDL_Point> points;
 
-        for (auto& point : line_component->points) {
+        for (auto& point : line_component.points) {
             points.push_back(SDL_Point { point.x + offset.x, point.y + offset.y });
         }
 
-        SDL_SetRenderDrawColor(renderer, line_component->colour.r,
-            line_component->colour.g, line_component->colour.b,
-            line_component->colour.a);
+        SDL_SetRenderDrawColor(renderer, line_component.colour.r,
+            line_component.colour.g, line_component.colour.b,
+            line_component.colour.a);
 
         SDL_RenderDrawLines(renderer, points.data(), points.size());
-    }
-
-    void render_sprite(entt::registry& registry,
-        SDL_Renderer* renderer,
-        const SDL_Rect camera_rect,
-        const TransformComponent& transform,
-        const SpriteComponent& sprite)
-    {
-        const glm::ivec2 screen_position {
-            WorldPosition { transform.position }.to_screen_position(registry)
-        };
-
-        SDL_Rect target_rect { screen_position.x, screen_position.y,
-            sprite.source_rect.w, sprite.source_rect.h };
-
-        if (!SDL_HasIntersection(&target_rect, &camera_rect)) {
-            return;
-        }
-
-        total_count++;
-        SDL_RenderCopyEx(renderer, sprite.texture, &sprite.source_rect, &target_rect,
-            transform.rotation, NULL, SDL_FLIP_NONE);
     }
 
     void render_imgui_ui(entt::registry& registry, SDL_Renderer* renderer)
@@ -132,38 +124,44 @@ void RenderSystem::render(entt::registry& registry,
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
-    registry.sort<TransformComponent>(transform_comparison);
+    [[maybe_unused]] SDL_Rect camera_rect { 0, 0, display_mode.w, display_mode.h };
+    [[maybe_unused]] const CameraComponent& camera {registry.ctx().get<const CameraComponent>()};
+    
     auto sprites = registry.view<TransformComponent, SpriteComponent>();
-    [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
+
+    std::vector<std::pair<const TransformComponent*, const SpriteComponent*>> renderables;
 
     for (auto [entity, transform, sprite] : sprites.each()) {
-        [[maybe_unused]] const auto* highlight {
-            registry.try_get<HighlightComponent>(entity)
-        };
+        glm::ivec2 output_pos { (glm::ivec2{transform.position} - camera.position()) + constants::SCENE_BORDER_PX};
 
-        [[maybe_unused]] const auto* tile_highlight {
-            registry.try_get<TileHighlightComponentComponent>(entity)
-        };
+        SDL_Rect target_rect { output_pos.x, output_pos.y,
+            sprite.source_rect.w, sprite.source_rect.h };
 
-        glm::ivec2 screen_position {
-            WorldPosition(transform.position).to_screen_position(registry)
-        };
-
-        [[maybe_unused]] SDL_Rect camera_rect { 0, 0, display_mode.w, display_mode.h };
-        render_sprite(registry, renderer, camera_rect, transform, sprite);
-
-        // if (highlight && debug_mode) {
-        //     draw_lines(renderer, highlight, screen_position);
-        // }
-
-        // TODO: prevent unecessary line draws using https://wiki.libsdl.org/SDL2/SDL_IntersectRectAndLine
-        if (tile_highlight && debug_mode) {
-            draw_lines(tile_highlight, screen_position);
+        if (SDL_HasIntersection(&target_rect, &camera_rect)) {
+            renderables.emplace_back(std::make_pair<const TransformComponent*, const SpriteComponent*>(&transform, &sprite));
         }
     }
 
-    spdlog::info(total_count);
-    total_count = 0;
+    std::sort(renderables.begin(), renderables.end(), transform_comparison);
+
+    for (auto [transform, sprite]: renderables) {
+        glm::ivec2 output_pos { (glm::ivec2{transform->position} - camera.position()) + constants::SCENE_BORDER_PX};
+        SDL_Rect target_rect { output_pos.x, output_pos.y,
+            sprite->source_rect.w, sprite->source_rect.h };
+        SDL_RenderCopyEx(renderer, sprite->texture, &sprite->source_rect, &target_rect,
+            transform->rotation, NULL, SDL_FLIP_NONE);
+        // if (debug_mode) {
+        //     [[maybe_unused]] const HighlightComponent* highlight {registry.try_get<const HighlightComponent>(entity)};
+        //     if (!highlight) continue;
+        //     draw_lines(renderer, *highlight, output_pos);
+    }
+
+    // TODO: prevent unecessary line draws using https://wiki.libsdl.org/SDL2/SDL_IntersectRectAndLine
+
+
+    // if (tile_highlight && debug_mode) {
+    //     draw_lines(tile_highlight, screen_position);
+    // }
 
     if (debug_mode) {
         render_imgui_ui(registry, renderer);

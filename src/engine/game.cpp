@@ -55,12 +55,12 @@ void Game::initialise()
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     registry.ctx().emplace<MouseComponent>();
-    registry.ctx().emplace<CameraComponent>();
+    registry.ctx().emplace<CameraComponent>(display_mode);
     registry.ctx().emplace<TileSpecComponent>(256, 14);
     registry.ctx().emplace<SpriteSheet>(
         std::string { "assets/spritesheet_scaled.png" },
         std::string { "assets/spritesheet.json" }, renderer);
-    registry.ctx().emplace<TileMapComponent>(registry, 128);
+    registry.ctx().emplace<TileMapComponent>(registry, 64);
 
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
 

@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <components/tilemap_component.h>
+#include <components/camera_component.h>
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -51,6 +52,7 @@ class WorldPosition : public IPosition {
 
 public:
     WorldPosition(const entt::registry& registry, const entt::entity entity);
+    const ScreenPosition to_screen_position(const CameraComponent& camera) const;
     const ScreenPosition to_screen_position(const entt::registry& registry) const;
     const GridPosition to_grid_position(const entt::registry& registry) const;
     bool is_valid(const entt::registry& registry) const;

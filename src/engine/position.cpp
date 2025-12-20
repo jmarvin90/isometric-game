@@ -10,7 +10,7 @@ const WorldPosition ScreenPosition::to_world_position(
     const entt::registry& registry) const
 {
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    return WorldPosition { (position + camera.position) - constants::SCENE_BORDER_PX };
+    return WorldPosition { (position + camera.position()) - constants::SCENE_BORDER_PX };
 }
 
 const GridPosition ScreenPosition::to_grid_position(
@@ -20,10 +20,15 @@ const GridPosition ScreenPosition::to_grid_position(
 }
 
 const ScreenPosition WorldPosition::to_screen_position(
+    const CameraComponent& camera) const
+{
+    return ScreenPosition {(position - camera.position()) + constants::SCENE_BORDER_PX };
+}
+
+const ScreenPosition WorldPosition::to_screen_position(
     const entt::registry& registry) const
 {
-    const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    return ScreenPosition { (position - camera.position) + constants::SCENE_BORDER_PX };
+    return to_screen_position(registry.ctx().get<const CameraComponent>());
 }
 
 const glm::vec2 WorldPosition::to_grid_gross(const entt::registry& registry) const
