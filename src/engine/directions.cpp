@@ -16,15 +16,9 @@ namespace Direction {
         return __builtin_ctz(to_underlying(direction));
     }
 
-    constexpr TDirection operator>>(const Direction::TDirection lhs, const int places)
-    {
-        uint8_t bits { Direction::to_underlying(lhs) };
-        return Direction::TDirection((bits << places) & 15);
-    }
-
-    constexpr TDirection operator<<(const Direction::TDirection lhs, const int places)
-    {
-        uint8_t bits { Direction::to_underlying(lhs) };
-        return Direction::TDirection((bits >> places) & 15);
-    }
+    // constexpr TDirection operator<<(const Direction::TDirection lhs, const int places)
+    // {
+    //     uint8_t bits { Direction::to_underlying(lhs) };
+    //     return Direction::TDirection((bits >> places) & 15);
+    // }
 }; // namespace Direction

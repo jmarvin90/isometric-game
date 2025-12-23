@@ -45,9 +45,17 @@ namespace Direction {
         return static_cast<TDirection>((!to_underlying(op)) & 15);
     }
 
-    constexpr TDirection operator>>(const TDirection lhs, const int places);
+    constexpr TDirection operator>>(const TDirection lhs, const int places)
+    {
+        uint8_t bits { Direction::to_underlying(lhs) };
+        return Direction::TDirection((bits << places) & 15);
+    }
 
-    constexpr TDirection operator<<(const TDirection lhs, const int places);
+    constexpr TDirection operator<<(const TDirection lhs, const int places)
+    {
+        uint8_t bits { Direction::to_underlying(lhs) };
+        return Direction::TDirection((bits >> places) & 15);
+    }
 
     constexpr bool any(const TDirection d)
     {

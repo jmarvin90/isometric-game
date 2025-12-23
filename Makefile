@@ -1,6 +1,7 @@
 # -Weffc++ causes included libs to break
 COMPILER_FLAGS =		-Wno-system-headers \
-						-pedantic-errors
+						-pedantic-errors \
+						-O2
 DEBUG_FLAG = 			-ggdb
 LANG_STD = 				-std=c++17
 SRC_FILES = 			./src/*.cpp \
