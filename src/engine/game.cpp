@@ -7,11 +7,13 @@
 #include <constants.h>
 #include <game.h>
 #include <imgui.h>
+#include <spatialmap_component.h>
 #include <spdlog/spdlog.h>
 #include <spritesheet.h>
 #include <systems/camera_system.h>
 #include <systems/mouse_system.h>
 #include <systems/render_system.h>
+#include <systems/spatialmap_system.h>
 #include <systems/tilemap_system.h>
 
 #include <entt/entt.hpp>
@@ -60,9 +62,11 @@ void Game::initialise()
     registry.ctx().emplace<SpriteSheet>(
         std::string { "assets/spritesheet_scaled.png" },
         std::string { "assets/spritesheet.json" }, renderer);
-    registry.ctx().emplace<TileMapComponent>(registry, 64);
+    registry.ctx().emplace<TileMapComponent>(registry, 128);
+    registry.ctx().emplace<SpatialMapComponent>(registry, 4);
 
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
+    registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::register_entity>();
 
     TileMapSystem::emplace_tiles(registry);
 

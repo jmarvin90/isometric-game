@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <components/camera_component.h>
+#include <components/spatialmap_component.h>
 #include <components/tilespec_component.h>
 #include <components/transform_component.h>
 #include <constants.h>
@@ -22,7 +23,7 @@ const GridPosition ScreenPosition::to_grid_position(
 const ScreenPosition WorldPosition::to_screen_position(
     const CameraComponent& camera) const
 {
-    return ScreenPosition {(position - camera.position()) + constants::SCENE_BORDER_PX };
+    return ScreenPosition { (position - camera.position()) + constants::SCENE_BORDER_PX };
 }
 
 const ScreenPosition WorldPosition::to_screen_position(
@@ -46,6 +47,13 @@ const GridPosition WorldPosition::to_grid_position(
     const glm::vec2 gross_position { to_grid_gross(registry) };
     return GridPosition(
         glm::ivec2 { std::round(gross_position.x), std::round(gross_position.y) });
+}
+
+int WorldPosition::to_spatial_map_cell(const entt::registry& registry) const
+{
+    const SpatialMapComponent& spatialmap { registry.ctx().get<const SpatialMapComponent>() };
+    glm::ivec2 cell { position.x / spatialmap.cell_size.x, position.y / spatialmap.cell_size.y };
+    return (cell.y * spatialmap.cells_per_row) + cell.x;
 }
 
 GridPosition::GridPosition(const entt::registry& registry, const int tile_n)

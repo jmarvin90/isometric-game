@@ -2,8 +2,8 @@
 #define POSITION_H
 
 #include <SDL2/SDL.h>
-#include <components/tilemap_component.h>
 #include <components/camera_component.h>
+#include <components/tilemap_component.h>
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -55,6 +55,7 @@ public:
     const ScreenPosition to_screen_position(const CameraComponent& camera) const;
     const ScreenPosition to_screen_position(const entt::registry& registry) const;
     const GridPosition to_grid_position(const entt::registry& registry) const;
+    int to_spatial_map_cell(const entt::registry& registry) const;
     bool is_valid(const entt::registry& registry) const;
 };
 

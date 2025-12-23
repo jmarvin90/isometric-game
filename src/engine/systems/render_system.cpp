@@ -7,35 +7,31 @@
 #include <components/mouse_component.h>
 #include <components/navigation_component.h>
 #include <components/segment_component.h>
+#include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
+#include <constants.h>
 #include <imgui.h>
 #include <position.h>
 #include <systems/render_system.h>
 #include <tilespec_component.h>
-#include <constants.h>
 
 #include <entt/entt.hpp>
 
-#include <vector>
-#include <utility>
 #include <algorithm>
+#include <utility>
+#include <vector>
 
 int total_count { 0 };
 
 namespace {
 
     [[maybe_unused]] bool transform_comparison(
-        const std::pair<const TransformComponent*, const SpriteComponent*> lhs, 
-        const std::pair<const TransformComponent*, const SpriteComponent*> rhs
-    ) {
+        const std::pair<const TransformComponent*, const SpriteComponent*> lhs,
+        const std::pair<const TransformComponent*, const SpriteComponent*> rhs)
+    {
         return (
-            lhs.first->z_index < rhs.first->z_index || 
-            (
-                lhs.first->z_index == rhs.first->z_index && 
-                lhs.first->position.y < rhs.first->position.y
-            )
-        );
+            lhs.first->z_index < rhs.first->z_index || (lhs.first->z_index == rhs.first->z_index && lhs.first->position.y < rhs.first->position.y));
     }
 
     template <typename T>
@@ -118,34 +114,31 @@ namespace {
 
 void RenderSystem::render(entt::registry& registry,
     SDL_Renderer* renderer,
-    const SDL_DisplayMode& display_mode,
+    [[maybe_unused]] const SDL_DisplayMode& display_mode,
     [[maybe_unused]] const bool debug_mode)
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
-    [[maybe_unused]] SDL_Rect camera_rect { 0, 0, display_mode.w, display_mode.h };
-    [[maybe_unused]] const CameraComponent& camera {registry.ctx().get<const CameraComponent>()};
-    
-    auto sprites = registry.view<TransformComponent, SpriteComponent>();
-
+    [[maybe_unused]] const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
+    // [[maybe_unused]] SDL_Rect camera_rect { 0, 0, display_mode.w, display_mode.h };
+    auto spatialmap_cells = registry.view<SpatialMapCellComponent>();
     std::vector<std::pair<const TransformComponent*, const SpriteComponent*>> renderables;
 
-    for (auto [entity, transform, sprite] : sprites.each()) {
-        glm::ivec2 output_pos { (glm::ivec2{transform.position} - camera.position()) + constants::SCENE_BORDER_PX};
-
-        SDL_Rect target_rect { output_pos.x, output_pos.y,
-            sprite.source_rect.w, sprite.source_rect.h };
-
-        if (SDL_HasIntersection(&target_rect, &camera_rect)) {
-            renderables.emplace_back(std::make_pair<const TransformComponent*, const SpriteComponent*>(&transform, &sprite));
+    for (auto [entity, cell] : spatialmap_cells.each()) {
+        if (SDL_HasIntersection(&cell.cell, &camera.camera_rect)) {
+            for (entt::entity renderable : cell.entities) {
+                const TransformComponent* transform { &registry.get<const TransformComponent>(renderable) };
+                const SpriteComponent* sprite { &registry.get<const SpriteComponent>(renderable) };
+                renderables.emplace_back(transform, sprite);
+            }
         }
     }
 
     std::sort(renderables.begin(), renderables.end(), transform_comparison);
 
-    for (auto [transform, sprite]: renderables) {
-        glm::ivec2 output_pos { (glm::ivec2{transform->position} - camera.position()) + constants::SCENE_BORDER_PX};
+    for (auto [transform, sprite] : renderables) {
+        glm::ivec2 output_pos { (glm::ivec2 { transform->position } - camera.position()) + constants::SCENE_BORDER_PX };
         SDL_Rect target_rect { output_pos.x, output_pos.y,
             sprite->source_rect.w, sprite->source_rect.h };
         SDL_RenderCopyEx(renderer, sprite->texture, &sprite->source_rect, &target_rect,
@@ -157,7 +150,6 @@ void RenderSystem::render(entt::registry& registry,
     }
 
     // TODO: prevent unecessary line draws using https://wiki.libsdl.org/SDL2/SDL_IntersectRectAndLine
-
 
     // if (tile_highlight && debug_mode) {
     //     draw_lines(tile_highlight, screen_position);
