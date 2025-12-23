@@ -121,12 +121,17 @@ void RenderSystem::render(entt::registry& registry,
     SDL_RenderClear(renderer);
 
     [[maybe_unused]] const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    // [[maybe_unused]] SDL_Rect camera_rect { 0, 0, display_mode.w, display_mode.h };
     auto spatialmap_cells = registry.view<SpatialMapCellComponent>();
     std::vector<std::pair<const TransformComponent*, const SpriteComponent*>> renderables;
 
+    SDL_Rect comparator {camera.camera_rect};
+    comparator.x -= 1;
+    comparator.y -= 1;
+    comparator.h += 2;
+    comparator.w +=2;
+
     for (auto [entity, cell] : spatialmap_cells.each()) {
-        if (SDL_HasIntersection(&cell.cell, &camera.camera_rect)) {
+        if (SDL_HasIntersection(&cell.cell, &comparator)) {
             for (entt::entity renderable : cell.entities) {
                 const TransformComponent* transform { &registry.get<const TransformComponent>(renderable) };
                 const SpriteComponent* sprite { &registry.get<const SpriteComponent>(renderable) };
@@ -138,11 +143,23 @@ void RenderSystem::render(entt::registry& registry,
     std::sort(renderables.begin(), renderables.end(), transform_comparison);
 
     for (auto [transform, sprite] : renderables) {
-        glm::ivec2 output_pos { (glm::ivec2 { transform->position } - camera.position()) + constants::SCENE_BORDER_PX };
-        SDL_Rect target_rect { output_pos.x, output_pos.y,
-            sprite->source_rect.w, sprite->source_rect.h };
-        SDL_RenderCopyEx(renderer, sprite->texture, &sprite->source_rect, &target_rect,
-            transform->rotation, NULL, SDL_FLIP_NONE);
+        glm::ivec2 output_position { WorldPosition(transform->position).to_screen_position(camera) };
+        // glm::ivec2 output_pos { (glm::ivec2 { transform->position } - camera.position()) + constants::SCENE_BORDER_PX };
+        
+        SDL_Rect target_rect { 
+            output_position.x, output_position.y, sprite->source_rect.w, sprite->source_rect.h 
+        };
+
+        SDL_RenderCopyEx(
+            renderer,
+            sprite->texture,
+            &sprite->source_rect,
+            &target_rect,
+            transform->rotation, 
+            NULL,
+            SDL_FLIP_NONE
+        );
+        
         // if (debug_mode) {
         //     [[maybe_unused]] const HighlightComponent* highlight {registry.try_get<const HighlightComponent>(entity)};
         //     if (!highlight) continue;
