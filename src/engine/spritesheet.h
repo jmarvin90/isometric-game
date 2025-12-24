@@ -24,9 +24,7 @@ class SpriteSheet {
     std::unordered_map<std::string, SpriteSheetEntry> sprites;
 
 public:
-    SpriteSheet(const std::string spritesheet_path,
-        const std::string atlas_path,
-        SDL_Renderer* renderer);
+    SpriteSheet(const std::string spritesheet_path, const std::string atlas_path, SDL_Renderer* renderer);
     ~SpriteSheet();
     const SpriteSheetEntry& get(const std::string name) const;
 

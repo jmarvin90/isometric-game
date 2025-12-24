@@ -22,8 +22,7 @@ struct TileSpecComponent {
         , iso_area { width, width / 2 }
         , total_area { iso_area.x, iso_area.y + depth }
         , centre { iso_area / 2 }
-        , matrix { iso_area.x / 2.0f, iso_area.y / 2.0f, -iso_area.x / 2.0f,
-            iso_area.y / 2.0f }
+        , matrix { iso_area.x / 2.0f, iso_area.y / 2.0f, -iso_area.x / 2.0f, iso_area.y / 2.0f }
         , matrix_inverted { glm::inverse(matrix) }
     {
     }
@@ -41,11 +40,7 @@ struct TileSpecComponent {
 
     const std::vector<SDL_Point> tile_points() const
     {
-        return { { 0, 0 },
-            { iso_area.x, 0 },
-            { iso_area.x, iso_area.y },
-            { 0, iso_area.y },
-            { 0, 0 } };
+        return { { 0, 0 }, { iso_area.x, 0 }, { iso_area.x, iso_area.y }, { 0, iso_area.y }, { 0, 0 } };
     }
 };
 

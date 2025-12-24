@@ -19,15 +19,9 @@
 #include <entt/entt.hpp>
 #include <string>
 
-Game::Game()
-{
-    spdlog::info("Game constructor called.");
-}
+Game::Game() { spdlog::info("Game constructor called."); }
 
-Game::~Game()
-{
-    spdlog::info("Game destructor called.");
-}
+Game::~Game() { spdlog::info("Game destructor called."); }
 
 void Game::initialise()
 {
@@ -36,13 +30,12 @@ void Game::initialise()
     SDL_GetDesktopDisplayMode(0, &display_mode);
 
     // Create the SDL Window
-    window = SDL_CreateWindow(
-        NULL, // title - leave blank for now
-        SDL_WINDOWPOS_CENTERED, // Window xconstant position (centred)
-        SDL_WINDOWPOS_CENTERED, // Window y position (centred)
-        display_mode.w, // X res from current display mode
-        display_mode.h, // Y res from current display mode
-        SDL_WINDOW_FULLSCREEN // | SDL_WINDOW_ALLOW_HIGHDPI // Input grabbed flag
+    window = SDL_CreateWindow(NULL, // title - leave blank for now
+                              SDL_WINDOWPOS_CENTERED, // Window xconstant position (centred)
+                              SDL_WINDOWPOS_CENTERED, // Window y position (centred)
+                              display_mode.w, // X res from current display mode
+                              display_mode.h, // Y res from current display mode
+                              SDL_WINDOW_FULLSCREEN // | SDL_WINDOW_ALLOW_HIGHDPI // Input grabbed flag
     );
 
     if (!window) {
@@ -60,8 +53,8 @@ void Game::initialise()
     registry.ctx().emplace<CameraComponent>(display_mode);
     registry.ctx().emplace<TileSpecComponent>(256, 14);
     registry.ctx().emplace<SpriteSheet>(
-        std::string { "assets/spritesheet_scaled.png" },
-        std::string { "assets/spritesheet.json" }, renderer);
+        std::string { "assets/spritesheet_scaled.png" }, std::string { "assets/spritesheet.json" }, renderer
+    );
     registry.ctx().emplace<TileMapComponent>(registry, 64);
     registry.ctx().emplace<SpatialMapComponent>(registry, 4);
 
@@ -105,10 +98,7 @@ void Game::update([[maybe_unused]] const float delta_time)
     TileMapSystem::update(registry, debug_mode);
 }
 
-void Game::render()
-{
-    RenderSystem::render(registry, renderer, display_mode, debug_mode);
-}
+void Game::render() { RenderSystem::render(registry, renderer, display_mode, debug_mode); }
 
 void Game::run()
 {

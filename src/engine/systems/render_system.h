@@ -7,10 +7,12 @@
 
 class RenderSystem {
 public:
-    static void render(entt::registry& registry,
+    static void render(
+        entt::registry& registry,
         SDL_Renderer* renderer,
         const SDL_DisplayMode& display_mode,
-        const bool debug_mode);
+        const bool debug_mode
+    );
 };
 
 #endif

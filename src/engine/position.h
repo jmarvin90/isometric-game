@@ -3,8 +3,8 @@
 
 #include <SDL2/SDL.h>
 #include <components/camera_component.h>
-#include <components/tilemap_component.h>
 #include <components/spatialmap_component.h>
+#include <components/tilemap_component.h>
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>

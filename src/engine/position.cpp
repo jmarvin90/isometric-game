@@ -3,32 +3,27 @@
 #include <components/spatialmap_component.h>
 #include <components/tilespec_component.h>
 #include <components/transform_component.h>
-#include <components/spatialmap_component.h>
 #include <constants.h>
 #include <position.h>
 #include <spdlog/spdlog.h>
 
-const WorldPosition ScreenPosition::to_world_position(
-    const entt::registry& registry) const
+const WorldPosition ScreenPosition::to_world_position(const entt::registry& registry) const
 {
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
     return WorldPosition { (position + camera.position()) - constants::SCENE_BORDER_PX };
 }
 
-const GridPosition ScreenPosition::to_grid_position(
-    const entt::registry& registry) const
+const GridPosition ScreenPosition::to_grid_position(const entt::registry& registry) const
 {
     return to_world_position(registry).to_grid_position(registry);
 }
 
-const ScreenPosition WorldPosition::to_screen_position(
-    const CameraComponent& camera) const
+const ScreenPosition WorldPosition::to_screen_position(const CameraComponent& camera) const
 {
     return ScreenPosition { (position - camera.position()) + constants::SCENE_BORDER_PX };
 }
 
-const ScreenPosition WorldPosition::to_screen_position(
-    const entt::registry& registry) const
+const ScreenPosition WorldPosition::to_screen_position(const entt::registry& registry) const
 {
     return to_screen_position(registry.ctx().get<const CameraComponent>());
 }
@@ -42,12 +37,10 @@ const glm::vec2 WorldPosition::to_grid_gross(const entt::registry& registry) con
     return glm::vec2 { tile_spec.matrix_inverted * centred_world_pos };
 }
 
-const GridPosition WorldPosition::to_grid_position(
-    const entt::registry& registry) const
+const GridPosition WorldPosition::to_grid_position(const entt::registry& registry) const
 {
     const glm::vec2 gross_position { to_grid_gross(registry) };
-    return GridPosition(
-        glm::ivec2 { std::round(gross_position.x), std::round(gross_position.y) });
+    return GridPosition(glm::ivec2 { std::round(gross_position.x), std::round(gross_position.y) });
 }
 
 int WorldPosition::to_spatial_map_cell(const SpatialMapComponent& spatial_map) const
@@ -77,19 +70,19 @@ WorldPosition::WorldPosition(const entt::registry& registry, const entt::entity 
 {
 }
 
-const WorldPosition GridPosition::to_world_position(
-    const entt::registry& registry) const
+const WorldPosition GridPosition::to_world_position(const entt::registry& registry) const
 {
-    const TileSpecComponent& tilespec {
-        registry.ctx().get<const TileSpecComponent>()
-    };
+    const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
     const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
     const glm::ivec2 movement { tilespec.matrix * position };
     const glm::ivec2 world_pos_gross { (movement + tilemap.origin_px) - tilespec.centre };
     return WorldPosition { world_pos_gross + tilespec.centre };
 }
 
-SpatialMapGridPosition SpatialMapGridPosition::from_cell_number(const SpatialMapComponent& spatial_map, const int cell_number) {
+SpatialMapGridPosition SpatialMapGridPosition::from_cell_number(
+    const SpatialMapComponent& spatial_map, const int cell_number
+)
+{
     if (cell_number < spatial_map.cells_per_row) {
         return SpatialMapGridPosition({ cell_number, 0 });
     } else {
@@ -99,24 +92,24 @@ SpatialMapGridPosition SpatialMapGridPosition::from_cell_number(const SpatialMap
     }
 }
 
-SpatialMapGridPosition SpatialMapGridPosition::from_cell_number(const entt::registry& registry, const int cell_number) {
+SpatialMapGridPosition SpatialMapGridPosition::from_cell_number(const entt::registry& registry, const int cell_number)
+{
     const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
     return SpatialMapGridPosition::from_cell_number(spatial_map, cell_number);
 }
 
-WorldPosition SpatialMapGridPosition::to_world_position(const SpatialMapComponent& spatial_map) const {
+WorldPosition SpatialMapGridPosition::to_world_position(const SpatialMapComponent& spatial_map) const
+{
     return WorldPosition(position * spatial_map.cell_size);
 }
 
-WorldPosition SpatialMapGridPosition::to_world_position(const entt::registry& registry) const {
+WorldPosition SpatialMapGridPosition::to_world_position(const entt::registry& registry) const
+{
     const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
     return WorldPosition(position * spatial_map.cell_size);
 }
 
-bool IPosition::_in_min_bounds() const
-{
-    return position.x >= 0 && position.y >= 0;
-}
+bool IPosition::_in_min_bounds() const { return position.x >= 0 && position.y >= 0; }
 
 bool ScreenPosition::is_valid(const SDL_DisplayMode& display_mode) const
 {

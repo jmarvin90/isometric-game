@@ -11,8 +11,7 @@
 
 class CameraSystem {
 public:
-    static void update(entt::registry& registry,
-        const SDL_DisplayMode& display_mode);
+    static void update(entt::registry& registry, const SDL_DisplayMode& display_mode);
 };
 
 #endif
