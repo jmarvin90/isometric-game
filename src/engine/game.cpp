@@ -53,7 +53,9 @@ void Game::initialise()
     registry.ctx().emplace<CameraComponent>(display_mode);
     registry.ctx().emplace<TileSpecComponent>(256, 14);
     registry.ctx().emplace<SpriteSheet>(
-        std::string { "assets/spritesheet_scaled.png" }, std::string { "assets/spritesheet.json" }, renderer
+        std::string { "assets/spritesheet_scaled.png" },
+        std::string { "assets/spritesheet.json" },
+        renderer
     );
     registry.ctx().emplace<TileMapComponent>(registry, 64);
     registry.ctx().emplace<SpatialMapComponent>(registry, 4);
@@ -96,9 +98,27 @@ void Game::update([[maybe_unused]] const float delta_time)
     MouseSystem::update(registry);
     CameraSystem::update(registry, display_mode);
     TileMapSystem::update(registry, debug_mode);
+    RenderSystem::update(registry);
 }
 
-void Game::render() { RenderSystem::render(registry, renderer, display_mode, debug_mode); }
+void Game::render()
+{
+    const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
+    const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
+    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+
+    // SDL_RenderSetClipRect(renderer, &camera.camera_rect);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderClear(renderer);
+    RenderSystem::render(registry, renderer, display_mode, camera);
+    if (debug_mode) {
+        RenderSystem::render_highlights(registry, renderer, display_mode);
+        RenderSystem::render_imgui_ui(registry, renderer, mouse, tilemap);
+        RenderSystem::render_segment_lines(registry, renderer);
+    }
+    SDL_RenderPresent(renderer);
+}
 
 void Game::run()
 {

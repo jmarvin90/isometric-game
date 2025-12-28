@@ -13,7 +13,7 @@ void SpatialMapSystem::register_entity(entt::registry& registry, entt::entity en
     if (!transform)
         return;
 
-    const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
+    // [[maybe_unused]] const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
     SpatialMapComponent& spatial_map { registry.ctx().get<SpatialMapComponent>() };
     int cell { WorldPosition(transform->position).to_spatial_map_cell(registry) };
     SpatialMapCellComponent* cell_component;
@@ -27,7 +27,14 @@ void SpatialMapSystem::register_entity(entt::registry& registry, entt::entity en
             SpatialMapGridPosition::from_cell_number(spatial_map, cell).to_world_position(spatial_map)
         };
 
-        cell_component = &registry.emplace<SpatialMapCellComponent>(cell_entity, SDL_Rect { spatial_map_world_pos.x, spatial_map_world_pos.y, spatial_map.cell_size.x, spatial_map.cell_size.y });
+        cell_component = &registry.emplace<SpatialMapCellComponent>(
+            cell_entity,
+            SDL_Rect {
+                spatial_map_world_pos.x,
+                spatial_map_world_pos.y,
+                spatial_map.cell_size.x,
+                spatial_map.cell_size.y }
+        );
     } else {
         cell_component = &registry.get<SpatialMapCellComponent>(cell_entity);
     }

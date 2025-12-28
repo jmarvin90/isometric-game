@@ -10,6 +10,7 @@
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
+#include <components/visibility_component.h>
 #include <constants.h>
 #include <imgui.h>
 #include <position.h>
@@ -33,31 +34,118 @@ namespace {
     );
 }
 
-template <typename T>
-void draw_lines(SDL_Renderer* renderer, const T& line_component, const glm::ivec2 offset)
+}; // namespace
+
+[[maybe_unused]] void RenderSystem::render_segment_lines(
+    const entt::registry& registry, SDL_Renderer* renderer
+)
 {
-    std::vector<SDL_Point> points;
-    for (auto& point : line_component.points) {
-        points.push_back(SDL_Point { point.x + offset.x, point.y + offset.y });
+    auto segments = registry.view<SegmentComponent>();
+    for (auto [entity, segment] : segments.each()) {
+        glm::ivec2 start { WorldPosition { registry, segment.start }.to_screen_position(registry) };
+        glm::ivec2 end { WorldPosition { registry, segment.end }.to_screen_position(registry) };
+        SDL_RenderDrawLine(renderer, start.x, start.y, end.x, end.y);
     }
-    SDL_SetRenderDrawColor(
-        renderer,
-        line_component.colour.r,
-        line_component.colour.g,
-        line_component.colour.b,
-        line_component.colour.a
-    );
-    SDL_RenderDrawLines(renderer, points.data(), points.size());
 }
 
-void render_imgui_ui(entt::registry& registry, SDL_Renderer* renderer)
+void RenderSystem::update(entt::registry& registry)
+{
+    registry.clear<VisibilityComponent>();
+    const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
+    auto spatialmap_cells { registry.view<SpatialMapCellComponent>() };
+
+    for (auto [entity, cell] : spatialmap_cells.each()) {
+        if (SDL_HasIntersection(&cell.cell, &camera.camera_rect)) {
+            for (entt::entity renderable : cell.entities) {
+                registry.emplace<VisibilityComponent>(renderable);
+            }
+        }
+    }
+}
+
+void RenderSystem::render(
+    entt::registry& registry,
+    SDL_Renderer* renderer,
+    [[maybe_unused]] const SDL_DisplayMode& display_mode,
+    const CameraComponent& camera
+)
+{
+    auto renderables_view { registry.view<VisibilityComponent, TransformComponent, SpriteComponent>() };
+    std::vector<std::pair<TransformComponent*, SpriteComponent*>> renderables_pile;
+    renderables_pile.reserve(100);
+
+    for (auto [entity, transform, sprite] : renderables_view.each()) {
+        renderables_pile.emplace_back(&transform, &sprite);
+    }
+
+    std::sort(renderables_pile.begin(), renderables_pile.end(), transform_comparison);
+
+    for (auto [transform, sprite] : renderables_pile) {
+        glm::ivec2 output_position { WorldPosition(transform->position).to_screen_position(camera) };
+
+        SDL_Rect target_rect {
+            output_position.x,
+            output_position.y,
+            sprite->source_rect.w,
+            sprite->source_rect.h
+        };
+
+        SDL_RenderCopyEx(
+            renderer,
+            sprite->texture,
+            &sprite->source_rect,
+            &target_rect,
+            transform->rotation,
+            NULL,
+            SDL_FLIP_NONE
+        );
+    }
+}
+
+void RenderSystem::render_highlights(
+    entt::registry& registry,
+    SDL_Renderer* renderer,
+    [[maybe_unused]] const SDL_DisplayMode& display_mode
+)
+{
+    auto renderables { registry.view<VisibilityComponent, TransformComponent, HighlightComponent>() };
+    for (auto [entity, transform, highlight] : renderables.each()) {
+
+        std::vector<SDL_Point> absolute_points;
+        absolute_points.reserve(highlight.points.size());
+
+        for (auto point : highlight.points) {
+            glm::ivec2 screen_position {
+                WorldPosition(transform.position).to_screen_position(registry)
+            };
+
+            absolute_points.emplace_back(
+                SDL_Point { screen_position.x + point.x, screen_position.y + point.y }
+            );
+        }
+
+        SDL_SetRenderDrawColor(
+            renderer,
+            highlight.colour.r,
+            highlight.colour.g,
+            highlight.colour.b,
+            highlight.colour.a
+        );
+
+        SDL_RenderDrawLines(renderer, absolute_points.data(), absolute_points.size());
+    }
+}
+
+void RenderSystem::render_imgui_ui(
+    entt::registry& registry,
+    SDL_Renderer* renderer,
+    const MouseComponent& mouse,
+    const TileMapComponent& tilemap
+)
 {
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
-
-    const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
-    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
 
     // The mouse and world positions
     const glm::ivec2 screen_position { mouse.window_current_position };
@@ -99,75 +187,4 @@ void render_imgui_ui(entt::registry& registry, SDL_Renderer* renderer)
 
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
-}
-
-[[maybe_unused]] void render_segment_lines(const entt::registry& registry, SDL_Renderer* renderer)
-{
-    auto segments = registry.view<SegmentComponent>();
-    for (auto [entity, segment] : segments.each()) {
-        glm::ivec2 start { WorldPosition { registry, segment.start }.to_screen_position(registry) };
-        glm::ivec2 end { WorldPosition { registry, segment.end }.to_screen_position(registry) };
-        SDL_RenderDrawLine(renderer, start.x, start.y, end.x, end.y);
-    }
-}
-}; // namespace
-
-void RenderSystem::render(
-    entt::registry& registry,
-    SDL_Renderer* renderer,
-    [[maybe_unused]] const SDL_DisplayMode& display_mode,
-    [[maybe_unused]] const bool debug_mode
-)
-{
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_RenderClear(renderer);
-
-    [[maybe_unused]] const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    auto spatialmap_cells = registry.view<SpatialMapCellComponent>();
-    std::vector<std::pair<const TransformComponent*, const SpriteComponent*>> renderables;
-
-    SDL_Rect comparator { camera.camera_rect };
-    comparator.x -= 1;
-    comparator.y -= 1;
-    comparator.h += 2;
-    comparator.w += 2;
-
-    for (auto [entity, cell] : spatialmap_cells.each()) {
-        if (SDL_HasIntersection(&cell.cell, &comparator)) {
-            for (entt::entity renderable : cell.entities) {
-                const TransformComponent* transform { &registry.get<const TransformComponent>(renderable) };
-                const SpriteComponent* sprite { &registry.get<const SpriteComponent>(renderable) };
-                renderables.emplace_back(transform, sprite);
-            }
-        }
-    }
-
-    std::sort(renderables.begin(), renderables.end(), transform_comparison);
-
-    for (auto [transform, sprite] : renderables) {
-        glm::ivec2 output_position { WorldPosition(transform->position).to_screen_position(camera) };
-
-        SDL_Rect target_rect { output_position.x, output_position.y, sprite->source_rect.w, sprite->source_rect.h };
-
-        SDL_RenderCopyEx(
-            renderer, sprite->texture, &sprite->source_rect, &target_rect, transform->rotation, NULL, SDL_FLIP_NONE
-        );
-
-        // if (debug_mode) {
-        //     [[maybe_unused]] const HighlightComponent* highlight {registry.try_get<const
-        //     HighlightComponent>(entity)}; if (!highlight) continue; draw_lines(renderer, *highlight, output_pos);
-    }
-
-    // TODO: prevent unecessary line draws using https://wiki.libsdl.org/SDL2/SDL_IntersectRectAndLine
-
-    // if (tile_highlight && debug_mode) {
-    //     draw_lines(tile_highlight, screen_position);
-    // }
-
-    if (debug_mode) {
-        render_imgui_ui(registry, renderer);
-        render_segment_lines(registry, renderer);
-    }
-
-    SDL_RenderPresent(renderer);
 }
