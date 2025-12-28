@@ -9,4 +9,4 @@ public:
     static void register_entity(entt::registry& registry, entt::entity);
 };
 
-#endif
+#endif #endif
