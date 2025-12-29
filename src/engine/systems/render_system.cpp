@@ -11,6 +11,7 @@
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
 #include <components/visibility_component.h>
+#include <components/screen_position_component.h>
 #include <constants.h>
 #include <imgui.h>
 #include <position.h>
@@ -19,6 +20,7 @@
 
 #include <entt/entt.hpp>
 
+#include <optional>
 #include <algorithm>
 #include <utility>
 #include <vector>
@@ -27,10 +29,34 @@ int total_count { 0 };
 
 namespace {
 
-[[maybe_unused]] bool transform_comparison(const std::pair<const TransformComponent*, const SpriteComponent*> lhs, const std::pair<const TransformComponent*, const SpriteComponent*> rhs)
+struct Renderable {
+    const TransformComponent* transform;
+    const ScreenPositionComponent* screen_position;
+    const SpriteComponent* sprite;
+    std::optional<const HighlightComponent*> highlight;
+    Renderable(
+        const TransformComponent* transform,
+        const ScreenPositionComponent* screen_position,
+        const SpriteComponent* sprite,
+        std::optional<const HighlightComponent*> highlight
+    )
+    : transform { transform }
+    , screen_position { screen_position }
+    , sprite { sprite }
+    , highlight { highlight }
+    {}
+};
+
+[[maybe_unused]] bool transform_comparison(
+    const Renderable& lhs, const Renderable& rhs
+)
 {
     return (
-        lhs.first->z_index < rhs.first->z_index || (lhs.first->z_index == rhs.first->z_index && lhs.first->position.y < rhs.first->position.y)
+        lhs.transform->z_index < rhs.transform->z_index || 
+        (
+            lhs.transform->z_index == rhs.transform->z_index && 
+            lhs.transform->position.y < rhs.transform->position.y
+        )
     );
 }
 
@@ -51,6 +77,8 @@ namespace {
 void RenderSystem::update(entt::registry& registry)
 {
     registry.clear<VisibilityComponent>();
+    registry.clear<ScreenPositionComponent>();
+
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
     auto spatialmap_cells { registry.view<SpatialMapCellComponent>() };
 
@@ -58,44 +86,59 @@ void RenderSystem::update(entt::registry& registry)
         if (SDL_HasIntersection(&cell.cell, &camera.camera_rect)) {
             for (entt::entity renderable : cell.entities) {
                 registry.emplace<VisibilityComponent>(renderable);
+                const TransformComponent& transform { registry.get<const TransformComponent>(renderable) };
+                registry.emplace<ScreenPositionComponent>(
+                    renderable, 
+                    WorldPosition(transform.position).to_screen_position(camera)
+                );
             }
         }
     }
 }
 
 void RenderSystem::render(
-    entt::registry& registry,
+    const entt::registry& registry,
     SDL_Renderer* renderer,
-    [[maybe_unused]] const SDL_DisplayMode& display_mode,
-    const CameraComponent& camera
+    [[maybe_unused]] const SDL_DisplayMode& display_mode
 )
 {
-    auto renderables_view { registry.view<VisibilityComponent, TransformComponent, SpriteComponent>() };
-    std::vector<std::pair<TransformComponent*, SpriteComponent*>> renderables_pile;
+    auto renderables_view { 
+        registry.view<
+            const VisibilityComponent, 
+            const TransformComponent, 
+            const ScreenPositionComponent,
+            const SpriteComponent
+        >() 
+    };
+
+    std::vector<Renderable> renderables_pile;
     renderables_pile.reserve(100);
 
-    for (auto [entity, transform, sprite] : renderables_view.each()) {
-        renderables_pile.emplace_back(&transform, &sprite);
+    for (auto [entity, transform, screen_position, sprite] : renderables_view.each()) {
+        renderables_pile.emplace_back(&transform, &screen_position, &sprite, std::nullopt);
     }
 
-    std::sort(renderables_pile.begin(), renderables_pile.end(), transform_comparison);
+    std::sort(
+        renderables_pile.begin(),
+        renderables_pile.end(),
+        transform_comparison
+    );
 
-    for (auto [transform, sprite] : renderables_pile) {
-        glm::ivec2 output_position { WorldPosition(transform->position).to_screen_position(camera) };
+    for (Renderable renderable : renderables_pile) {
 
         SDL_Rect target_rect {
-            output_position.x,
-            output_position.y,
-            sprite->source_rect.w,
-            sprite->source_rect.h
+            renderable.screen_position->position.x,
+            renderable.screen_position->position.y,
+            renderable.sprite->source_rect.w,
+            renderable.sprite->source_rect.h
         };
 
         SDL_RenderCopyEx(
             renderer,
-            sprite->texture,
-            &sprite->source_rect,
+            renderable.sprite->texture,
+            &renderable.sprite->source_rect,
             &target_rect,
-            transform->rotation,
+            renderable.transform->rotation,
             NULL,
             SDL_FLIP_NONE
         );
@@ -103,24 +146,22 @@ void RenderSystem::render(
 }
 
 void RenderSystem::render_highlights(
-    entt::registry& registry,
+    const entt::registry& registry,
     SDL_Renderer* renderer,
     [[maybe_unused]] const SDL_DisplayMode& display_mode
 )
 {
-    auto renderables { registry.view<VisibilityComponent, TransformComponent, HighlightComponent>() };
-    for (auto [entity, transform, highlight] : renderables.each()) {
+    auto renderables { registry.view<VisibilityComponent, TransformComponent, ScreenPositionComponent, HighlightComponent>() };
+    for (auto [entity, transform, screen_position, highlight] : renderables.each()) {
 
         std::vector<SDL_Point> absolute_points;
         absolute_points.reserve(highlight.points.size());
 
         for (auto point : highlight.points) {
-            glm::ivec2 screen_position {
-                WorldPosition(transform.position).to_screen_position(registry)
-            };
-
             absolute_points.emplace_back(
-                SDL_Point { screen_position.x + point.x, screen_position.y + point.y }
+                SDL_Point { 
+                    screen_position.position.x + point.x, 
+                    screen_position.position.y + point.y }
             );
         }
 
@@ -137,15 +178,16 @@ void RenderSystem::render_highlights(
 }
 
 void RenderSystem::render_imgui_ui(
-    entt::registry& registry,
-    SDL_Renderer* renderer,
-    const MouseComponent& mouse,
-    const TileMapComponent& tilemap
+    const entt::registry& registry,
+    SDL_Renderer* renderer
 )
 {
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
+
+    const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
+    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
 
     // The mouse and world positions
     const glm::ivec2 screen_position { mouse.window_current_position };

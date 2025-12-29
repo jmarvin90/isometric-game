@@ -14,23 +14,20 @@ public:
     );
 
     static void render(
-        entt::registry& registry,
+        const entt::registry& registry,
         SDL_Renderer* renderer,
-        const SDL_DisplayMode& display_mode,
-        const CameraComponent& camera
+        const SDL_DisplayMode& display_mode
     );
 
     static void render_highlights(
-        entt::registry& registry,
+        const entt::registry& registry,
         SDL_Renderer* renderer,
         const SDL_DisplayMode& display_mode
     );
 
     static void render_imgui_ui(
-        entt::registry& registry,
-        SDL_Renderer* renderer,
-        const MouseComponent& mouse,
-        const TileMapComponent& tilemap
+        const entt::registry& registry,
+        SDL_Renderer* renderer
     );
 
     static void render_segment_lines(
