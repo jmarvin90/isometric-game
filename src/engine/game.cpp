@@ -107,9 +107,9 @@ void Game::render()
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
-    RenderSystem::render(registry, renderer, display_mode);
+    RenderSystem::render(registry, renderer);
     if (debug_mode) {
-        RenderSystem::render_highlights(registry, renderer, display_mode);
+        RenderSystem::render_highlights(registry, renderer);
         RenderSystem::render_imgui_ui(registry, renderer);
         RenderSystem::render_segment_lines(registry, renderer);
     }
