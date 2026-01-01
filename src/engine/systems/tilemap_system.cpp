@@ -59,7 +59,7 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
     }
 }
 
-// TODO - not really a tilemap system issue`
+// TODO - not really a tilemap system issue
 void apply_highlight(entt::registry& registry, const entt::entity tile, int factor = 1)
 {
     TransformComponent& transform { registry.get<TransformComponent>(tile) };
@@ -72,7 +72,11 @@ void remove_segment_from_junction(
 )
 {
     JunctionComponent& junction { registry.get<JunctionComponent>(junction_id) };
-    entt::entity& current_segment_connection { junction.connections[Direction::index_position(direction)] };
+
+    entt::entity& current_segment_connection { 
+        junction.connections[Direction::index_position(direction)] 
+    };
+
     if (current_segment_connection == segment_id) {
         current_segment_connection = entt::null;
     }
@@ -86,54 +90,6 @@ void remove_segment_from_junction(
         )
     ) {
         registry.remove<JunctionComponent>(junction_id);
-    }
-}
-
-void delete_segment(entt::registry& registry, entt::entity segment_id)
-{
-    SegmentComponent& segment { registry.get<SegmentComponent>(segment_id) };
-    std::vector<entt::entity> segment_entities { scan(registry, segment.start, segment.direction) };
-    for (entt::entity entity : segment_entities) {
-        if (entity == segment.start) {
-            remove_segment_from_junction(registry, entity, segment_id, segment.direction);
-        } else if (entity == segment.end) {
-            remove_segment_from_junction(registry, entity, segment_id, Direction::reverse(segment.direction));
-        } else {
-            NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
-            nav.segment_id = entt::null;
-        }
-    }
-    registry.destroy(segment_id);
-}
-
-void emplace_segment_at_junction(
-    entt::registry& registry, entt::entity junction_id, entt::entity segment_id, Direction::TDirection direction
-)
-{
-    JunctionComponent* junction { registry.try_get<JunctionComponent>(junction_id) };
-    if (junction && junction->connections[Direction::index_position(direction)] != entt::null) {
-        delete_segment(registry, junction->connections[Direction::index_position(direction)]);
-    }
-    if (!junction) {
-        junction = &registry.emplace<JunctionComponent>(junction_id);
-    }
-    junction->connections[Direction::index_position(direction)] = segment_id;
-}
-
-void create_segment(entt::registry& registry, std::vector<entt::entity> segment, Direction::TDirection direction)
-{
-    entt::entity segment_id { registry.create() };
-    registry.emplace<SegmentComponent>(segment_id, segment.front(), segment.back(), direction);
-
-    for (entt::entity entity : segment) {
-        if (entity == segment.front()) {
-            emplace_segment_at_junction(registry, entity, segment_id, direction);
-        } else if (entity == segment.back()) {
-            emplace_segment_at_junction(registry, entity, segment_id, Direction::reverse(direction));
-        } else {
-            NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
-            nav.segment_id = segment_id;
-        }
     }
 }
 
@@ -225,9 +181,6 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
 {
     const NavigationComponent& current_nav { registry.get<const NavigationComponent>(entity) };
     bool is_junction { Direction::is_junction(current_nav.directions) };
-
-    const GridPositionComponent gridpos { registry.get<const GridPositionComponent>(entity) };
-
     std::array<std::vector<entt::entity>, 4> connections;
 
     for (Direction::TDirection direction { Direction::TDirection::NORTH };
@@ -238,7 +191,8 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
     if (is_junction) {
         for (Direction::TDirection direction { Direction::TDirection::NORTH };
              direction != Direction::TDirection::NO_DIRECTION; direction = direction >> 1) {
-            create_segment(registry, connections[Direction::index_position(direction)], direction);
+                entt::entity segment_entity { registry.create() };
+                registry.emplace<SegmentComponent>(segment_entity, connections[Direction::index_position(direction)], direction);
         }
     } else {
         for (auto direction : { Direction::TDirection::NORTH, Direction::TDirection::WEST }) {
@@ -249,7 +203,8 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
             segment.reserve(left.size() + right.size() - 1);
             segment.insert(segment.end(), left.begin(), left.end());
             segment.insert(segment.end(), right.begin() + 1, right.end());
-            create_segment(registry, segment, direction);
+            entt::entity segment_entity {registry.create()};
+            registry.emplace<SegmentComponent>(segment_entity, segment, direction);
         }
     }
 }

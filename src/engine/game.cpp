@@ -4,6 +4,7 @@
 #include <components/navigation_component.h>
 #include <components/tilemap_component.h>
 #include <components/tilespec_component.h>
+#include <components/segment_component.h>
 #include <constants.h>
 #include <game.h>
 #include <imgui.h>
@@ -15,6 +16,7 @@
 #include <systems/render_system.h>
 #include <systems/spatialmap_system.h>
 #include <systems/tilemap_system.h>
+#include <systems/segment_system.h>
 
 #include <entt/entt.hpp>
 #include <string>
@@ -62,6 +64,8 @@ void Game::initialise()
 
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::register_entity>();
+    registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
+    registry.on_destroy<SegmentComponent>().connect<&SegmentSystem::disconnect>();
 
     TileMapSystem::emplace_tiles(registry);
 
