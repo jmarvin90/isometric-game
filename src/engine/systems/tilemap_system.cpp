@@ -18,7 +18,7 @@
 
 namespace {
 
-std::vector<entt::entity> scan([[maybe_unused]] const entt::registry& registry, [[maybe_unused]] entt::entity origin, [[maybe_unused]] Direction::TDirection direction)
+std::vector<entt::entity> scan(const entt::registry& registry, entt::entity origin, Direction::TDirection direction)
 {
     const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
     glm::ivec2 direction_vector { Direction::direction_vectors[direction] };
@@ -89,7 +89,7 @@ void remove_segment_from_junction(
     }
 }
 
-void delete_segment([[maybe_unused]] entt::registry& registry, [[maybe_unused]] entt::entity segment_id)
+void delete_segment(entt::registry& registry, entt::entity segment_id)
 {
     SegmentComponent& segment { registry.get<SegmentComponent>(segment_id) };
     std::vector<entt::entity> segment_entities { scan(registry, segment.start, segment.direction) };
@@ -120,7 +120,7 @@ void emplace_segment_at_junction(
     junction->connections[Direction::index_position(direction)] = segment_id;
 }
 
-void create_segment([[maybe_unused]] entt::registry& registry, [[maybe_unused]] std::vector<entt::entity> segment, [[maybe_unused]] Direction::TDirection direction)
+void create_segment(entt::registry& registry, std::vector<entt::entity> segment, Direction::TDirection direction)
 {
     entt::entity segment_id { registry.create() };
     registry.emplace<SegmentComponent>(segment_id, segment.front(), segment.back(), direction);
@@ -221,12 +221,12 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     }
 }
 
-void TileMapSystem::connect([[maybe_unused]] entt::registry& registry, [[maybe_unused]] entt::entity entity)
+void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
 {
     const NavigationComponent& current_nav { registry.get<const NavigationComponent>(entity) };
     bool is_junction { Direction::is_junction(current_nav.directions) };
 
-    [[maybe_unused]] const GridPositionComponent gridpos { registry.get<const GridPositionComponent>(entity) };
+    const GridPositionComponent gridpos { registry.get<const GridPositionComponent>(entity) };
 
     std::array<std::vector<entt::entity>, 4> connections;
 
