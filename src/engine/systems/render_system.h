@@ -13,27 +13,10 @@ public:
         entt::registry& registry
     );
 
-    static void render(
-        const entt::registry& registry,
-        SDL_Renderer* renderer,
-        const SDL_DisplayMode& display_mode
-    );
-
-    static void render_highlights(
-        const entt::registry& registry,
-        SDL_Renderer* renderer,
-        const SDL_DisplayMode& display_mode
-    );
-
-    static void render_imgui_ui(
-        const entt::registry& registry,
-        SDL_Renderer* renderer
-    );
-
-    static void render_segment_lines(
-        const entt::registry& registry,
-        SDL_Renderer* renderer
-    );
+    static void render(const entt::registry& registry, SDL_Renderer* renderer);
+    static void render_highlights(const entt::registry& registry, SDL_Renderer* renderer);
+    static void render_imgui_ui(const entt::registry& registry, SDL_Renderer* renderer);
+    static void render_segment_lines(const entt::registry& registry, SDL_Renderer* renderer);
 };
 
 #endif

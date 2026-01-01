@@ -6,12 +6,12 @@
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
 #include <components/navigation_component.h>
+#include <components/screen_position_component.h>
 #include <components/segment_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
 #include <components/visibility_component.h>
-#include <components/screen_position_component.h>
 #include <constants.h>
 #include <imgui.h>
 #include <position.h>
@@ -20,8 +20,8 @@
 
 #include <entt/entt.hpp>
 
-#include <optional>
 #include <algorithm>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -40,11 +40,12 @@ struct Renderable {
         const SpriteComponent* sprite,
         std::optional<const HighlightComponent*> highlight
     )
-    : transform { transform }
-    , screen_position { screen_position }
-    , sprite { sprite }
-    , highlight { highlight }
-    {}
+        : transform { transform }
+        , screen_position { screen_position }
+        , sprite { sprite }
+        , highlight { highlight }
+    {
+    }
 };
 
 [[maybe_unused]] bool transform_comparison(
@@ -52,11 +53,7 @@ struct Renderable {
 )
 {
     return (
-        lhs.transform->z_index < rhs.transform->z_index || 
-        (
-            lhs.transform->z_index == rhs.transform->z_index && 
-            lhs.transform->position.y < rhs.transform->position.y
-        )
+        lhs.transform->z_index < rhs.transform->z_index || (lhs.transform->z_index == rhs.transform->z_index && lhs.transform->position.y < rhs.transform->position.y)
     );
 }
 
@@ -88,7 +85,7 @@ void RenderSystem::update(entt::registry& registry)
                 registry.emplace<VisibilityComponent>(renderable);
                 const TransformComponent& transform { registry.get<const TransformComponent>(renderable) };
                 registry.emplace<ScreenPositionComponent>(
-                    renderable, 
+                    renderable,
                     WorldPosition(transform.position).to_screen_position(camera)
                 );
             }
@@ -96,19 +93,14 @@ void RenderSystem::update(entt::registry& registry)
     }
 }
 
-void RenderSystem::render(
-    const entt::registry& registry,
-    SDL_Renderer* renderer,
-    [[maybe_unused]] const SDL_DisplayMode& display_mode
-)
+void RenderSystem::render(const entt::registry& registry, SDL_Renderer* renderer)
 {
-    auto renderables_view { 
+    auto renderables_view {
         registry.view<
-            const VisibilityComponent, 
-            const TransformComponent, 
+            const VisibilityComponent,
+            const TransformComponent,
             const ScreenPositionComponent,
-            const SpriteComponent
-        >() 
+            const SpriteComponent>()
     };
 
     std::vector<Renderable> renderables_pile;
@@ -145,11 +137,7 @@ void RenderSystem::render(
     }
 }
 
-void RenderSystem::render_highlights(
-    const entt::registry& registry,
-    SDL_Renderer* renderer,
-    [[maybe_unused]] const SDL_DisplayMode& display_mode
-)
+void RenderSystem::render_highlights(const entt::registry& registry, SDL_Renderer* renderer)
 {
     auto renderables { registry.view<VisibilityComponent, TransformComponent, ScreenPositionComponent, HighlightComponent>() };
     for (auto [entity, transform, screen_position, highlight] : renderables.each()) {
@@ -159,8 +147,8 @@ void RenderSystem::render_highlights(
 
         for (auto point : highlight.points) {
             absolute_points.emplace_back(
-                SDL_Point { 
-                    screen_position.position.x + point.x, 
+                SDL_Point {
+                    screen_position.position.x + point.x,
                     screen_position.position.y + point.y }
             );
         }
