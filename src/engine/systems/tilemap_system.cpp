@@ -67,32 +67,6 @@ void apply_highlight(entt::registry& registry, const entt::entity tile, int fact
     transform.z_index += factor;
 }
 
-void remove_segment_from_junction(
-    entt::registry& registry, entt::entity junction_id, entt::entity segment_id, Direction::TDirection direction
-)
-{
-    JunctionComponent& junction { registry.get<JunctionComponent>(junction_id) };
-
-    entt::entity& current_segment_connection { 
-        junction.connections[Direction::index_position(direction)] 
-    };
-
-    if (current_segment_connection == segment_id) {
-        current_segment_connection = entt::null;
-    }
-    if (
-        std::all_of(
-            junction.connections.begin(),
-            junction.connections.end(),
-            [](entt::entity i) {
-                return i == entt::null;
-            }
-        )
-    ) {
-        registry.remove<JunctionComponent>(junction_id);
-    }
-}
-
 } // namespace
 
 void TileMapSystem::update(entt::registry& registry, const bool debug_mode)

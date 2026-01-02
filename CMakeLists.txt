@@ -45,7 +45,10 @@ add_executable(isometric-game
     src/engine/systems/mouse_system.cpp
     src/engine/systems/tilemap_system.cpp
     src/engine/systems/tilemap_system.cpp
+    src/engine/systems/spatialmap_system.cpp
+    src/engine/systems/segment_system.cpp
     src/engine/components/tilemap_component.cpp
+    src/engine/components/spatialmap_component.cpp
 )
 
 target_compile_options(isometric-game PRIVATE
