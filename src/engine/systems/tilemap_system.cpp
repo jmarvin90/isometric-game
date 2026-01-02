@@ -3,6 +3,7 @@
 #include <components/junction_component.h>
 #include <components/mouseover_component.h>
 #include <components/navigation_component.h>
+#include <components/pending_destruction_component.h>
 #include <components/segment_component.h>
 #include <components/sprite_component.h>
 #include <components/tilemap_component.h>
