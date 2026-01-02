@@ -61,7 +61,7 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
 }
 
 // TODO - not really a tilemap system issue
-void apply_highlight(entt::registry& registry, const entt::entity tile, int factor = 1)
+[[maybe_unused]] void apply_highlight(entt::registry& registry, const entt::entity tile, int factor = 1)
 {
     TransformComponent& transform { registry.get<TransformComponent>(tile) };
     transform.position.y -= (30 * factor);

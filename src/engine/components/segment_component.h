@@ -2,8 +2,8 @@
 #define SEGMENTCOMPONENT_H
 
 #include <directions.h>
-#include <vector>
 #include <entt/entt.hpp>
+#include <vector>
 
 struct SegmentComponent {
     entt::entity start;
@@ -11,22 +11,12 @@ struct SegmentComponent {
     Direction::TDirection direction;
     std::vector<entt::entity> entities;
     SegmentComponent(std::vector<entt::entity> _entities, Direction::TDirection direction)
-    : start { entt::null }
-    , end { entt::null }
-    , direction {direction}
-    , entities {}
+        : start { _entities.front() }
+        , end { _entities.back() }
+        , direction { direction }
+        , entities {}
     {
-        size_t size {_entities.size()};
-
-        for (auto entity: _entities) {
-            if (entity == _entities.front()) {
-                start = entity;
-            } 
-            
-            if (entity == _entities.back()) {
-                end = entity;
-            } 
-            
+        for (auto entity : _entities) {
             if (entity != _entities.front() && entity != _entities.back()) {
                 entities.push_back(entity);
             }
