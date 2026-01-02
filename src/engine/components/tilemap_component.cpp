@@ -6,14 +6,11 @@
 #include <position.h>
 #include <spritesheet.h>
 
-#include <optional>
-
 #include <entt/entt.hpp>
 
 TileMapComponent::TileMapComponent(entt::registry& registry, const int tiles_per_row)
     : tiles_per_row { tiles_per_row }
     , n_tiles { tiles_per_row * tiles_per_row }
-    , highlighted_tile { entt::null }
 {
     tiles.reserve(n_tiles);
 

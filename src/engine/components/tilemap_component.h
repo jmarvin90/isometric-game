@@ -14,7 +14,6 @@ struct TileMapComponent {
     std::vector<entt::entity> tiles;
     glm::ivec2 area;
     glm::ivec2 origin_px;
-    entt::entity highlighted_tile;
 
     TileMapComponent(const TileMapComponent&) = delete;
     TileMapComponent(TileMapComponent&&) = default;

@@ -1,6 +1,7 @@
 #include <components/grid_position_component.h>
 #include <components/highlight_component.h>
 #include <components/junction_component.h>
+#include <components/mouseover_component.h>
 #include <components/navigation_component.h>
 #include <components/segment_component.h>
 #include <components/sprite_component.h>
@@ -69,40 +70,30 @@ void apply_highlight(entt::registry& registry, const entt::entity tile, int fact
 
 } // namespace
 
-void TileMapSystem::update(entt::registry& registry, const bool debug_mode)
+void TileMapSystem::update(
+    [[maybe_unused]] entt::registry& registry,
+    [[maybe_unused]] const bool debug_mode
+)
 {
-    auto& tilemap = registry.ctx().get<TileMapComponent>();
-    const auto& mouse = registry.ctx().get<const MouseComponent>();
+    auto components { registry.view<MouseOverComponent>() };
 
-    if (!debug_mode) {
-        if (tilemap.highlighted_tile != entt::null) {
-            apply_highlight(registry, tilemap.highlighted_tile, -1);
-            tilemap.highlighted_tile = entt::null;
+    for (auto [entity, component] : components.each()) {
+        if (component.this_frame && component.previous_frame) {
+            component.this_frame = false;
+            continue;
         }
-        return;
+
+        if (component.previous_frame) {
+            apply_highlight(registry, entity, -1);
+            registry.remove<MouseOverComponent>(entity);
+        }
+
+        if (component.this_frame && debug_mode) {
+            apply_highlight(registry, entity, 1);
+            component.this_frame = false;
+            component.previous_frame = true;
+        }
     }
-
-    if (!mouse.moved) {
-        return;
-    }
-
-    const GridPosition grid_position { ScreenPosition(mouse.window_current_position).to_grid_position(registry) };
-
-    entt::entity new_tile = tilemap[grid_position];
-
-    if (new_tile == tilemap.highlighted_tile) {
-        return;
-    }
-
-    if (tilemap.highlighted_tile != entt::null) {
-        apply_highlight(registry, tilemap.highlighted_tile, -1);
-    }
-
-    if (new_tile != entt::null) {
-        apply_highlight(registry, new_tile);
-    }
-
-    tilemap.highlighted_tile = new_tile;
 }
 
 void TileMapSystem::emplace_tiles(entt::registry& registry)
