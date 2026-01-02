@@ -157,28 +157,42 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
     bool is_junction { Direction::is_junction(current_nav.directions) };
     std::array<std::vector<entt::entity>, 4> connections;
 
-    for (Direction::TDirection direction { Direction::TDirection::NORTH };
-         direction != Direction::TDirection::NO_DIRECTION; direction = direction >> 1) {
+    for (
+        Direction::TDirection direction { Direction::TDirection::NORTH };
+        direction != Direction::TDirection::NO_DIRECTION;
+        direction = direction >> 1
+    ) {
         connections[Direction::index_position(direction)] = scan(registry, entity, direction);
     }
 
     if (is_junction) {
-        for (Direction::TDirection direction { Direction::TDirection::NORTH };
-             direction != Direction::TDirection::NO_DIRECTION; direction = direction >> 1) {
+        for (
+            Direction::TDirection direction { Direction::TDirection::NORTH };
+            direction != Direction::TDirection::NO_DIRECTION;
+            direction = direction >> 1
+        ) {
+            if (connections[Direction::index_position(direction)].size() > 1) {
                 entt::entity segment_entity { registry.create() };
-                registry.emplace<SegmentComponent>(segment_entity, connections[Direction::index_position(direction)], direction);
+                registry.emplace<SegmentComponent>(
+                    segment_entity,
+                    connections[Direction::index_position(direction)],
+                    direction
+                );
+            }
         }
     } else {
         for (auto direction : { Direction::TDirection::NORTH, Direction::TDirection::WEST }) {
             Direction::TDirection opposite { direction >> 2 };
             auto& left { connections[Direction::index_position(direction)] };
             auto& right { connections[Direction::index_position(opposite)] };
-            std::vector<entt::entity> segment;
-            segment.reserve(left.size() + right.size() - 1);
-            segment.insert(segment.end(), left.begin(), left.end());
-            segment.insert(segment.end(), right.begin() + 1, right.end());
-            entt::entity segment_entity {registry.create()};
-            registry.emplace<SegmentComponent>(segment_entity, segment, direction);
+            if (left.size() + right.size() > 2) {
+                std::vector<entt::entity> segment;
+                segment.reserve(left.size() + right.size() - 1);
+                segment.insert(segment.end(), left.begin(), left.end());
+                segment.insert(segment.end(), right.begin() + 1, right.end());
+                entt::entity segment_entity { registry.create() };
+                registry.emplace<SegmentComponent>(segment_entity, segment, direction);
+            }
         }
     }
 }
