@@ -10,6 +10,24 @@ struct SegmentComponent {
     entt::entity end;
     Direction::TDirection direction;
     std::vector<entt::entity> entities;
+
+    SegmentComponent(const SegmentComponent&) = default;
+    SegmentComponent(SegmentComponent&&) = default;
+    SegmentComponent& operator=(const SegmentComponent&) = default;
+    SegmentComponent& operator=(SegmentComponent&&) = default;
+
+    SegmentComponent(
+        entt::entity start,
+        entt::entity end,
+        Direction::TDirection direction,
+        std::vector<entt::entity> entities
+    )
+    : start {start}
+    , end {end}
+    , direction {direction}
+    , entities {entities}
+    {}
+
     SegmentComponent(std::vector<entt::entity> _entities, Direction::TDirection direction)
         : start { _entities.front() }
         , end { _entities.back() }
