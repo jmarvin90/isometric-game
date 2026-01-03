@@ -166,11 +166,6 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
         ) {
             if (connections[Direction::index_position(direction)].size() > 1) {
                 entt::entity segment_entity { registry.create() };
-                // registry.emplace<SegmentComponent>(
-                //     segment_entity,
-                //     connections[Direction::index_position(direction)],
-                //     direction
-                // );
                 seg_manager.construct_queue.emplace_back(
                     connections[Direction::index_position(direction)],
                     direction
@@ -188,7 +183,6 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
                 segment.insert(segment.end(), left.begin(), left.end());
                 segment.insert(segment.end(), right.begin() + 1, right.end());
                 entt::entity segment_entity { registry.create() };
-                // registry.emplace<SegmentComponent>(segment_entity, segment, direction);
                 seg_manager.construct_queue.emplace_back(segment, direction);
             }
         }
