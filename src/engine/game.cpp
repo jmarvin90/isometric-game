@@ -2,10 +2,10 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <components/navigation_component.h>
-#include <components/tilemap_component.h>
-#include <components/tilespec_component.h>
 #include <components/segment_component.h>
 #include <components/segment_manager_component.h>
+#include <components/tilemap_component.h>
+#include <components/tilespec_component.h>
 #include <constants.h>
 #include <game.h>
 #include <imgui.h>
@@ -15,9 +15,9 @@
 #include <systems/camera_system.h>
 #include <systems/mouse_system.h>
 #include <systems/render_system.h>
+#include <systems/segment_system.h>
 #include <systems/spatialmap_system.h>
 #include <systems/tilemap_system.h>
-#include <systems/segment_system.h>
 
 #include <entt/entt.hpp>
 #include <string>
@@ -33,12 +33,13 @@ void Game::initialise()
     SDL_GetDesktopDisplayMode(0, &display_mode);
 
     // Create the SDL Window
-    window = SDL_CreateWindow(NULL, // title - leave blank for now
-                              SDL_WINDOWPOS_CENTERED, // Window xconstant position (centred)
-                              SDL_WINDOWPOS_CENTERED, // Window y position (centred)
-                              display_mode.w, // X res from current display mode
-                              display_mode.h, // Y res from current display mode
-                              SDL_WINDOW_FULLSCREEN // | SDL_WINDOW_ALLOW_HIGHDPI // Input grabbed flag
+    window = SDL_CreateWindow(
+        NULL, // title - leave blank for now
+        SDL_WINDOWPOS_CENTERED, // Window xconstant position (centred)
+        SDL_WINDOWPOS_CENTERED, // Window y position (centred)
+        display_mode.w, // X res from current display mode
+        display_mode.h, // Y res from current display mode
+        SDL_WINDOW_FULLSCREEN // | SDL_WINDOW_ALLOW_HIGHDPI // Input grabbed flag
     );
 
     if (!window) {
@@ -46,8 +47,6 @@ void Game::initialise()
     }
 
     registry = entt::registry();
-
-    registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
 
     // TODO: move this somewhere smart under some smart condition
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -60,7 +59,7 @@ void Game::initialise()
         std::string { "assets/spritesheet.json" },
         renderer
     );
-    registry.ctx().emplace<TileMapComponent>(registry, 8);
+    registry.ctx().emplace<TileMapComponent>(registry, 256);
     registry.ctx().emplace<SpatialMapComponent>(registry, 4);
     registry.ctx().emplace<SegmentManagerComponent>();
 

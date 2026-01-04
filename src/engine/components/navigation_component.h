@@ -16,9 +16,11 @@ struct NavigationComponent {
     }
 
     NavigationComponent(const rapidjson::Value& json_object)
-        : directions { (json_object.HasMember("directions") && json_object["directions"].IsInt())
-                           ? static_cast<uint8_t>(json_object["directions"].GetInt())
-                           : static_cast<uint8_t>(0) }
+        : directions {
+            (json_object.HasMember("directions") && json_object["directions"].IsInt())
+                ? static_cast<uint8_t>(json_object["directions"].GetInt())
+                : static_cast<uint8_t>(0)
+        }
         , segment_id { entt::null }
     {
     }

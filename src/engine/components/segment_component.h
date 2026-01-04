@@ -22,11 +22,12 @@ struct SegmentComponent {
         Direction::TDirection direction,
         std::vector<entt::entity> entities
     )
-    : start {start}
-    , end {end}
-    , direction {direction}
-    , entities {entities}
-    {}
+        : start { start }
+        , end { end }
+        , direction { direction }
+        , entities { entities }
+    {
+    }
 
     SegmentComponent(std::vector<entt::entity> _entities, Direction::TDirection direction)
         : start { _entities.front() }

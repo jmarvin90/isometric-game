@@ -5,10 +5,10 @@
 #include <components/navigation_component.h>
 #include <components/pending_destruction_component.h>
 #include <components/segment_component.h>
+#include <components/segment_manager_component.h>
 #include <components/sprite_component.h>
 #include <components/tilemap_component.h>
 #include <components/tilespec_component.h>
-#include <components/segment_manager_component.h>
 #include <directions.h>
 #include <position.h>
 #include <spdlog/spdlog.h>
