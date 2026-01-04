@@ -6,15 +6,11 @@
 #include <position.h>
 #include <spritesheet.h>
 
-#include <optional>
-
 #include <entt/entt.hpp>
 
-TileMapComponent::TileMapComponent(entt::registry& registry,
-    const int tiles_per_row)
+TileMapComponent::TileMapComponent(entt::registry& registry, const int tiles_per_row)
     : tiles_per_row { tiles_per_row }
     , n_tiles { tiles_per_row * tiles_per_row }
-    , highlighted_tile { entt::null }
 {
     tiles.reserve(n_tiles);
 
@@ -23,20 +19,7 @@ TileMapComponent::TileMapComponent(entt::registry& registry,
     origin_px = glm::ivec2 { (area / 2).x - tilespec.centre.x, 0 };
 }
 
-entt::entity TileMapComponent::operator[](
-    const glm::ivec2 grid_position)
-{
-    int index_pos { (grid_position.y * tiles_per_row) + grid_position.x };
-
-    if (!GridPosition(grid_position).is_valid(*this) || static_cast<int>(tiles.size()) <= index_pos) {
-        return entt::null;
-    }
-
-    return tiles.at(index_pos);
-}
-
-entt::entity TileMapComponent::operator[](
-    const glm::ivec2 grid_position) const
+entt::entity TileMapComponent::operator[](const glm::ivec2 grid_position) const
 {
     int index_pos { (grid_position.y * tiles_per_row) + grid_position.x };
 

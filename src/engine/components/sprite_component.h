@@ -15,10 +15,8 @@ struct SpriteComponent {
     }
 
     SpriteComponent(const rapidjson::Value& json_object, SDL_Texture* texture)
-        : source_rect { json_object["origin_x"].GetInt(),
-            json_object["origin_y"].GetInt(),
-            json_object["width"].GetInt(),
-            json_object["height"].GetInt() }
+        : source_rect { json_object["origin_x"].GetInt(), json_object["origin_y"].GetInt(),
+                        json_object["width"].GetInt(), json_object["height"].GetInt() }
         , texture { texture }
     {
     }

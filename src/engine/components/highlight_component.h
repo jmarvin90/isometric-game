@@ -10,6 +10,4 @@ struct HighlightComponent {
     std::vector<SDL_Point> points;
 };
 
-struct TileHighlightComponentComponent : public HighlightComponent { };
-
 #endif

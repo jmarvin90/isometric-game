@@ -8,9 +8,7 @@
 #include <fstream>
 #include <optional>
 
-SpriteSheet::SpriteSheet(const std::string spritesheet_path,
-    const std::string atlas_path,
-    SDL_Renderer* renderer)
+SpriteSheet::SpriteSheet(const std::string spritesheet_path, const std::string atlas_path, SDL_Renderer* renderer)
 {
     SDL_Surface* surface { IMG_Load(spritesheet_path.c_str()) };
     if (!surface) {
@@ -30,18 +28,10 @@ SpriteSheet::SpriteSheet(const std::string spritesheet_path,
     my_document.ParseStream(read);
 
     for (const auto& json_object : my_document.GetArray()) {
-        sprites.try_emplace(json_object["name"].GetString(),
-            SpriteComponent { json_object, spritesheet },
-            json_object.HasMember("directions") ? std::make_optional<NavigationComponent>(json_object) : std::nullopt);
+        sprites.try_emplace(json_object["name"].GetString(), SpriteComponent { json_object, spritesheet }, json_object.HasMember("directions") ? std::make_optional<NavigationComponent>(json_object) : std::nullopt);
     }
 }
 
-const SpriteSheetEntry& SpriteSheet::get(const std::string name) const
-{
-    return sprites.at(name);
-}
+const SpriteSheetEntry& SpriteSheet::get(const std::string name) const { return sprites.at(name); }
 
-SpriteSheet::~SpriteSheet()
-{
-    SDL_DestroyTexture(spritesheet);
-}
+SpriteSheet::~SpriteSheet() { SDL_DestroyTexture(spritesheet); }

@@ -2,34 +2,29 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <components/navigation_component.h>
+#include <components/segment_component.h>
+#include <components/segment_manager_component.h>
 #include <components/tilemap_component.h>
 #include <components/tilespec_component.h>
 #include <constants.h>
 #include <game.h>
 #include <imgui.h>
+#include <spatialmap_component.h>
 #include <spdlog/spdlog.h>
 #include <spritesheet.h>
 #include <systems/camera_system.h>
 #include <systems/mouse_system.h>
 #include <systems/render_system.h>
+#include <systems/segment_system.h>
+#include <systems/spatialmap_system.h>
 #include <systems/tilemap_system.h>
 
 #include <entt/entt.hpp>
-#include <filesystem>
-#include <fstream>
-#include <glm/glm.hpp>
 #include <string>
-#include <utility>
 
-Game::Game()
-{
-    spdlog::info("Game constructor called.");
-}
+Game::Game() { spdlog::info("Game constructor called."); }
 
-Game::~Game()
-{
-    spdlog::info("Game destructor called.");
-}
+Game::~Game() { spdlog::info("Game destructor called."); }
 
 void Game::initialise()
 {
@@ -53,20 +48,25 @@ void Game::initialise()
 
     registry = entt::registry();
 
-    registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
-
     // TODO: move this somewhere smart under some smart condition
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     registry.ctx().emplace<MouseComponent>();
-    registry.ctx().emplace<CameraComponent>();
+    registry.ctx().emplace<CameraComponent>(display_mode);
     registry.ctx().emplace<TileSpecComponent>(256, 14);
     registry.ctx().emplace<SpriteSheet>(
         std::string { "assets/spritesheet_scaled.png" },
-        std::string { "assets/spritesheet.json" }, renderer);
-    registry.ctx().emplace<TileMapComponent>(registry, 8);
+        std::string { "assets/spritesheet.json" },
+        renderer
+    );
+    registry.ctx().emplace<TileMapComponent>(registry, 256);
+    registry.ctx().emplace<SpatialMapComponent>(registry, 4);
+    registry.ctx().emplace<SegmentManagerComponent>();
 
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
+    registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::register_entity>();
+    registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
+    registry.on_destroy<SegmentComponent>().connect<&SegmentSystem::disconnect>();
 
     TileMapSystem::emplace_tiles(registry);
 
@@ -103,11 +103,23 @@ void Game::update([[maybe_unused]] const float delta_time)
     MouseSystem::update(registry);
     CameraSystem::update(registry, display_mode);
     TileMapSystem::update(registry, debug_mode);
+    SegmentSystem::update(registry);
+    RenderSystem::update(registry);
 }
 
 void Game::render()
 {
-    RenderSystem::render(registry, renderer, debug_mode);
+    // SDL_RenderSetClipRect(renderer, &camera.camera_rect);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderClear(renderer);
+    RenderSystem::render(registry, renderer);
+    if (debug_mode) {
+        RenderSystem::render_highlights(registry, renderer);
+        RenderSystem::render_imgui_ui(registry, renderer);
+        RenderSystem::render_segment_lines(registry, renderer);
+    }
+    SDL_RenderPresent(renderer);
 }
 
 void Game::run()
