@@ -5,6 +5,7 @@
 #include <components/tilemap_component.h>
 #include <components/tilespec_component.h>
 #include <components/segment_component.h>
+#include <components/segment_manager_component.h>
 #include <constants.h>
 #include <game.h>
 #include <imgui.h>
@@ -61,6 +62,7 @@ void Game::initialise()
     );
     registry.ctx().emplace<TileMapComponent>(registry, 8);
     registry.ctx().emplace<SpatialMapComponent>(registry, 4);
+    registry.ctx().emplace<SegmentManagerComponent>();
 
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::register_entity>();
@@ -102,6 +104,7 @@ void Game::update([[maybe_unused]] const float delta_time)
     MouseSystem::update(registry);
     CameraSystem::update(registry, display_mode);
     TileMapSystem::update(registry, debug_mode);
+    SegmentSystem::update(registry);
     RenderSystem::update(registry);
 }
 

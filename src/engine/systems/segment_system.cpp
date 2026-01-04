@@ -3,6 +3,7 @@
 #include <components/navigation_component.h>
 #include <components/pending_destruction_component.h>
 #include <components/segment_component.h>
+#include <components/segment_manager_component.h>
 #include <components/transform_component.h>
 #include <directions.h>
 #include <position.h>
@@ -11,46 +12,48 @@
 #include <entt/entt.hpp>
 
 namespace {
-void attach(
+void junction_emplace(
     entt::registry& registry,
-    entt::entity junction_id,
-    entt::entity segment_id,
+    entt::entity junction_entity,
+    entt::entity segment_entity,
     Direction::TDirection direction
 )
 {
     JunctionComponent* junct;
-    if (!registry.all_of<JunctionComponent>(junction_id)) {
-        junct = &registry.emplace<JunctionComponent>(junction_id);
+
+    if (!registry.all_of<JunctionComponent>(junction_entity)) {
+        junct = &registry.emplace<JunctionComponent>(junction_entity);
     } else {
-        junct = &registry.get<JunctionComponent>(junction_id);
-        entt::entity current_segment_id {
-            junct->connections[Direction::index_position(direction)]
-        };
-        if (current_segment_id != entt::null) {
-            registry.emplace_or_replace<PendingDestructionComponent>(current_segment_id);
+        junct = &registry.get<JunctionComponent>(junction_entity);
+        entt::entity current_segment { junct->connections[Direction::index_position(direction)] };
+        if (current_segment != entt::null) {
+            SegmentManagerComponent& seg_manager { registry.ctx().get<SegmentManagerComponent>() };
+            seg_manager.destruct_queue.push_back(current_segment);
         }
     }
-    junct->connections[Direction::index_position(direction)] = segment_id;
+    junct->connections[Direction::index_position(direction)] = segment_entity;
 }
 
-[[maybe_unused]] void detach(
+void junction_displace(
     entt::registry& registry,
-    entt::entity junction_id,
+    entt::entity junction_entity,
+    entt::entity segment_entity,
     Direction::TDirection direction
 )
 {
-    auto& junction { registry.get<JunctionComponent>(junction_id) };
+    JunctionComponent& junction { registry.get<JunctionComponent>(junction_entity) };
+    entt::entity current_segment { junction.connections[Direction::index_position(direction)] };
+    if (current_segment == entt::null || current_segment != segment_entity)
+        return;
     junction.connections[Direction::index_position(direction)] = entt::null;
     if (
         std::all_of(
             junction.connections.begin(),
             junction.connections.end(),
-            [](entt::entity i) {
-                return i == entt::null;
-            }
+            [](entt::entity i) { return i == entt::null; }
         )
     ) {
-        registry.remove<JunctionComponent>(junction_id);
+        registry.remove<JunctionComponent>(junction_entity);
     }
 }
 }
@@ -58,23 +61,33 @@ void attach(
 void SegmentSystem::connect(entt::registry& registry, entt::entity entity)
 {
     const SegmentComponent& segment { registry.get<const SegmentComponent>(entity) };
-    glm::ivec2 start { registry.get<GridPositionComponent>(segment.start).grid_position };
-    glm::ivec2 end { registry.get<GridPositionComponent>(segment.end).grid_position };
-    attach(registry, segment.start, entity, segment.direction);
-    attach(registry, segment.end, entity, Direction::reverse(segment.direction));
-    for (auto entity : segment.entities) {
-        registry.get<NavigationComponent>(entity).segment_id = entity;
-    }
+    junction_emplace(registry, segment.start, entity, segment.direction);
+    junction_emplace(registry, segment.end, entity, Direction::reverse(segment.direction));
 }
 
 void SegmentSystem::disconnect(entt::registry& registry, entt::entity entity)
 {
     const SegmentComponent& segment { registry.get<const SegmentComponent>(entity) };
-    glm::ivec2 start { registry.get<GridPositionComponent>(segment.start).grid_position };
-    glm::ivec2 end { registry.get<GridPositionComponent>(segment.end).grid_position };
-    detach(registry, segment.start, segment.direction);
-    detach(registry, segment.end, Direction::reverse(segment.direction));
-    for (auto entity : segment.entities) {
-        registry.get<NavigationComponent>(entity).segment_id = entt::null;
+    junction_displace(registry, segment.start, entity, segment.direction);
+    junction_displace(registry, segment.end, entity, Direction::reverse(segment.direction));
+}
+
+void SegmentSystem::update(entt::registry& registry)
+{
+    SegmentManagerComponent& seg_manager { registry.ctx().get<SegmentManagerComponent>() };
+
+    registry.destroy(seg_manager.destruct_queue.begin(), seg_manager.destruct_queue.end());
+    seg_manager.destruct_queue.clear();
+
+    for (auto segment : seg_manager.construct_queue) {
+        entt::entity segment_entity { registry.create() };
+        registry.emplace<SegmentComponent>(
+            segment_entity,
+            segment.start,
+            segment.end,
+            segment.direction,
+            segment.entities
+        );
     }
+    seg_manager.construct_queue.clear();
 }

@@ -8,6 +8,7 @@
 #include <components/sprite_component.h>
 #include <components/tilemap_component.h>
 #include <components/tilespec_component.h>
+#include <components/segment_manager_component.h>
 #include <directions.h>
 #include <position.h>
 #include <spdlog/spdlog.h>
@@ -145,6 +146,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
 
 void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
 {
+    SegmentManagerComponent& seg_manager { registry.ctx().get<SegmentManagerComponent>() };
     const NavigationComponent& current_nav { registry.get<const NavigationComponent>(entity) };
     bool is_junction { Direction::is_junction(current_nav.directions) };
     std::array<std::vector<entt::entity>, 4> connections;
@@ -165,8 +167,7 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
         ) {
             if (connections[Direction::index_position(direction)].size() > 1) {
                 entt::entity segment_entity { registry.create() };
-                registry.emplace<SegmentComponent>(
-                    segment_entity,
+                seg_manager.construct_queue.emplace_back(
                     connections[Direction::index_position(direction)],
                     direction
                 );
@@ -183,7 +184,7 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
                 segment.insert(segment.end(), left.begin(), left.end());
                 segment.insert(segment.end(), right.begin() + 1, right.end());
                 entt::entity segment_entity { registry.create() };
-                registry.emplace<SegmentComponent>(segment_entity, segment, direction);
+                seg_manager.construct_queue.emplace_back(segment, direction);
             }
         }
     }
