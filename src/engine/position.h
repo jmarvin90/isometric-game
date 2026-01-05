@@ -6,6 +6,7 @@
 #include <components/spatialmap_component.h>
 #include <components/tilemap_component.h>
 
+#include <SDL2/SDL.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
@@ -21,6 +22,7 @@ public:
     {
     }
     operator glm::ivec2() const { return position; }
+    operator SDL_Point() const { return SDL_Point { position.x, position.y }; }
 };
 
 class WorldPosition;
@@ -69,6 +71,7 @@ public:
     static SpatialMapGridPosition from_cell_number(const SpatialMapComponent& spatial_map, const int cell_number);
     WorldPosition to_world_position(const entt::registry& registry) const;
     WorldPosition to_world_position(const SpatialMapComponent& spatial_map) const;
+    int to_spatial_map_cell(const entt::registry& registry) const;
 };
 
 #endif

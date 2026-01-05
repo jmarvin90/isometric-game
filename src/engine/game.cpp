@@ -64,9 +64,11 @@ void Game::initialise()
     registry.ctx().emplace<SegmentManagerComponent>();
 
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
-    registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::register_entity>();
+    registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
+    registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
     registry.on_destroy<SegmentComponent>().connect<&SegmentSystem::disconnect>();
+    registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
 
     TileMapSystem::emplace_tiles(registry);
 
