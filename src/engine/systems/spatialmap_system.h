@@ -7,6 +7,7 @@ class SpatialMapSystem {
 
 public:
     static void emplace_entity(entt::registry& registry, entt::entity entity);
+    static void remove_entity(entt::registry& registry, entt::entity entity);
     static void emplace_segment(entt::registry& registry, entt::entity entity);
     static void remove_segment(entt::registry& registry, entt::entity entity);
 };

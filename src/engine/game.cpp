@@ -50,17 +50,18 @@ void Game::initialise()
 
     // TODO: move this somewhere smart under some smart condition
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(256, 14) };
 
     registry.ctx().emplace<MouseComponent>();
     registry.ctx().emplace<CameraComponent>(display_mode);
-    registry.ctx().emplace<TileSpecComponent>(256, 14);
     registry.ctx().emplace<SpriteSheet>(
         std::string { "assets/spritesheet_scaled.png" },
         std::string { "assets/spritesheet.json" },
         renderer
     );
-    registry.ctx().emplace<TileMapComponent>(registry, 256);
-    registry.ctx().emplace<SpatialMapComponent>(registry, 4);
+
+    const TileMapComponent& tilemap { registry.ctx().emplace<TileMapComponent>(tilespec, 32) };
+    registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 4);
     registry.ctx().emplace<SegmentManagerComponent>();
 
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();

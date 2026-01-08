@@ -38,6 +38,7 @@ public:
 };
 
 class TileMapComponent;
+class SpatialMapGridPosition;
 
 class GridPosition : public IPosition {
     using IPosition::IPosition;
@@ -45,6 +46,8 @@ class GridPosition : public IPosition {
 public:
     GridPosition(const entt::registry& registry, const int tile_n);
     const WorldPosition to_world_position(const entt::registry& registry) const;
+    const SpatialMapGridPosition to_spatial_map_position(const entt::registry& registry) const;
+    const SpatialMapGridPosition to_spatial_map_position(const SpatialMapComponent& spatial_map) const;
     bool is_valid(const TileMapComponent& tilemap) const;
     bool is_valid(const entt::registry& registry) const;
 };
@@ -61,6 +64,7 @@ public:
     int to_spatial_map_cell(const SpatialMapComponent& spatial_map) const;
     int to_spatial_map_cell(const entt::registry& registry) const;
     bool is_valid(const entt::registry& registry) const;
+    bool is_valid(const TileMapComponent& tilemap) const;
 };
 
 class SpatialMapGridPosition : public IPosition {
@@ -72,6 +76,8 @@ public:
     WorldPosition to_world_position(const entt::registry& registry) const;
     WorldPosition to_world_position(const SpatialMapComponent& spatial_map) const;
     int to_spatial_map_cell(const entt::registry& registry) const;
+    bool is_valid(const entt::registry& registry) const;
+    bool is_valid(const SpatialMapComponent& spatial_map) const;
 };
 
 #endif
