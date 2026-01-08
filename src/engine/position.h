@@ -61,6 +61,8 @@ public:
     const ScreenPosition to_screen_position(const CameraComponent& camera) const;
     const ScreenPosition to_screen_position(const entt::registry& registry) const;
     const GridPosition to_grid_position(const entt::registry& registry) const;
+    const SpatialMapGridPosition to_spatial_map_position(const entt::registry& registry) const;
+    const SpatialMapGridPosition to_spatial_map_position(const SpatialMapComponent& spatial_map) const;
     int to_spatial_map_cell(const SpatialMapComponent& spatial_map) const;
     int to_spatial_map_cell(const entt::registry& registry) const;
     bool is_valid(const entt::registry& registry) const;

@@ -66,6 +66,18 @@ const GridPosition WorldPosition::to_grid_position(const entt::registry& registr
 
 */
 // TODO: check this works as intended
+const SpatialMapGridPosition WorldPosition::to_spatial_map_position(const SpatialMapComponent& spatial_map) const
+{
+    assert(spatial_map.cell_size.x > 0 && spatial_map.cell_size.y > 0);
+    return SpatialMapGridPosition { position / spatial_map.cell_size };
+}
+
+const SpatialMapGridPosition WorldPosition::to_spatial_map_position(const entt::registry& registry) const
+{
+    const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
+    return to_spatial_map_position(spatial_map);
+}
+
 int WorldPosition::to_spatial_map_cell(const SpatialMapComponent& spatial_map) const
 {
     glm::ivec2 cell { position / spatial_map.cell_size };
@@ -118,19 +130,9 @@ const WorldPosition GridPosition::to_world_position(const entt::registry& regist
     return WorldPosition { world_pos_gross + tilespec.centre };
 }
 
-const SpatialMapGridPosition GridPosition::to_spatial_map_position(const SpatialMapComponent& spatial_map) const
-{
-    glm::ivec2 output {
-        position.x > spatial_map.divisor ? position.x / spatial_map.divisor : 0,
-        position.y > spatial_map.divisor ? position.y / spatial_map.divisor : 0
-    };
-    return SpatialMapGridPosition(output);
-}
-
 const SpatialMapGridPosition GridPosition::to_spatial_map_position(const entt::registry& registry) const
 {
-    const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
-    return to_spatial_map_position(spatial_map);
+    return to_world_position(registry).to_spatial_map_position(registry);
 }
 
 bool GridPosition::is_valid(const TileMapComponent& tilemap) const
