@@ -22,6 +22,7 @@ public:
     {
     }
     operator glm::ivec2() const { return position; }
+    operator glm::vec2() const { return position; }
     operator SDL_Point() const { return SDL_Point { position.x, position.y }; }
 };
 
@@ -77,6 +78,7 @@ public:
     static SpatialMapGridPosition from_cell_number(const SpatialMapComponent& spatial_map, const int cell_number);
     WorldPosition to_world_position(const entt::registry& registry) const;
     WorldPosition to_world_position(const SpatialMapComponent& spatial_map) const;
+    int to_spatial_map_cell(const SpatialMapComponent& spatial_map) const;
     int to_spatial_map_cell(const entt::registry& registry) const;
     bool is_valid(const entt::registry& registry) const;
     bool is_valid(const SpatialMapComponent& spatial_map) const;

@@ -60,8 +60,8 @@ void Game::initialise()
         renderer
     );
 
-    const TileMapComponent& tilemap { registry.ctx().emplace<TileMapComponent>(tilespec, 32) };
-    registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 4);
+    const TileMapComponent& tilemap { registry.ctx().emplace<TileMapComponent>(tilespec, 8) };
+    registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 2);
     registry.ctx().emplace<SegmentManagerComponent>();
 
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();

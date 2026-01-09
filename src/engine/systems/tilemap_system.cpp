@@ -124,7 +124,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
 
         glm::ivec2 vec_position { grid_position };
 
-        if (((vec_position.x >= 0 && vec_position.x <= 3) || (vec_position.x > 4 && vec_position.x <= 30))
+        if (((vec_position.x >= 0 && vec_position.x <= 3) || (vec_position.x > 4 && vec_position.x <= 7))
             && vec_position.y == 1) {
             tile_handle = "grass_ew";
         } else if (vec_position == glm::ivec2 { 4, 1 }) {

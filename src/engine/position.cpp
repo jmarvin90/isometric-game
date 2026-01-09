@@ -170,10 +170,15 @@ SpatialMapGridPosition SpatialMapGridPosition::from_cell_number(const entt::regi
     return SpatialMapGridPosition::from_cell_number(spatial_map, cell_number);
 }
 
+int SpatialMapGridPosition::to_spatial_map_cell(const SpatialMapComponent& spatial_map) const
+{
+    return (position.y * spatial_map.cells_per_row) + position.x;
+}
+
 int SpatialMapGridPosition::to_spatial_map_cell(const entt::registry& registry) const
 {
-    // TODO - feels dubious converting to world position then back to spatial map cell
-    return to_world_position(registry).to_spatial_map_cell(registry);
+    const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
+    return to_spatial_map_cell(spatial_map);
 }
 
 WorldPosition SpatialMapGridPosition::to_world_position(const SpatialMapComponent& spatial_map) const
