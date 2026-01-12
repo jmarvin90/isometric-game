@@ -4,19 +4,17 @@
 #include <components/tilespec_component.h>
 #include <components/transform_component.h>
 #include <position.h>
-#include <spritesheet.h>
+// #include <spritesheet.h>
 
 #include <entt/entt.hpp>
 
-TileMapComponent::TileMapComponent(entt::registry& registry, const int tiles_per_row)
+TileMapComponent::TileMapComponent(const TileSpecComponent& tile_spec, const int tiles_per_row)
     : tiles_per_row { tiles_per_row }
     , n_tiles { tiles_per_row * tiles_per_row }
+    , area { tile_spec.iso_area * tiles_per_row }
+    , origin_px { (area / 2).x - tile_spec.centre.x, 0 }
 {
     tiles.reserve(n_tiles);
-
-    const TileSpecComponent& tilespec { registry.ctx().get<TileSpecComponent>() };
-    area = tilespec.iso_area * tiles_per_row;
-    origin_px = glm::ivec2 { (area / 2).x - tilespec.centre.x, 0 };
 }
 
 entt::entity TileMapComponent::operator[](const glm::ivec2 grid_position) const

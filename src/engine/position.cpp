@@ -7,6 +7,13 @@
 #include <position.h>
 #include <spdlog/spdlog.h>
 
+bool IPosition::_in_min_bounds() const { return position.x >= 0 && position.y >= 0; }
+/*
+
+
+
+
+*/
 const WorldPosition ScreenPosition::to_world_position(const entt::registry& registry) const
 {
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
@@ -18,6 +25,16 @@ const GridPosition ScreenPosition::to_grid_position(const entt::registry& regist
     return to_world_position(registry).to_grid_position(registry);
 }
 
+bool ScreenPosition::is_valid(const SDL_DisplayMode& display_mode) const
+{
+    return (_in_min_bounds() && (position.x < display_mode.w && position.y < display_mode.h));
+}
+/*
+
+
+
+
+*/
 const ScreenPosition WorldPosition::to_screen_position(const CameraComponent& camera) const
 {
     return ScreenPosition { (position - camera.position()) + constants::SCENE_BORDER_PX };
@@ -42,10 +59,28 @@ const GridPosition WorldPosition::to_grid_position(const entt::registry& registr
     const glm::vec2 gross_position { to_grid_gross(registry) };
     return GridPosition(glm::ivec2 { std::round(gross_position.x), std::round(gross_position.y) });
 }
+/*
+
+
+
+
+*/
+// TODO: check this works as intended
+const SpatialMapGridPosition WorldPosition::to_spatial_map_position(const SpatialMapComponent& spatial_map) const
+{
+    assert(spatial_map.cell_size.x > 0 && spatial_map.cell_size.y > 0);
+    return SpatialMapGridPosition { position / spatial_map.cell_size };
+}
+
+const SpatialMapGridPosition WorldPosition::to_spatial_map_position(const entt::registry& registry) const
+{
+    const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
+    return to_spatial_map_position(spatial_map);
+}
 
 int WorldPosition::to_spatial_map_cell(const SpatialMapComponent& spatial_map) const
 {
-    glm::ivec2 cell { position.x / spatial_map.cell_size.x, position.y / spatial_map.cell_size.y };
+    glm::ivec2 cell { position / spatial_map.cell_size };
     return (cell.y * spatial_map.cells_per_row) + cell.x;
 }
 
@@ -55,6 +90,27 @@ int WorldPosition::to_spatial_map_cell(const entt::registry& registry) const
     return to_spatial_map_cell(spatial_map);
 }
 
+WorldPosition::WorldPosition(const entt::registry& registry, const entt::entity entity)
+    : IPosition(registry.try_get<const TransformComponent>(entity)->position)
+{
+}
+
+bool WorldPosition::is_valid(const TileMapComponent& tilemap) const
+{
+    return (_in_min_bounds() && (position.x < tilemap.area.x && position.y < tilemap.area.y));
+}
+
+bool WorldPosition::is_valid(const entt::registry& registry) const
+{
+    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+    return is_valid(tilemap);
+}
+/*
+
+
+
+
+*/
 GridPosition::GridPosition(const entt::registry& registry, const int tile_n)
 {
     const TileMapComponent& tilemap { registry.ctx().get<TileMapComponent>() };
@@ -63,11 +119,6 @@ GridPosition::GridPosition(const entt::registry& registry, const int tile_n)
     } else {
         position = { tile_n % tilemap.tiles_per_row, tile_n / tilemap.tiles_per_row };
     }
-}
-
-WorldPosition::WorldPosition(const entt::registry& registry, const entt::entity entity)
-    : IPosition(registry.try_get<const TransformComponent>(entity)->position)
-{
 }
 
 const WorldPosition GridPosition::to_world_position(const entt::registry& registry) const
@@ -79,6 +130,27 @@ const WorldPosition GridPosition::to_world_position(const entt::registry& regist
     return WorldPosition { world_pos_gross + tilespec.centre };
 }
 
+const SpatialMapGridPosition GridPosition::to_spatial_map_position(const entt::registry& registry) const
+{
+    return to_world_position(registry).to_spatial_map_position(registry);
+}
+
+bool GridPosition::is_valid(const TileMapComponent& tilemap) const
+{
+    return (_in_min_bounds() && (position.x < tilemap.tiles_per_row && position.y < tilemap.tiles_per_row));
+}
+
+bool GridPosition::is_valid(const entt::registry& registry) const
+{
+    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+    return is_valid(tilemap);
+}
+/*
+
+
+
+
+*/
 SpatialMapGridPosition SpatialMapGridPosition::from_cell_number(
     const SpatialMapComponent& spatial_map, const int cell_number
 )
@@ -98,6 +170,17 @@ SpatialMapGridPosition SpatialMapGridPosition::from_cell_number(const entt::regi
     return SpatialMapGridPosition::from_cell_number(spatial_map, cell_number);
 }
 
+int SpatialMapGridPosition::to_spatial_map_cell(const SpatialMapComponent& spatial_map) const
+{
+    return (position.y * spatial_map.cells_per_row) + position.x;
+}
+
+int SpatialMapGridPosition::to_spatial_map_cell(const entt::registry& registry) const
+{
+    const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
+    return to_spatial_map_cell(spatial_map);
+}
+
 WorldPosition SpatialMapGridPosition::to_world_position(const SpatialMapComponent& spatial_map) const
 {
     return WorldPosition(position * spatial_map.cell_size);
@@ -109,26 +192,14 @@ WorldPosition SpatialMapGridPosition::to_world_position(const entt::registry& re
     return WorldPosition(position * spatial_map.cell_size);
 }
 
-bool IPosition::_in_min_bounds() const { return position.x >= 0 && position.y >= 0; }
-
-bool ScreenPosition::is_valid(const SDL_DisplayMode& display_mode) const
+// TODO: basically identical to GridPosition::is_valid();
+bool SpatialMapGridPosition::is_valid(const SpatialMapComponent& spatial_map) const
 {
-    return (_in_min_bounds() && (position.x < display_mode.w && position.y < display_mode.h));
+    return (_in_min_bounds() && (position.x < spatial_map.cells_per_row && position.y < spatial_map.cells_per_row));
 }
 
-bool GridPosition::is_valid(const TileMapComponent& tilemap) const
+bool SpatialMapGridPosition::is_valid(const entt::registry& registry) const
 {
-    return (_in_min_bounds() && (position.x < tilemap.tiles_per_row && position.y < tilemap.tiles_per_row));
-}
-
-bool GridPosition::is_valid(const entt::registry& registry) const
-{
-    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
-    return (_in_min_bounds() && (position.x < tilemap.tiles_per_row && position.y < tilemap.tiles_per_row));
-}
-
-bool WorldPosition::is_valid(const entt::registry& registry) const
-{
-    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
-    return (_in_min_bounds() && (position.x < tilemap.area.x && position.y < tilemap.area.y));
-}
+    const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent&>() };
+    return is_valid(spatial_map);
+};

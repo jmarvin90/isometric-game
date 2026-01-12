@@ -8,22 +8,30 @@
 #include <unordered_map>
 
 struct SpatialMapComponent {
-    int cell_tile_width;
-    glm::ivec2 cell_size;
+    int divisor;
+
     int cells_per_row;
-    int n_rows;
+    int n_cells;
+
+    glm::ivec2 cell_size;
+
     std::unordered_map<int, entt::entity> map;
 
-    SpatialMapComponent(const entt::registry& registry, int cell_tile_width)
-        : cell_tile_width { cell_tile_width }
-        , cell_size { registry.ctx().get<const TileSpecComponent>().iso_area * cell_tile_width }
+    SpatialMapComponent(
+        const TileSpecComponent& tile_spec,
+        const TileMapComponent& tile_map,
+        const int divisor
+    )
+        : divisor { divisor }
+        , cells_per_row { tile_map.tiles_per_row / divisor }
+        , n_cells { cells_per_row * cells_per_row }
+        , cell_size { tile_spec.iso_area * divisor }
     {
-        const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
-        cells_per_row = tilemap.area.x / cell_size.x;
-        n_rows = tilemap.area.y / cell_size.y;
+        assert(tile_map.n_tiles % divisor == 0);
     }
 
     entt::entity operator[](const int cell_number) const;
+    entt::entity operator[](const glm::ivec2 grid_position) const;
 };
 
 #endif

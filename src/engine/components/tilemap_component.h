@@ -1,6 +1,8 @@
 #ifndef TILEMAPCOMPONENT_H
 #define TILEMAPCOMPONENT_H
 
+#include <components/tilespec_component.h>
+
 #include <spdlog/spdlog.h>
 
 #include <entt/entt.hpp>
@@ -17,6 +19,7 @@ struct TileMapComponent {
 
     TileMapComponent(const TileMapComponent&) = delete;
     TileMapComponent(TileMapComponent&&) = default;
+    TileMapComponent(const TileSpecComponent& tile_spec, const int tiles_per_row);
     TileMapComponent(entt::registry& registry, const int tiles_per_row);
     entt::entity operator[](const glm::ivec2 grid_position) const;
 };

@@ -50,23 +50,26 @@ void Game::initialise()
 
     // TODO: move this somewhere smart under some smart condition
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(256, 14) };
 
     registry.ctx().emplace<MouseComponent>();
     registry.ctx().emplace<CameraComponent>(display_mode);
-    registry.ctx().emplace<TileSpecComponent>(256, 14);
     registry.ctx().emplace<SpriteSheet>(
         std::string { "assets/spritesheet_scaled.png" },
         std::string { "assets/spritesheet.json" },
         renderer
     );
-    registry.ctx().emplace<TileMapComponent>(registry, 256);
-    registry.ctx().emplace<SpatialMapComponent>(registry, 4);
+
+    const TileMapComponent& tilemap { registry.ctx().emplace<TileMapComponent>(tilespec, 8) };
+    registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 2);
     registry.ctx().emplace<SegmentManagerComponent>();
 
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
-    registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::register_entity>();
+    registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
+    registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
     registry.on_destroy<SegmentComponent>().connect<&SegmentSystem::disconnect>();
+    registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
 
     TileMapSystem::emplace_tiles(registry);
 

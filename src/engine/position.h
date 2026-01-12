@@ -6,6 +6,7 @@
 #include <components/spatialmap_component.h>
 #include <components/tilemap_component.h>
 
+#include <SDL2/SDL.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
@@ -21,6 +22,8 @@ public:
     {
     }
     operator glm::ivec2() const { return position; }
+    operator glm::vec2() const { return position; }
+    operator SDL_Point() const { return SDL_Point { position.x, position.y }; }
 };
 
 class WorldPosition;
@@ -36,6 +39,7 @@ public:
 };
 
 class TileMapComponent;
+class SpatialMapGridPosition;
 
 class GridPosition : public IPosition {
     using IPosition::IPosition;
@@ -43,6 +47,8 @@ class GridPosition : public IPosition {
 public:
     GridPosition(const entt::registry& registry, const int tile_n);
     const WorldPosition to_world_position(const entt::registry& registry) const;
+    const SpatialMapGridPosition to_spatial_map_position(const entt::registry& registry) const;
+    const SpatialMapGridPosition to_spatial_map_position(const SpatialMapComponent& spatial_map) const;
     bool is_valid(const TileMapComponent& tilemap) const;
     bool is_valid(const entt::registry& registry) const;
 };
@@ -56,9 +62,12 @@ public:
     const ScreenPosition to_screen_position(const CameraComponent& camera) const;
     const ScreenPosition to_screen_position(const entt::registry& registry) const;
     const GridPosition to_grid_position(const entt::registry& registry) const;
+    const SpatialMapGridPosition to_spatial_map_position(const entt::registry& registry) const;
+    const SpatialMapGridPosition to_spatial_map_position(const SpatialMapComponent& spatial_map) const;
     int to_spatial_map_cell(const SpatialMapComponent& spatial_map) const;
     int to_spatial_map_cell(const entt::registry& registry) const;
     bool is_valid(const entt::registry& registry) const;
+    bool is_valid(const TileMapComponent& tilemap) const;
 };
 
 class SpatialMapGridPosition : public IPosition {
@@ -69,6 +78,10 @@ public:
     static SpatialMapGridPosition from_cell_number(const SpatialMapComponent& spatial_map, const int cell_number);
     WorldPosition to_world_position(const entt::registry& registry) const;
     WorldPosition to_world_position(const SpatialMapComponent& spatial_map) const;
+    int to_spatial_map_cell(const SpatialMapComponent& spatial_map) const;
+    int to_spatial_map_cell(const entt::registry& registry) const;
+    bool is_valid(const entt::registry& registry) const;
+    bool is_valid(const SpatialMapComponent& spatial_map) const;
 };
 
 #endif

@@ -71,6 +71,7 @@ struct Renderable {
     }
 }
 
+// TODO - consider segment lines
 void RenderSystem::update(entt::registry& registry)
 {
     registry.clear<VisibilityComponent>();
