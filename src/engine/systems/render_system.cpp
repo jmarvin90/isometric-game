@@ -80,8 +80,15 @@ void RenderSystem::update(entt::registry& registry)
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
     auto spatialmap_cells { registry.view<SpatialMapCellComponent>() };
 
+    // TODO - tidy up, potentially into the camera component
+    SDL_Rect contingency_rect {camera.camera_rect};
+    contingency_rect.h *= 2;
+    contingency_rect.w *= 2;
+    contingency_rect.x -= ((contingency_rect.w - camera.camera_rect.w) / 2);
+    contingency_rect.y -= ((contingency_rect.h - camera.camera_rect.h) / 2);
+
     for (auto [entity, cell] : spatialmap_cells.each()) {
-        if (SDL_HasIntersection(&cell.cell, &camera.camera_rect)) {
+        if (SDL_HasIntersection(&cell.cell, &contingency_rect)) {
             for (entt::entity renderable : cell.entities) {
                 registry.emplace<VisibilityComponent>(renderable);
                 const TransformComponent& transform { registry.get<const TransformComponent>(renderable) };
