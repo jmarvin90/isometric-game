@@ -11,17 +11,18 @@ void MouseSystem::update(entt::registry& registry)
     SDL_GetMouseState(&mouse.window_current_position.x, &mouse.window_current_position.y);
     mouse.moved = (mouse.window_previous_position != mouse.window_current_position);
 
-    const GridPosition grid_position { ScreenPosition(mouse.window_current_position).to_grid_position(registry) };
+    const ScreenPosition screen_position { mouse.window_current_position };
+    const TileMapGridPosition grid_position { Position::to_grid_position(screen_position, registry) };
     const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
 
-    if (tilemap[grid_position] != entt::null) {
-        if (registry.all_of<MouseOverComponent>(tilemap[grid_position])) {
+    if (tilemap[grid_position.position] != entt::null) {
+        if (registry.all_of<MouseOverComponent>(tilemap[grid_position.position])) {
             registry.patch<MouseOverComponent>(
-                tilemap[grid_position],
+                tilemap[grid_position.position],
                 [](auto& moc) { moc.this_frame = true; }
             );
         } else {
-            registry.emplace<MouseOverComponent>(tilemap[grid_position], true, false);
+            registry.emplace<MouseOverComponent>(tilemap[grid_position.position], true, false);
         }
     }
 }

@@ -65,9 +65,17 @@ struct Renderable {
 {
     auto segments = registry.view<SegmentComponent>();
     for (auto [entity, segment] : segments.each()) {
-        glm::ivec2 start { WorldPosition { registry, segment.start }.to_screen_position(registry) };
-        glm::ivec2 end { WorldPosition { registry, segment.end }.to_screen_position(registry) };
-        SDL_RenderDrawLine(renderer, start.x, start.y, end.x, end.y);
+        WorldPosition segment_start_world { registry.get<TransformComponent>(segment.start).position };
+        WorldPosition segment_end_world { registry.get<TransformComponent>(segment.end).position };
+        ScreenPosition segment_start_screen { Position::to_screen_position(segment_start_world, registry) };
+        ScreenPosition segment_end_screen { Position::to_screen_position(segment_end_world, registry) };
+        SDL_RenderDrawLine(
+            renderer,
+            segment_start_screen.position.x,
+            segment_start_screen.position.y,
+            segment_end_screen.position.x,
+            segment_end_screen.position.y
+        );
     }
 }
 
@@ -81,7 +89,7 @@ void RenderSystem::update(entt::registry& registry)
     auto spatialmap_cells { registry.view<SpatialMapCellComponent>() };
 
     // TODO - tidy up, potentially into the camera component
-    SDL_Rect contingency_rect {camera.camera_rect};
+    SDL_Rect contingency_rect { camera.camera_rect };
     contingency_rect.h *= 2;
     contingency_rect.w *= 2;
     contingency_rect.x -= ((contingency_rect.w - camera.camera_rect.w) / 2);
@@ -94,7 +102,7 @@ void RenderSystem::update(entt::registry& registry)
                 const TransformComponent& transform { registry.get<const TransformComponent>(renderable) };
                 registry.emplace<ScreenPositionComponent>(
                     renderable,
-                    WorldPosition(transform.position).to_screen_position(camera)
+                    Position::to_screen_position(WorldPosition { transform.position }, camera).position
                 );
             }
         }
@@ -186,28 +194,28 @@ void RenderSystem::render_imgui_ui(
     [[maybe_unused]] const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
 
     // The mouse and world positions
-    const glm::ivec2 screen_position { mouse.window_current_position };
-    const WorldPosition world_position { ScreenPosition(mouse.window_current_position).to_world_position(registry) };
-    const GridPosition grid_position { world_position.to_grid_position(registry) };
+    const ScreenPosition screen_position { mouse.window_current_position };
+    const WorldPosition world_position { Position::to_world_position(screen_position, registry) };
+    const TileMapGridPosition grid_position { Position::to_grid_position(world_position, registry) };
 
     ImGui::SeparatorText("Mouse Position");
 
     ImGui::Text(
-        "Mouse Screen position: (%s) (%s)",
-        std::to_string(screen_position.x).c_str(),
-        std::to_string(screen_position.y).c_str()
+        "Mouse Screen position: (%d) (%d)",
+        screen_position.position.x,
+        screen_position.position.y
     );
 
     ImGui::Text(
-        "Mouse World position: (%s) (%s)",
-        std::to_string(glm::ivec2 { world_position }.x).c_str(),
-        std::to_string(glm::ivec2 { world_position }.y).c_str()
+        "Mouse World position: (%d) (%d)",
+        world_position.position.x,
+        world_position.position.y
     );
 
     ImGui::Text(
-        "Mouse Grid position: (%s) (%s)",
-        std::to_string(glm::ivec2 { grid_position }.x).c_str(),
-        std::to_string(glm::ivec2 { grid_position }.y).c_str()
+        "Mouse Grid position: (%d) (%d)",
+        grid_position.position.x,
+        grid_position.position.y
     );
 
     // if (tilemap.highlighted_tile != entt::null) {

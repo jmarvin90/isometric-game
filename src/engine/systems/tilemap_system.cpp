@@ -107,29 +107,32 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     for (int i = 0; i < tilemap.n_tiles; i++) {
         entt::entity tile { tilemap.tiles.emplace_back(registry.create()) };
 
-        const GridPosition grid_position { registry, i };
-        const glm::ivec2 world_position { grid_position.to_world_position(registry) };
+        const TileMapGridPosition grid_position = Position::from_tile_number(registry, i);
+        const WorldPosition world_position = Position::to_world_position(grid_position, registry);
 
-        registry.emplace<TransformComponent>(tile, world_position, 0, 0.0);
+        registry.emplace<TransformComponent>(tile, world_position.position, 0, 0.0);
         registry.emplace<HighlightComponent>(tile, SDL_Color { 0, 0, 255, 255 }, tilespec.iso_points());
-        registry.emplace<GridPositionComponent>(tile, grid_position);
+        registry.emplace<GridPositionComponent>(tile, grid_position.position);
 
         std::string tile_handle {};
-
         std::vector<glm::ivec2> ew_positions { { 1, 1 }, { 2, 1 }, { 3, 1 }, { 5, 1 }, { 6, 1 }, { 7, 1 } };
-
         std::vector<glm::ivec2> nesw_positions { { 4, 1 } };
-
         std::vector<glm::ivec2> ns_positions { { 4, 2 }, { 4, 3 }, { 4, 4 }, { 4, 5 }, { 4, 6 }, { 4, 7 } };
 
-        glm::ivec2 vec_position { grid_position };
-
-        if (((vec_position.x >= 0 && vec_position.x <= 3) || (vec_position.x > 4 && vec_position.x <= 7))
-            && vec_position.y == 1) {
+        if (
+            (
+                (grid_position.position.x >= 0 && grid_position.position.x <= 3) || //
+                (grid_position.position.x > 4 && grid_position.position.x <= 7) //
+            )
+            && grid_position.position.y == 1
+        ) {
             tile_handle = "grass_ew";
-        } else if (vec_position == glm::ivec2 { 4, 1 }) {
+        } else if (grid_position.position == glm::ivec2 { 4, 1 }) {
             tile_handle = "gass_nesw";
-        } else if (vec_position.x == 4 && (vec_position.y >= 2 && vec_position.y <= 7)) {
+        } else if (
+            grid_position.position.x == 4 && //
+            (grid_position.position.y >= 2 && grid_position.position.y <= 7) //
+        ) {
             tile_handle = "grass_ns";
         } else {
             tile_handle = "grass";
