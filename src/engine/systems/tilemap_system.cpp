@@ -3,7 +3,6 @@
 #include <components/junction_component.h>
 #include <components/mouseover_component.h>
 #include <components/navigation_component.h>
-#include <components/pending_destruction_component.h>
 #include <components/segment_component.h>
 #include <components/segment_manager_component.h>
 #include <components/sprite_component.h>
@@ -73,8 +72,8 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
 } // namespace
 
 void TileMapSystem::update(
-    [[maybe_unused]] entt::registry& registry,
-    [[maybe_unused]] const bool debug_mode
+    entt::registry& registry,
+    const bool debug_mode
 )
 {
     auto components { registry.view<MouseOverComponent>() };

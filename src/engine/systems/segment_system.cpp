@@ -1,7 +1,6 @@
 #include <components/grid_position_component.h>
 #include <components/junction_component.h>
 #include <components/navigation_component.h>
-#include <components/pending_destruction_component.h>
 #include <components/segment_component.h>
 #include <components/segment_manager_component.h>
 #include <components/transform_component.h>

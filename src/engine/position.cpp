@@ -7,6 +7,15 @@
 #include <position.h>
 #include <spdlog/spdlog.h>
 
+glm::vec2 to_grid_gross(const WorldPosition& position, const entt::registry& registry)
+{
+    const TileSpecComponent& tile_spec { registry.ctx().get<TileSpecComponent>() };
+    const TileMapComponent& tilemap { registry.ctx().get<TileMapComponent>() };
+    const glm::ivec2 world_pos_adjusted { position.position - tile_spec.centre };
+    const glm::ivec2 centred_world_pos { world_pos_adjusted - tilemap.origin_px };
+    return glm::vec2 { tile_spec.matrix_inverted * centred_world_pos };
+}
+
 namespace Position {
 
 WorldPosition to_world_position(const TileMapGridPosition& position, const entt::registry& registry)
@@ -236,12 +245,3 @@ bool is_valid(SpatialMapGridPosition& position, const entt::registry& registry)
 
 
 */
-
-glm::vec2 to_grid_gross(const WorldPosition& position, const entt::registry& registry)
-{
-    const TileSpecComponent& tile_spec { registry.ctx().get<TileSpecComponent>() };
-    const TileMapComponent& tilemap { registry.ctx().get<TileMapComponent>() };
-    const glm::ivec2 world_pos_adjusted { position.position - tile_spec.centre };
-    const glm::ivec2 centred_world_pos { world_pos_adjusted - tilemap.origin_px };
-    return glm::vec2 { tile_spec.matrix_inverted * centred_world_pos };
-}

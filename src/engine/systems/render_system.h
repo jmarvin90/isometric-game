@@ -17,6 +17,8 @@ public:
     static void render_highlights(const entt::registry& registry, SDL_Renderer* renderer);
     static void render_imgui_ui(const entt::registry& registry, SDL_Renderer* renderer);
     static void render_segment_lines(const entt::registry& registry, SDL_Renderer* renderer);
+
+    static void render_junction_gates(const entt::registry& registry, SDL_Renderer* renderer);
 };
 
 #endif

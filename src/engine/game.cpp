@@ -50,7 +50,7 @@ void Game::initialise()
 
     // TODO: move this somewhere smart under some smart condition
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(256, 14) };
+    const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(256, 14, 3, 68) };
 
     registry.ctx().emplace<MouseComponent>();
     registry.ctx().emplace<CameraComponent>(display_mode);
@@ -60,7 +60,7 @@ void Game::initialise()
         renderer
     );
 
-    const TileMapComponent& tilemap { registry.ctx().emplace<TileMapComponent>(tilespec, 256) };
+    const TileMapComponent& tilemap { registry.ctx().emplace<TileMapComponent>(tilespec, 32) };
     registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 2);
     registry.ctx().emplace<SegmentManagerComponent>();
 
@@ -121,6 +121,7 @@ void Game::render()
         RenderSystem::render_highlights(registry, renderer);
         RenderSystem::render_imgui_ui(registry, renderer);
         RenderSystem::render_segment_lines(registry, renderer);
+        RenderSystem::render_junction_gates(registry, renderer);
     }
     SDL_RenderPresent(renderer);
 }
