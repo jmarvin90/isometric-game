@@ -37,6 +37,7 @@ struct TileSpecComponent {
     const glm::mat2 matrix_inverted;
 
     std::array<Gate, 4> road_gates;
+    std::vector<SDL_Point> iso_points;
 
     TileSpecComponent(const int width, const int depth, const int road_depth_offset, const int road_width)
         : width { width }
@@ -49,6 +50,13 @@ struct TileSpecComponent {
         , road_mark_offset { road_width / 4, road_width / 8 }
         , matrix { iso_area.x / 2.0f, iso_area.y / 2.0f, -iso_area.x / 2.0f, iso_area.y / 2.0f }
         , matrix_inverted { glm::inverse(matrix) }
+        , iso_points {
+            SDL_Point { centre.x, 0 },
+            SDL_Point { iso_area.x, centre.y },
+            SDL_Point { centre.x, iso_area.y },
+            SDL_Point { 0, centre.y },
+            SDL_Point { centre.x, 0 },
+        }
     {
         for (int i = 0; i < 4; i++) {
             road_gates[i] = {
@@ -56,17 +64,6 @@ struct TileSpecComponent {
                 centre + (road_mark_offset * translations[i].exit) // exit
             };
         }
-    }
-
-    const std::vector<SDL_Point> iso_points() const
-    {
-        return {
-            SDL_Point { centre.x, 0 },
-            SDL_Point { iso_area.x, centre.y },
-            SDL_Point { centre.x, iso_area.y },
-            SDL_Point { 0, centre.y },
-            SDL_Point { centre.x, 0 },
-        };
     }
 };
 

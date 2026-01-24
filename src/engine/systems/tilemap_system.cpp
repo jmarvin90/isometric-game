@@ -110,7 +110,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
         const WorldPosition world_position = Position::to_world_position(grid_position, registry);
 
         registry.emplace<TransformComponent>(tile, world_position.position, 0, 0.0);
-        registry.emplace<HighlightComponent>(tile, SDL_Color { 0, 0, 255, 255 }, tilespec.iso_points());
+        registry.emplace<HighlightComponent>(tile, SDL_Color { 0, 0, 255, 255 }, tilespec.iso_points);
         registry.emplace<GridPositionComponent>(tile, grid_position.position);
 
         std::string tile_handle {};
