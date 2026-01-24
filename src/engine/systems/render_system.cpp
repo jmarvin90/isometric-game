@@ -91,7 +91,7 @@ void RenderSystem::render_segment_lines(
     const entt::registry& registry, SDL_Renderer* renderer
 )
 {
-    auto segments = registry.view<SegmentComponent>();
+    auto segments = registry.view<SegmentComponent, VisibilityComponent>();
     const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
 
     for (auto [entity, segment] : segments.each()) {
@@ -125,6 +125,10 @@ void RenderSystem::update(entt::registry& registry)
                     renderable,
                     Position::to_screen_position(WorldPosition { transform.position }, camera).position
                 );
+            }
+
+            for (entt::entity renderable : cell.segments) {
+                registry.emplace_or_replace<VisibilityComponent>(renderable);
             }
         }
     }
