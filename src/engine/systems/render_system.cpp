@@ -65,7 +65,6 @@ void RenderSystem::render_segment_lines(
 {
     auto segments = registry.view<SegmentComponent>();
     const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
-    std::vector<Gate> gates { tilespec.road_gates() };
 
     for (auto [entity, segment] : segments.each()) {
 
@@ -74,11 +73,11 @@ void RenderSystem::render_segment_lines(
         ScreenPosition segment_start_screen { Position::to_screen_position(segment_start_world, registry) };
         ScreenPosition segment_end_screen { Position::to_screen_position(segment_end_world, registry) };
 
-        glm::ivec2 lhs_entry { segment_start_screen.position + gates.at(Direction::index_position(segment.direction)).exit };
-        glm::ivec2 lhs_exit { segment_end_screen.position + gates.at(Direction::index_position(Direction::reverse(segment.direction))).entry };
+        glm::ivec2 lhs_entry { segment_start_screen.position + tilespec.road_gates.at(Direction::index_position(segment.direction)).exit };
+        glm::ivec2 lhs_exit { segment_end_screen.position + tilespec.road_gates.at(Direction::index_position(Direction::reverse(segment.direction))).entry };
 
-        glm::ivec2 rhs_entry { segment_end_screen.position + gates.at(Direction::index_position(Direction::reverse(segment.direction))).exit };
-        glm::ivec2 rhs_exit { segment_start_screen.position + gates.at(Direction::index_position(segment.direction)).entry };
+        glm::ivec2 rhs_entry { segment_end_screen.position + tilespec.road_gates.at(Direction::index_position(Direction::reverse(segment.direction))).exit };
+        glm::ivec2 rhs_exit { segment_start_screen.position + tilespec.road_gates.at(Direction::index_position(segment.direction)).entry };
 
         SDL_RenderDrawLine(
             renderer,
@@ -256,10 +255,10 @@ void RenderSystem::render_imgui_ui(
 
 void RenderSystem::render_junction_gates(const entt::registry& registry, SDL_Renderer* renderer)
 {
-    const TileSpecComponent& tile_spec { registry.ctx().get<const TileSpecComponent>() };
+    const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
     auto junctions { registry.view<ScreenPositionComponent, JunctionComponent>() };
     for (auto [entity, screen_position, junction] : junctions.each()) {
-        for (auto gate : tile_spec.road_gates()) {
+        for (auto gate : tilespec.road_gates) {
             glm::ivec2 entry { glm::ivec2 { screen_position.position } + gate.entry };
             glm::ivec2 exit { glm::ivec2 { screen_position.position } + gate.exit };
             SDL_Rect entry_rect { entry.x - 2, entry.y - 2, 4, 4 };

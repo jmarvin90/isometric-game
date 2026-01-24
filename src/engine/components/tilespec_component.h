@@ -3,12 +3,24 @@
 
 #include <SDL2/SDL.h>
 
+#include <array>
 #include <glm/glm.hpp>
 #include <vector>
+
+#include <directions.h>
 
 struct Gate {
     glm::ivec2 entry;
     glm::ivec2 exit;
+};
+
+constexpr std::array<Gate, 4> translations {
+    {
+        { { 3, -1 }, { 1, -3 } }, // North
+        { { -1, -3 }, { -3, -1 } }, // East
+        { { -3, 1 }, { -1, 3 } }, // South
+        { { 1, 3 }, { 3, 1 } } // West
+    }
 };
 
 struct TileSpecComponent {
@@ -24,6 +36,8 @@ struct TileSpecComponent {
     const glm::mat2 matrix;
     const glm::mat2 matrix_inverted;
 
+    std::array<Gate, 4> road_gates;
+
     TileSpecComponent(const int width, const int depth, const int road_depth_offset, const int road_width)
         : width { width }
         , depth { depth }
@@ -36,6 +50,12 @@ struct TileSpecComponent {
         , matrix { iso_area.x / 2.0f, iso_area.y / 2.0f, -iso_area.x / 2.0f, iso_area.y / 2.0f }
         , matrix_inverted { glm::inverse(matrix) }
     {
+        for (int i = 0; i < 4; i++) {
+            road_gates[i] = {
+                centre + (road_mark_offset * translations[i].entry), // entry
+                centre + (road_mark_offset * translations[i].exit) // exit
+            };
+        }
     }
 
     const std::vector<SDL_Point> iso_points() const
@@ -48,17 +68,6 @@ struct TileSpecComponent {
             SDL_Point { centre.x, 0 },
         };
     }
-
-    // TODO: spurious copies
-    const std::vector<Gate> road_gates() const
-    {
-        return {
-            Gate { centre + (road_mark_offset * glm::ivec2 { 3, -1 }), centre + (road_mark_offset * glm::ivec2 { 1, -3 }) },
-            Gate { centre + (road_mark_offset * glm::ivec2 { -1, -3 }), centre + (road_mark_offset * glm::ivec2 { -3, -1 }) },
-            Gate { centre + (road_mark_offset * glm::ivec2 { -3, 1 }), centre + (road_mark_offset * glm::ivec2 { -1, 3 }) },
-            Gate { centre + (road_mark_offset * glm::ivec2 { 1, 3 }), centre + (road_mark_offset * glm::ivec2 { 3, 1 }) }
-        };
-    };
 };
 
 #endif
