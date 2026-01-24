@@ -213,12 +213,6 @@ bool is_valid(const TileMapGridPosition& position, const TileMapComponent& tilem
     );
 }
 
-bool is_valid(const TileMapGridPosition& position, const entt::registry& registry)
-{
-    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
-    return is_valid(position, tilemap);
-}
-
 // TODO: basically identical to GridPosition::is_valid();
 bool is_valid(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map)
 {
@@ -229,6 +223,12 @@ bool is_valid(const SpatialMapGridPosition& position, const SpatialMapComponent&
             position.position.y < spatial_map.cells_per_row //
         )
     );
+}
+
+bool is_valid(const TileMapGridPosition& position, const entt::registry& registry)
+{
+    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+    return is_valid(position, tilemap);
 }
 
 bool is_valid(SpatialMapGridPosition& position, const entt::registry& registry)

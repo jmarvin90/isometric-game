@@ -100,7 +100,6 @@ void RenderSystem::render_segment_lines(
     }
 }
 
-// TODO - consider segment lines
 void RenderSystem::update(entt::registry& registry)
 {
     registry.clear<VisibilityComponent>();
