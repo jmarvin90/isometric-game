@@ -53,7 +53,35 @@ bool transform_comparison(
 )
 {
     return (
-        lhs.transform->z_index < rhs.transform->z_index || (lhs.transform->z_index == rhs.transform->z_index && lhs.transform->position.y < rhs.transform->position.y)
+        lhs.transform->z_index < rhs.transform->z_index || //
+        (
+            lhs.transform->z_index == rhs.transform->z_index && //
+            lhs.transform->position.y < rhs.transform->position.y //
+        )
+    );
+}
+
+void draw_segment_path(
+    SDL_Renderer* renderer,
+    const entt::registry& registry,
+    const TileSpecComponent& tilespec,
+    entt::entity segment_start,
+    entt::entity segment_end,
+    Direction::TDirection direction
+)
+{
+    WorldPosition segment_start_world { registry.get<TransformComponent>(segment_start).position };
+    WorldPosition segment_end_world { registry.get<TransformComponent>(segment_end).position };
+    ScreenPosition segment_start_screen { Position::to_screen_position(segment_start_world, registry) };
+    ScreenPosition segment_end_screen { Position::to_screen_position(segment_end_world, registry) };
+    glm::ivec2 entry { segment_start_screen.position + tilespec.road_gates.at(Direction::index_position(direction)).exit };
+    glm::ivec2 exit { segment_end_screen.position + tilespec.road_gates.at(Direction::index_position(Direction::reverse(direction))).entry };
+    SDL_RenderDrawLine(
+        renderer,
+        entry.x,
+        entry.y,
+        exit.x,
+        exit.y
     );
 }
 
@@ -67,33 +95,8 @@ void RenderSystem::render_segment_lines(
     const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
 
     for (auto [entity, segment] : segments.each()) {
-
-        WorldPosition segment_start_world { registry.get<TransformComponent>(segment.start).position };
-        WorldPosition segment_end_world { registry.get<TransformComponent>(segment.end).position };
-        ScreenPosition segment_start_screen { Position::to_screen_position(segment_start_world, registry) };
-        ScreenPosition segment_end_screen { Position::to_screen_position(segment_end_world, registry) };
-
-        glm::ivec2 lhs_entry { segment_start_screen.position + tilespec.road_gates.at(Direction::index_position(segment.direction)).exit };
-        glm::ivec2 lhs_exit { segment_end_screen.position + tilespec.road_gates.at(Direction::index_position(Direction::reverse(segment.direction))).entry };
-
-        glm::ivec2 rhs_entry { segment_end_screen.position + tilespec.road_gates.at(Direction::index_position(Direction::reverse(segment.direction))).exit };
-        glm::ivec2 rhs_exit { segment_start_screen.position + tilespec.road_gates.at(Direction::index_position(segment.direction)).entry };
-
-        SDL_RenderDrawLine(
-            renderer,
-            lhs_entry.x,
-            lhs_entry.y,
-            lhs_exit.x,
-            lhs_exit.y
-        );
-
-        SDL_RenderDrawLine(
-            renderer,
-            rhs_entry.x,
-            rhs_entry.y,
-            rhs_exit.x,
-            rhs_exit.y
-        );
+        draw_segment_path(renderer, registry, tilespec, segment.start, segment.end, segment.direction);
+        draw_segment_path(renderer, registry, tilespec, segment.end, segment.start, Direction::reverse(segment.direction));
     }
 }
 
