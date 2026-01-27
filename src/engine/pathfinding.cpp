@@ -13,15 +13,25 @@ namespace {
 
 entt::entity get_segment(const entt::registry& registry, entt::entity tile)
 {
-    const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
+    const SpatialMapComponent& spatial_map {
+        registry.ctx().get<const SpatialMapComponent>()
+    };
+
     // TODO - am fetching this multiple times?
-    const TileMapGridPositionComponent* grid_position { registry.try_get<const TileMapGridPositionComponent>(tile) };
+    const TileMapGridPositionComponent* grid_position {
+        registry.try_get<const TileMapGridPositionComponent>(tile)
+    };
 
     if (!grid_position)
         return entt::null;
 
-    SpatialMapGridPosition spatial_map_position { Position::to_spatial_map_grid_position(*grid_position, registry) };
-    entt::entity spatial_map_cell_entity { spatial_map[spatial_map_position.position] };
+    SpatialMapGridPosition spatial_map_position {
+        Position::to_spatial_map_grid_position(*grid_position, registry)
+    };
+
+    entt::entity spatial_map_cell_entity {
+        spatial_map[spatial_map_position.position]
+    };
 
     // TODO: this shouldn't happen, really
     if (spatial_map_cell_entity == entt::null)
@@ -32,7 +42,9 @@ entt::entity get_segment(const entt::registry& registry, entt::entity tile)
     };
 
     for (auto segment : spatial_map_cell_component.segments) {
-        const SegmentComponent& segment_component { registry.get<const SegmentComponent>(segment) };
+        const SegmentComponent& segment_component {
+            registry.get<const SegmentComponent>(segment)
+        };
         if (
             std::find(
                 segment_component.entities.begin(), //
@@ -101,38 +113,44 @@ void path_between(
         if (current_segment.segment == end_segment)
             break;
 
-        const SegmentComponent& current_segment_component { registry.get<const SegmentComponent>(current_segment.segment) };
+        const SegmentComponent& current_segment_component {
+            registry.get<const SegmentComponent>(current_segment.segment)
+        };
 
         for (
             entt::entity junction_entity : {
                 current_segment_component.origin,
                 current_segment_component.termination }
         ) {
-            const JunctionComponent& junction_component { registry.get<const JunctionComponent>(junction_entity) };
+            const JunctionComponent& junction_component {
+                registry.get<const JunctionComponent>(junction_entity)
+            };
             for (entt::entity next_segment : junction_component.connections) {
-
                 if (next_segment == entt::null)
                     continue;
                 if (came_from.find(next_segment) != came_from.end())
                     continue;
-
-                const SegmentComponent& next_segment_component { registry.get<const SegmentComponent>(next_segment) };
+                const SegmentComponent& next_segment_component {
+                    registry.get<const SegmentComponent>(next_segment)
+                };
                 frontier.push({ next_segment, next_segment_component.length });
                 came_from.emplace(next_segment, current_segment.segment);
             }
         }
     }
 
-    entt::entity current { end_segment };
-
-    if (came_from.find(current) == came_from.end()) {
+    if (came_from.find(end_segment) == came_from.end()) {
         return;
     }
 
-    while (current != start_segment) {
+    for (
+        entt::entity current = end_segment;
+        current != start_segment;
+        current = came_from.at(current)
+    ) {
         path.push_back(current);
-        current = came_from.at(current);
     }
+
     path.push_back(start_segment);
     std::reverse(path.begin(), path.end());
 }
