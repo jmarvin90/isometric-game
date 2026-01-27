@@ -39,17 +39,22 @@ entt::entity get_segment(const entt::registry& registry, entt::entity tile)
                 segment_component.entities.end(), //
                 tile
             )
-            == segment_component.entities.end()
+            != segment_component.entities.end()
         )
             return segment;
     }
     return entt::null;
 }
 
+struct PathStep {
+    entt::entity segment;
+    int priority;
+};
+
 struct Compare {
-    bool operator()(const SegmentComponent* lhs, const SegmentComponent* rhs)
+    bool operator()(const PathStep& lhs, const PathStep& rhs)
     {
-        return lhs->length < rhs->length;
+        return lhs.priority > rhs.priority;
     }
 };
 
@@ -58,73 +63,77 @@ struct Compare {
 namespace Pathfinding {
 
 // TODO - or entt::entity
-std::vector<const SegmentComponent*> path_between(
+void path_between(
     const entt::registry& registry,
     entt::entity from_tile,
     entt::entity to_tile,
-    std::vector<const SegmentComponent*>& path
+    std::vector<entt::entity>& path
 )
 {
     if (from_tile == to_tile)
-        return std::vector<const SegmentComponent*> {};
+        return;
 
     entt::entity start_segment { get_segment(registry, from_tile) };
     entt::entity end_segment { get_segment(registry, to_tile) };
 
     if (start_segment == entt::null || end_segment == entt::null)
-        return std::vector<const SegmentComponent*> {};
+        return;
 
-    std::priority_queue<const SegmentComponent*, std::vector<const SegmentComponent*>, Compare> frontier;
-    const SegmentComponent& start_segment_component { registry.get<const SegmentComponent>(start_segment) };
-
-    // TODO - determine if I want to return a single segment in case the start and the end are on the same seg
+    /*
+        TODO - determine if I want to return a single segment
+        in case the start and the end are on the same seg
+    */
     if (start_segment == end_segment) {
-        path.push_back(&start_segment_component);
+        path.push_back(start_segment);
         return;
     }
 
-    const SegmentComponent& end_segment_component { registry.get<const SegmentComponent>(end_segment) };
+    std::priority_queue<PathStep, std::vector<PathStep>, Compare> frontier;
+    std::unordered_map<const entt::entity, const entt::entity> came_from;
 
-    frontier.push(&start_segment_component);
-
-    std::unordered_map<const SegmentComponent*, const SegmentComponent*> came_from;
-    came_from.emplace(&start_segment_component, nullptr);
+    frontier.push({ start_segment, 0 });
+    came_from.emplace(start_segment, entt::null);
 
     while (!frontier.empty()) {
-        const SegmentComponent* current_segment_component { frontier.top() };
+        const PathStep current_segment { frontier.top() };
         frontier.pop();
 
-        if (current_segment_component == &end_segment_component)
+        if (current_segment.segment == end_segment)
             break;
 
+        const SegmentComponent& current_segment_component { registry.get<const SegmentComponent>(current_segment.segment) };
+
         for (
-            const JunctionComponent& junction : {
-                registry.get<const JunctionComponent>(current_segment_component->origin),
-                registry.get<const JunctionComponent>(current_segment_component->termination) }
+            entt::entity junction_entity : {
+                current_segment_component.origin,
+                current_segment_component.termination }
         ) {
-            for (entt::entity next_segment : junction.connections) {
+            const JunctionComponent& junction_component { registry.get<const JunctionComponent>(junction_entity) };
+            for (entt::entity next_segment : junction_component.connections) {
+
                 if (next_segment == entt::null)
                     continue;
-                const SegmentComponent* next_segment_component { &registry.get<const SegmentComponent>(next_segment) };
-                if (came_from.find(next_segment_component) == came_from.end()) {
-                    frontier.push(next_segment_component);
-                    came_from.emplace(next_segment_component, current_segment_component);
-                }
+                if (came_from.find(next_segment) != came_from.end())
+                    continue;
+
+                const SegmentComponent& next_segment_component { registry.get<const SegmentComponent>(next_segment) };
+                frontier.push({ next_segment, next_segment_component.length });
+                came_from.emplace(next_segment, current_segment.segment);
             }
         }
     }
 
-    const SegmentComponent* current { &end_segment_component };
+    entt::entity current { end_segment };
 
     if (came_from.find(current) == came_from.end()) {
         return;
     }
 
-    while (current != &start_segment_component) {
+    while (current != start_segment) {
         path.push_back(current);
         current = came_from.at(current);
     }
-    path.push_back(&start_segment_component);
+    path.push_back(start_segment);
     std::reverse(path.begin(), path.end());
 }
 } // namespace

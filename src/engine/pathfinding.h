@@ -7,8 +7,11 @@
 
 namespace Pathfinding {
 
-std::vector<const SegmentComponent*> path_between(
-    const entt::registry& registry, entt::entity from_tile, [[maybe_unused]] entt::entity to_tile
+void path_between(
+    const entt::registry& registry,
+    entt::entity from_tile,
+    entt::entity to_tile,
+    std::vector<entt::entity>& path
 );
 } // namespace
 
