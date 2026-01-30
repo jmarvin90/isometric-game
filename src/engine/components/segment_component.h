@@ -5,10 +5,27 @@
 #include <entt/entt.hpp>
 #include <vector>
 
-struct SegmentComponent {
-    entt::entity start;
-    entt::entity end;
+struct Interval {
+    entt::entity origin;
+    entt::entity termination;
     Direction::TDirection direction;
+    int length;
+    Interval(
+        entt::entity origin,
+        entt::entity termination,
+        Direction::TDirection direction,
+        int length
+    )
+        : origin { origin }
+        , termination { termination }
+        , direction { direction }
+        , length { length }
+    {
+    }
+    bool operator<(const Interval& comparator) const { return length < comparator.length; }
+};
+
+struct SegmentComponent : public Interval {
     std::vector<entt::entity> entities;
 
     SegmentComponent(const SegmentComponent&) = default;
@@ -17,22 +34,18 @@ struct SegmentComponent {
     SegmentComponent& operator=(SegmentComponent&&) = default;
 
     SegmentComponent(
-        entt::entity start,
-        entt::entity end,
+        entt::entity origin,
+        entt::entity termination,
         Direction::TDirection direction,
         std::vector<entt::entity> entities
     )
-        : start { start }
-        , end { end }
-        , direction { direction }
+        : Interval(origin, termination, direction, entities.size())
         , entities { entities }
     {
     }
 
-    SegmentComponent(std::vector<entt::entity> _entities, Direction::TDirection direction)
-        : start { _entities.front() }
-        , end { _entities.back() }
-        , direction { direction }
+    SegmentComponent(std::vector<entt::entity>& _entities, Direction::TDirection direction)
+        : Interval(_entities.front(), _entities.back(), direction, _entities.size())
         , entities {}
     {
         for (auto entity : _entities) {

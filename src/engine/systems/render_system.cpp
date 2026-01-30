@@ -1,7 +1,6 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <camera_component.h>
-#include <components/grid_position_component.h>
 #include <components/highlight_component.h>
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
@@ -10,10 +9,12 @@
 #include <components/segment_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
+#include <components/tilemap_grid_position_component.h>
 #include <components/transform_component.h>
 #include <components/visibility_component.h>
 #include <constants.h>
 #include <imgui.h>
+#include <pathfinding.h>
 #include <position.h>
 #include <systems/render_system.h>
 #include <tilespec_component.h>
@@ -29,6 +30,7 @@ int total_count { 0 };
 
 namespace {
 
+// TODO: be aware of possible pointer invalidation
 struct Renderable {
     const TransformComponent* transform;
     const ScreenPositionComponent* screen_position;
@@ -72,8 +74,8 @@ void draw_segment_path(
 {
     WorldPosition segment_start_world { registry.get<TransformComponent>(segment_start).position };
     WorldPosition segment_end_world { registry.get<TransformComponent>(segment_end).position };
-    ScreenPosition segment_start_screen { Position::to_screen_position(segment_start_world, registry) };
-    ScreenPosition segment_end_screen { Position::to_screen_position(segment_end_world, registry) };
+    ScreenPositionComponent segment_start_screen { Position::to_screen_position(segment_start_world, registry) };
+    ScreenPositionComponent segment_end_screen { Position::to_screen_position(segment_end_world, registry) };
     glm::ivec2 entry { segment_start_screen.position + tilespec.road_gates.at(Direction::index_position(direction)).exit };
     glm::ivec2 exit { segment_end_screen.position + tilespec.road_gates.at(Direction::index_position(Direction::reverse(direction))).entry };
     SDL_RenderDrawLine(
@@ -95,8 +97,8 @@ void RenderSystem::render_segment_lines(
     const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
 
     for (auto [entity, segment] : segments.each()) {
-        draw_segment_path(renderer, registry, tilespec, segment.start, segment.end, segment.direction);
-        draw_segment_path(renderer, registry, tilespec, segment.end, segment.start, Direction::reverse(segment.direction));
+        draw_segment_path(renderer, registry, tilespec, segment.origin, segment.termination, segment.direction);
+        draw_segment_path(renderer, registry, tilespec, segment.termination, segment.origin, Direction::reverse(segment.direction));
     }
 }
 
@@ -218,9 +220,9 @@ void RenderSystem::render_imgui_ui(
     [[maybe_unused]] const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
 
     // The mouse and world positions
-    const ScreenPosition screen_position { mouse.window_current_position };
+    const ScreenPositionComponent screen_position { mouse.window_current_position };
     const WorldPosition world_position { Position::to_world_position(screen_position, registry) };
-    const TileMapGridPosition grid_position { Position::to_grid_position(world_position, registry) };
+    const TileMapGridPositionComponent grid_position { Position::to_grid_position(world_position, registry) };
 
     ImGui::SeparatorText("Mouse Position");
 
@@ -273,5 +275,31 @@ void RenderSystem::render_junction_gates(const entt::registry& registry, SDL_Ren
             SDL_RenderFillRect(renderer, &entry_rect);
             SDL_RenderFillRect(renderer, &exit_rect);
         }
+    }
+}
+
+namespace {
+struct Step {
+    glm::vec2 start_world_position;
+    glm::vec2 end_world_position;
+    Direction::TDirection direction;
+};
+}
+
+void RenderSystem::render_path(
+    const entt::registry& registry,
+    [[maybe_unused]] SDL_Renderer* renderer,
+    entt::entity from_tile,
+    entt::entity to_tile
+)
+{
+    std::vector<entt::entity> steps;
+    Pathfinding::path_between(registry, from_tile, to_tile, steps);
+
+    for (auto step : steps) {
+        [[maybe_unused]] const TileMapGridPositionComponent& grid_position {
+            registry.get<const TileMapGridPositionComponent>(step)
+        };
+        glm::ivec2 position { grid_position.position };
     }
 }

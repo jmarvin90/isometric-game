@@ -10,7 +10,7 @@
 
 /*
     1
-  8   2
+  2   8
     4
 */
 
@@ -66,6 +66,12 @@ inline std::unordered_map<glm::ivec2, TDirection> vector_directions { {
 } };
 
 TDirection reverse(const TDirection direction);
+
+glm::ivec2 to_direction_vector(const glm::ivec2& vector);
+glm::vec2 to_direction_vector(const glm::vec2& vector);
+
+TDirection from_vector(const glm::ivec2& vector);
+TDirection from_vector(const glm::vec2& vector);
 
 bool is_junction(Direction::TDirection direction);
 

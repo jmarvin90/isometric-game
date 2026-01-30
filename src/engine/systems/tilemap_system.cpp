@@ -1,4 +1,3 @@
-#include <components/grid_position_component.h>
 #include <components/highlight_component.h>
 #include <components/junction_component.h>
 #include <components/mouseover_component.h>
@@ -7,6 +6,7 @@
 #include <components/segment_manager_component.h>
 #include <components/sprite_component.h>
 #include <components/tilemap_component.h>
+#include <components/tilemap_grid_position_component.h>
 #include <components/tilespec_component.h>
 #include <directions.h>
 #include <position.h>
@@ -30,7 +30,7 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
     std::vector<entt::entity> output { current };
 
     const NavigationComponent* current_nav { &registry.get<const NavigationComponent>(current) };
-    glm::ivec2 current_position { registry.get<const GridPositionComponent>(current).grid_position };
+    glm::ivec2 current_position { registry.get<const TileMapGridPositionComponent>(current).position };
 
     while (true) {
         glm::ivec2 next_position { current_position + direction_vector };
@@ -103,36 +103,79 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
     const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet&>() };
 
+    std::vector<glm::ivec2> ew_positions { { 1, 1 }, { 2, 1 }, { 3, 1 }, { 5, 1 }, { 6, 1 }, { 7, 1 }, { 1, 5 }, { 3, 7 } };
+    std::vector<glm::ivec2> nesw_positions { { 4, 1 } };
+    std::vector<glm::ivec2> ns_positions { { 4, 2 }, { 4, 3 }, { 4, 4 }, { 4, 5 }, { 4, 6 }, { 2, 6 } };
+    std::vector<glm::ivec2> sw_positions { { 2, 5 } };
+    std::vector<glm::ivec2> ne_positions { { 2, 7 } };
+    std::vector<glm::ivec2> nw_positions { { 4, 7 } };
+
     for (int i = 0; i < tilemap.n_tiles; i++) {
         entt::entity tile { tilemap.tiles.emplace_back(registry.create()) };
 
-        const TileMapGridPosition grid_position = Position::from_tile_number(registry, i);
+        const TileMapGridPositionComponent grid_position = Position::from_tile_number(registry, i);
         const WorldPosition world_position = Position::to_world_position(grid_position, registry);
 
         registry.emplace<TransformComponent>(tile, world_position.position, 0, 0.0);
         registry.emplace<HighlightComponent>(tile, SDL_Color { 0, 0, 255, 255 }, tilespec.iso_points);
-        registry.emplace<GridPositionComponent>(tile, grid_position.position);
+        registry.emplace<TileMapGridPositionComponent>(tile, grid_position);
 
         std::string tile_handle {};
-        std::vector<glm::ivec2> ew_positions { { 1, 1 }, { 2, 1 }, { 3, 1 }, { 5, 1 }, { 6, 1 }, { 7, 1 } };
-        std::vector<glm::ivec2> nesw_positions { { 4, 1 } };
-        std::vector<glm::ivec2> ns_positions { { 4, 2 }, { 4, 3 }, { 4, 4 }, { 4, 5 }, { 4, 6 }, { 4, 7 } };
 
         if (
-            (
-                (grid_position.position.x >= 0 && grid_position.position.x <= 3) || //
-                (grid_position.position.x > 4 && grid_position.position.x <= 7) //
+            std::find(
+                ew_positions.begin(),
+                ew_positions.end(),
+                grid_position.position
             )
-            && grid_position.position.y == 1
+            != ew_positions.end()
         ) {
             tile_handle = "grass_ew";
-        } else if (grid_position.position == glm::ivec2 { 4, 1 }) {
+        } else if (
+            std::find(
+                nesw_positions.begin(),
+                nesw_positions.end(),
+                grid_position.position
+            )
+            != nesw_positions.end()
+        ) {
             tile_handle = "gass_nesw";
         } else if (
-            grid_position.position.x == 4 && //
-            (grid_position.position.y >= 2 && grid_position.position.y <= 7) //
+            std::find(
+                ns_positions.begin(),
+                ns_positions.end(),
+                grid_position.position
+            )
+            != ns_positions.end()
         ) {
             tile_handle = "grass_ns";
+        } else if (
+            std::find(
+                sw_positions.begin(),
+                sw_positions.end(),
+                grid_position.position
+            )
+            != sw_positions.end()
+        ) {
+            tile_handle = "grass_sw";
+        } else if (
+            std::find(
+                ne_positions.begin(),
+                ne_positions.end(),
+                grid_position.position
+            )
+            != ne_positions.end()
+        ) {
+            tile_handle = "grass_ne";
+        } else if (
+            std::find(
+                nw_positions.begin(),
+                nw_positions.end(),
+                grid_position.position
+            )
+            != nw_positions.end()
+        ) {
+            tile_handle = "grass_nw";
         } else {
             tile_handle = "grass";
         }

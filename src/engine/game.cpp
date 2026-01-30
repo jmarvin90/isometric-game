@@ -113,6 +113,12 @@ void Game::update([[maybe_unused]] const float delta_time)
 void Game::render()
 {
     // SDL_RenderSetClipRect(renderer, &camera.camera_rect);
+    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+    glm::ivec2 start_pos { 2, 6 };
+    glm::ivec2 end_pos { 2, 1 };
+
+    entt::entity start_entity { tilemap[start_pos] };
+    entt::entity end_entity { tilemap[end_pos] };
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
@@ -120,8 +126,9 @@ void Game::render()
     if (debug_mode) {
         RenderSystem::render_highlights(registry, renderer);
         RenderSystem::render_imgui_ui(registry, renderer);
-        RenderSystem::render_segment_lines(registry, renderer);
+        // RenderSystem::render_segment_lines(registry, renderer);
         RenderSystem::render_junction_gates(registry, renderer);
+        RenderSystem::render_path(registry, renderer, start_entity, end_entity);
     }
     SDL_RenderPresent(renderer);
 }

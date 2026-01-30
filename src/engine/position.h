@@ -3,20 +3,16 @@
 
 #include <SDL2/SDL.h>
 #include <components/camera_component.h>
+#include <components/screen_position_component.h>
 #include <components/spatialmap_component.h>
 #include <components/tilemap_component.h>
+#include <components/tilemap_grid_position_component.h>
 
 #include <SDL2/SDL.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
-struct ScreenPosition {
-    glm::ivec2 position;
-};
 struct WorldPosition {
-    glm::ivec2 position;
-};
-struct TileMapGridPosition {
     glm::ivec2 position;
 };
 struct SpatialMapGridPosition {
@@ -39,21 +35,21 @@ bool _in_min_bounds(const T& position)
 
 namespace Position {
 
-WorldPosition to_world_position(const TileMapGridPosition& position, const entt::registry& registry);
-WorldPosition to_world_position(const ScreenPosition& position, const entt::registry& registry);
+WorldPosition to_world_position(const TileMapGridPositionComponent& position, const entt::registry& registry);
+WorldPosition to_world_position(const ScreenPositionComponent& position, const entt::registry& registry);
 WorldPosition to_world_position(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map);
 WorldPosition to_world_position(const SpatialMapGridPosition& position, const entt::registry& registry);
 
-TileMapGridPosition to_grid_position(const ScreenPosition& position, const entt::registry& registry);
-TileMapGridPosition to_grid_position(const WorldPosition& position, const entt::registry& registry);
+TileMapGridPositionComponent to_grid_position(const ScreenPositionComponent& position, const entt::registry& registry);
+TileMapGridPositionComponent to_grid_position(const WorldPosition& position, const entt::registry& registry);
 
-TileMapGridPosition from_tile_number(const entt::registry& registry, const int cell_number);
+TileMapGridPositionComponent from_tile_number(const entt::registry& registry, const int cell_number);
 
-ScreenPosition to_screen_position(const WorldPosition& position, const CameraComponent& camera);
-ScreenPosition to_screen_position(const WorldPosition& position, const entt::registry& registry);
+ScreenPositionComponent to_screen_position(const WorldPosition& position, const CameraComponent& camera);
+ScreenPositionComponent to_screen_position(const WorldPosition& position, const entt::registry& registry);
 
-SpatialMapGridPosition to_spatial_map_grid_position(const TileMapGridPosition& position, const entt::registry& registry);
-SpatialMapGridPosition to_spatial_map_grid_position(const TileMapGridPosition& position, const SpatialMapComponent& spatial_map);
+SpatialMapGridPosition to_spatial_map_grid_position(const TileMapGridPositionComponent& position, const entt::registry& registry);
+SpatialMapGridPosition to_spatial_map_grid_position(const TileMapGridPositionComponent& position, const SpatialMapComponent& spatial_map);
 SpatialMapGridPosition to_spatial_map_grid_position(const WorldPosition& position, const entt::registry& registry);
 SpatialMapGridPosition to_spatial_map_grid_position(const WorldPosition& position, const SpatialMapComponent& spatial_map);
 
@@ -65,13 +61,13 @@ int to_spatial_map_cell(const SpatialMapGridPosition& position, const entt::regi
 SpatialMapGridPosition from_cell_number(const entt::registry& registry, const int cell_number);
 SpatialMapGridPosition from_cell_number(const SpatialMapComponent& spatial_map, const int cell_number);
 
-bool is_valid(const TileMapGridPosition& position, const TileMapComponent& tilemap);
-bool is_valid(const TileMapGridPosition& position, const entt::registry& registry);
+bool is_valid(const TileMapGridPositionComponent& position, const TileMapComponent& tilemap);
+bool is_valid(const TileMapGridPositionComponent& position, const entt::registry& registry);
 bool is_valid(const WorldPosition& position, const entt::registry& registry);
 bool is_valid(const WorldPosition& position, const TileMapComponent& tilemap);
 bool is_valid(const SpatialMapGridPosition& position, const entt::registry& registry);
 bool is_valid(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map);
-bool is_valid(const ScreenPosition& position, const SDL_DisplayMode& display_mode);
+bool is_valid(const ScreenPositionComponent& position, const SDL_DisplayMode& display_mode);
 }
 
 #endif

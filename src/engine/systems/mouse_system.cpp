@@ -1,4 +1,5 @@
 #include <components/mouseover_component.h>
+#include <components/screen_position_component.h>
 #include <components/tilemap_component.h>
 #include <entt/entt.hpp>
 #include <position.h>
@@ -11,8 +12,8 @@ void MouseSystem::update(entt::registry& registry)
     SDL_GetMouseState(&mouse.window_current_position.x, &mouse.window_current_position.y);
     mouse.moved = (mouse.window_previous_position != mouse.window_current_position);
 
-    const ScreenPosition screen_position { mouse.window_current_position };
-    const TileMapGridPosition grid_position { Position::to_grid_position(screen_position, registry) };
+    const ScreenPositionComponent screen_position { mouse.window_current_position };
+    const TileMapGridPositionComponent grid_position { Position::to_grid_position(screen_position, registry) };
     const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
 
     if (tilemap[grid_position.position] != entt::null) {

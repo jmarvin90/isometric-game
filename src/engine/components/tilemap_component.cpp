@@ -1,6 +1,7 @@
 #include <components/highlight_component.h>
 #include <components/navigation_component.h>
 #include <components/tilemap_component.h>
+#include <components/tilemap_grid_position_component.h>
 #include <components/tilespec_component.h>
 #include <components/transform_component.h>
 #include <position.h>
@@ -22,7 +23,7 @@ entt::entity TileMapComponent::operator[](const glm::ivec2 grid_position) const
     int index_pos { (grid_position.y * tiles_per_row) + grid_position.x };
 
     if (
-        !Position::is_valid(TileMapGridPosition { grid_position }, *this) || //
+        !Position::is_valid(TileMapGridPositionComponent { grid_position }, *this) || //
         static_cast<int>(tiles.size()) <= index_pos
     ) {
         return entt::null;

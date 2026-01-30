@@ -6,13 +6,15 @@
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
+#include <directions.h>
 #include <entt/entt.hpp>
 #include <position.h>
 #include <systems/spatialmap_system.h>
 #include <vector>
 
 namespace {
-// TODO - potentially a component member function
+// TODO - potentially a component member function;
+// TODO - be aware of pointer invalidation; perhaps return the entity ID instead
 SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, SpatialMapGridPosition grid_position)
 {
     SpatialMapComponent& spatial_map { registry.ctx().get<SpatialMapComponent>() };
@@ -41,6 +43,7 @@ SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, SpatialMap
 /*
     TODO: I need to come back to this because it doesn't consider any offsets for e.g.
     the centre of a tile
+    TODO - potentially a std::vector<entt::entity>
 */
 std::vector<SpatialMapCellComponent*> intersected_segments(
     entt::registry& registry,
@@ -48,8 +51,8 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
 )
 {
     SpatialMapComponent& spatial_map { registry.ctx().get<SpatialMapComponent>() };
-    const TransformComponent& segment_start { registry.get<const TransformComponent>(segment.start) };
-    const TransformComponent& segment_end { registry.get<const TransformComponent>(segment.end) };
+    const TransformComponent& segment_start { registry.get<const TransformComponent>(segment.origin) };
+    const TransformComponent& segment_end { registry.get<const TransformComponent>(segment.termination) };
     std::vector<SpatialMapCellComponent*> output;
 
     glm::vec2 start { glm::vec2 { segment_start.position } / glm::vec2 { spatial_map.cell_size } };
@@ -58,7 +61,7 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
 
     glm::vec2 chunk { glm::floor(start) };
     glm::vec2 chunk_end { glm::floor(end) };
-    glm::vec2 step { delta.x != 0 ? std::copysign(1, delta.x) : 0, delta.y != 0 ? std::copysign(1, delta.y) : 0 };
+    glm::vec2 step { Direction::to_direction_vector(delta) };
 
     glm::vec2 tDelta {
         (delta.x != 0) ? std::abs(1.0f / delta.x) : std::numeric_limits<float>::infinity(),
@@ -111,6 +114,8 @@ void SpatialMapSystem::remove_entity(entt::registry& registry, entt::entity enti
 
     WorldPosition world_pos { transform->position };
     SpatialMapGridPosition cell = Position::to_spatial_map_grid_position(world_pos, registry);
+
+    // TODO - feels odd that ther is any chance a new cell could be created
     SpatialMapCellComponent* cell_component { get_or_create_cell(registry, cell) };
     cell_component->entities.erase(
         std::remove_if(
