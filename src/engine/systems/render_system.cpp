@@ -110,19 +110,12 @@ void RenderSystem::update(entt::registry& registry)
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
     auto spatialmap_cells { registry.view<SpatialMapCellComponent>() };
 
-    // TODO - tidy up, potentially into the camera component
-    SDL_Rect contingency_rect { camera.camera_rect };
-    contingency_rect.h *= 2;
-    contingency_rect.w *= 2;
-    contingency_rect.x -= ((contingency_rect.w - camera.camera_rect.w) / 2);
-    contingency_rect.y -= ((contingency_rect.h - camera.camera_rect.h) / 2);
-
     for (auto [entity, cell] : spatialmap_cells.each()) {
-        if (SDL_HasIntersection(&cell.cell, &contingency_rect)) {
+        if (SDL_HasIntersection(&cell.cell, &camera.camera_rect)) {
             for (entt::entity renderable : cell.entities) {
-                registry.emplace<VisibilityComponent>(renderable);
+                registry.emplace_or_replace<VisibilityComponent>(renderable);
                 const TransformComponent& transform { registry.get<const TransformComponent>(renderable) };
-                registry.emplace<ScreenPositionComponent>(
+                registry.emplace_or_replace<ScreenPositionComponent>(
                     renderable,
                     Position::to_screen_position(WorldPosition { transform.position }, camera).position
                 );
@@ -278,14 +271,6 @@ void RenderSystem::render_junction_gates(const entt::registry& registry, SDL_Ren
     }
 }
 
-namespace {
-struct Step {
-    glm::vec2 start_world_position;
-    glm::vec2 end_world_position;
-    Direction::TDirection direction;
-};
-}
-
 void RenderSystem::render_path(
     const entt::registry& registry,
     [[maybe_unused]] SDL_Renderer* renderer,
@@ -293,13 +278,75 @@ void RenderSystem::render_path(
     entt::entity to_tile
 )
 {
-    std::vector<entt::entity> steps;
-    Pathfinding::path_between(registry, from_tile, to_tile, steps);
+    const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
+    std::vector<entt::entity> path;
+    Pathfinding::path_between(registry, from_tile, to_tile, path);
 
-    for (auto step : steps) {
-        [[maybe_unused]] const TileMapGridPositionComponent& grid_position {
-            registry.get<const TileMapGridPositionComponent>(step)
+    const TileMapGridPositionComponent* current_grid_position { nullptr };
+    const TransformComponent* current_world_position { nullptr };
+    [[maybe_unused]] Direction::TDirection last_direction { Direction::TDirection::NO_DIRECTION };
+
+    for (size_t i = 0; i < path.size() - 1; i++) {
+        entt::entity current = path[i];
+        entt::entity next = path[i + 1];
+
+        if (!current_grid_position) {
+            current_grid_position = &registry.get<const TileMapGridPositionComponent>(current);
+        }
+
+        if (!current_world_position) {
+            current_world_position = &registry.get<const TransformComponent>(current);
+        }
+
+        const TileMapGridPositionComponent* next_grid_position {
+            &registry.get<const TileMapGridPositionComponent>(next)
         };
-        glm::ivec2 position { grid_position.position };
+
+        [[maybe_unused]] const TransformComponent* next_world_position {
+            &registry.get<const TransformComponent>(next)
+        };
+
+        glm::ivec2 delta { next_grid_position->position - current_grid_position->position };
+        glm::ivec2 delta_vec { Direction::to_direction_vector(delta) };
+        Direction::TDirection direction { Direction::vector_directions[delta_vec] };
+
+        glm::ivec2 tile_entry_offset {
+            tilespec.road_gates[Direction::index_position(Direction::reverse(direction))].entry
+        };
+
+        glm::ivec2 tile_exit_offset {
+            tilespec.road_gates[Direction::index_position(direction)].exit
+        };
+
+        [[maybe_unused]] glm::ivec2 start_screen_position {
+            Position::to_screen_position(
+                WorldPosition { glm::ivec2 { current_world_position->position } },
+                registry
+            )
+                .position
+            + tile_exit_offset
+        };
+
+        [[maybe_unused]] glm::ivec2 end_screen_position {
+            Position::to_screen_position(
+                WorldPosition { glm::ivec2 { next_world_position->position } },
+                registry
+            )
+                .position
+            + tile_entry_offset
+        };
+
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+
+        SDL_RenderDrawLine(
+            renderer,
+            start_screen_position.x,
+            start_screen_position.y,
+            end_screen_position.x,
+            end_screen_position.y
+        );
+
+        current_grid_position = next_grid_position;
+        current_world_position = next_world_position;
     }
 }

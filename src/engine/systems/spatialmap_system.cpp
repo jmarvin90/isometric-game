@@ -88,44 +88,49 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
 
     return output;
 }
+
+std::pair<SpatialMapGridPosition, SpatialMapGridPosition> spanned_cells(entt::registry& registry, entt::entity entity)
+{
+    const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
+    const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
+
+    WorldPosition AA { transform.position };
+    WorldPosition BB { AA.position + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
+
+    return {
+        Position::to_spatial_map_grid_position(AA, registry),
+        Position::to_spatial_map_grid_position(BB, registry)
+    };
+}
+
 } // namespace
 
 void SpatialMapSystem::emplace_entity(entt::registry& registry, entt::entity entity)
 {
-    const TransformComponent* transform { registry.try_get<const TransformComponent>(entity) };
-
-    // TODO - raise a problem if the transform is missing
-    if (!transform)
-        return;
-
-    WorldPosition world_pos { transform->position };
-    SpatialMapGridPosition cell_position = Position::to_spatial_map_grid_position(world_pos, registry);
-    SpatialMapCellComponent* cell_component { get_or_create_cell(registry, cell_position) };
-    cell_component->entities.emplace_back(entity);
+    std::pair<SpatialMapGridPosition, SpatialMapGridPosition> cells { spanned_cells(registry, entity) };
+    for (int x = cells.first.position.x; x <= cells.second.position.x; x++) {
+        for (int y = cells.first.position.y; y <= cells.second.position.y; y++) {
+            SpatialMapCellComponent* cell { get_or_create_cell(registry, SpatialMapGridPosition { { x, y } }) };
+            cell->entities.emplace_back(entity);
+        }
+    }
 }
 
 void SpatialMapSystem::remove_entity(entt::registry& registry, entt::entity entity)
 {
-    const TransformComponent* transform { registry.try_get<const TransformComponent>(entity) };
-
-    // TODO - raise a problem if the transform is missing
-    if (!transform)
-        return;
-
-    WorldPosition world_pos { transform->position };
-    SpatialMapGridPosition cell = Position::to_spatial_map_grid_position(world_pos, registry);
-
-    // TODO - feels odd that ther is any chance a new cell could be created
-    SpatialMapCellComponent* cell_component { get_or_create_cell(registry, cell) };
-    cell_component->entities.erase(
-        std::remove_if(
-            cell_component->segments.begin(),
-            cell_component->segments.end(),
-            [entity](const entt::entity comparator) {
-                return comparator == entity;
-            }
-        )
-    );
+    std::pair<SpatialMapGridPosition, SpatialMapGridPosition> cells { spanned_cells(registry, entity) };
+    for (int x = cells.first.position.x; x <= cells.second.position.x; x++) {
+        for (int y = cells.first.position.y; y <= cells.second.position.y; y++) {
+            SpatialMapCellComponent* cell { get_or_create_cell(registry, SpatialMapGridPosition { { x, y } }) };
+            std::remove_if(
+                cell->entities.begin(),
+                cell->entities.end(),
+                [entity](const entt::entity comparator) {
+                    return comparator == entity;
+                }
+            );
+        }
+    }
 }
 
 void SpatialMapSystem::emplace_segment(entt::registry& registry, entt::entity entity)
@@ -141,7 +146,6 @@ void SpatialMapSystem::remove_segment(entt::registry& registry, entt::entity ent
 {
     const SegmentComponent& segment { registry.get<SegmentComponent>(entity) };
     std::vector<SpatialMapCellComponent*> cells { intersected_segments(registry, segment) };
-    [[maybe_unused]] int number_of_segments { static_cast<int>(cells.size()) };
     for (auto cell : cells) {
         cell->segments.erase(
             std::remove_if(
