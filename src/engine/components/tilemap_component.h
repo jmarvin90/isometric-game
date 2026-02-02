@@ -11,7 +11,7 @@
 #include <vector>
 
 struct TileMapComponent {
-    const int tiles_per_row;
+    const int n_per_row;
     const int n_tiles;
     std::vector<entt::entity> tiles;
     glm::ivec2 area;
@@ -19,8 +19,8 @@ struct TileMapComponent {
 
     TileMapComponent(const TileMapComponent&) = delete;
     TileMapComponent(TileMapComponent&&) = default;
-    TileMapComponent(const TileSpecComponent& tile_spec, const int tiles_per_row);
-    TileMapComponent(entt::registry& registry, const int tiles_per_row);
+    TileMapComponent(const TileSpecComponent& tile_spec, const int n_per_row);
+    TileMapComponent(entt::registry& registry, const int n_per_row);
     entt::entity operator[](const glm::ivec2 grid_position) const;
 };
 

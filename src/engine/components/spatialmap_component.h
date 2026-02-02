@@ -10,7 +10,7 @@
 struct SpatialMapComponent {
     int divisor;
 
-    int cells_per_row;
+    int n_per_row;
     int n_cells;
 
     glm::ivec2 cell_size;
@@ -23,8 +23,8 @@ struct SpatialMapComponent {
         const int divisor
     )
         : divisor { divisor }
-        , cells_per_row { tile_map.tiles_per_row / divisor }
-        , n_cells { cells_per_row * cells_per_row }
+        , n_per_row { tile_map.n_per_row / divisor }
+        , n_cells { n_per_row * n_per_row }
         , cell_size { tile_spec.iso_area * divisor }
     {
         assert(tile_map.n_tiles % divisor == 0);

@@ -18,6 +18,18 @@ glm::vec2 to_grid_gross(const WorldPosition& position, const entt::registry& reg
     return glm::vec2 { tile_spec.matrix_inverted * centred_world_pos };
 }
 
+template <typename T, typename M>
+bool generic_valid(const T& position, const M& map)
+{
+    return (
+        _in_min_bounds<glm::ivec2>(position.position) && //
+        (
+            position.position.x < map.n_per_row && //
+            position.position.y < map.n_per_row //
+        )
+    );
+}
+
 namespace Position {
 
 WorldPosition to_world_position(const TileMapGridPositionComponent& position, const entt::registry& registry)
@@ -75,10 +87,10 @@ TileMapGridPositionComponent to_grid_position(const ScreenPositionComponent& pos
 TileMapGridPositionComponent from_tile_number(const entt::registry& registry, const int tile_n)
 {
     const TileMapComponent& tilemap { registry.ctx().get<TileMapComponent>() };
-    if (tile_n < tilemap.tiles_per_row) {
+    if (tile_n < tilemap.n_per_row) {
         return TileMapGridPositionComponent { { tile_n, 0 } };
     } else {
-        return TileMapGridPositionComponent { { tile_n % tilemap.tiles_per_row, tile_n / tilemap.tiles_per_row } };
+        return TileMapGridPositionComponent { { tile_n % tilemap.n_per_row, tile_n / tilemap.n_per_row } };
     }
 }
 
@@ -131,7 +143,7 @@ SpatialMapGridPosition to_spatial_map_grid_position(const TileMapGridPositionCom
 int to_spatial_map_cell(const WorldPosition& position, const SpatialMapComponent& spatial_map)
 {
     glm::ivec2 cell { position.position / spatial_map.cell_size };
-    return (cell.y * spatial_map.cells_per_row) + cell.x;
+    return (cell.y * spatial_map.n_per_row) + cell.x;
 }
 
 int to_spatial_map_cell(const WorldPosition& position, const entt::registry& registry)
@@ -142,7 +154,7 @@ int to_spatial_map_cell(const WorldPosition& position, const entt::registry& reg
 
 int to_spatial_map_cell(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map)
 {
-    return (position.position.y * spatial_map.cells_per_row) + position.position.x;
+    return (position.position.y * spatial_map.n_per_row) + position.position.x;
 }
 
 int to_spatial_map_cell(const SpatialMapGridPosition& position, const entt::registry& registry)
@@ -159,11 +171,11 @@ int to_spatial_map_cell(const SpatialMapGridPosition& position, const entt::regi
 
 SpatialMapGridPosition from_cell_number(const SpatialMapComponent& spatial_map, const int cell_number)
 {
-    if (cell_number < spatial_map.cells_per_row) {
+    if (cell_number < spatial_map.n_per_row) {
         return SpatialMapGridPosition { { cell_number, 0 } };
     } else {
         return SpatialMapGridPosition {
-            { cell_number % spatial_map.cells_per_row, cell_number / spatial_map.cells_per_row }
+            { cell_number % spatial_map.n_per_row, cell_number / spatial_map.n_per_row }
         };
     }
 }
@@ -206,25 +218,13 @@ bool is_valid(const WorldPosition& position, const entt::registry& registry)
 
 bool is_valid(const TileMapGridPositionComponent& position, const TileMapComponent& tilemap)
 {
-    return (
-        _in_min_bounds<glm::ivec2>(position.position) && //
-        (
-            position.position.x < tilemap.tiles_per_row && //
-            position.position.y < tilemap.tiles_per_row //
-        )
-    );
+    return generic_valid(position, tilemap);
 }
 
 // TODO: basically identical to GridPosition::is_valid();
 bool is_valid(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map)
 {
-    return (
-        _in_min_bounds<glm::ivec2>(position.position) && //
-        (
-            position.position.x < spatial_map.cells_per_row && //
-            position.position.y < spatial_map.cells_per_row //
-        )
-    );
+    return generic_valid(position, spatial_map);
 }
 
 bool is_valid(const TileMapGridPositionComponent& position, const entt::registry& registry)

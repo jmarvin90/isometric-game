@@ -9,10 +9,10 @@
 
 #include <entt/entt.hpp>
 
-TileMapComponent::TileMapComponent(const TileSpecComponent& tile_spec, const int tiles_per_row)
-    : tiles_per_row { tiles_per_row }
-    , n_tiles { tiles_per_row * tiles_per_row }
-    , area { tile_spec.iso_area * tiles_per_row }
+TileMapComponent::TileMapComponent(const TileSpecComponent& tile_spec, const int n_per_row)
+    : n_per_row { n_per_row }
+    , n_tiles { n_per_row * n_per_row }
+    , area { tile_spec.iso_area * n_per_row }
     , origin_px { (area / 2).x - tile_spec.centre.x, 0 }
 {
     tiles.reserve(n_tiles);
@@ -20,7 +20,7 @@ TileMapComponent::TileMapComponent(const TileSpecComponent& tile_spec, const int
 
 entt::entity TileMapComponent::operator[](const glm::ivec2 grid_position) const
 {
-    int index_pos { (grid_position.y * tiles_per_row) + grid_position.x };
+    int index_pos { (grid_position.y * n_per_row) + grid_position.x };
 
     if (
         !Position::is_valid(TileMapGridPositionComponent { grid_position }, *this) || //
