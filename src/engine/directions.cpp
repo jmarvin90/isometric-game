@@ -1,3 +1,4 @@
+#include <cmath>
 #include <directions.h>
 
 namespace Direction {

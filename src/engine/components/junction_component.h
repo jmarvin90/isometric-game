@@ -3,7 +3,6 @@
 
 #include <array>
 #include <entt/entt.hpp>
-#include <optional>
 
 struct JunctionComponent {
     std::array<entt::entity, 4> connections;

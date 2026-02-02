@@ -10,7 +10,7 @@
 
 /*
     1
-  8   2
+  2   8
     4
 */
 
@@ -66,6 +66,21 @@ inline std::unordered_map<glm::ivec2, TDirection> vector_directions { {
 } };
 
 TDirection reverse(const TDirection direction);
+
+template <typename T>
+glm::ivec2 to_direction_vector(const T& vector)
+{
+    return {
+        vector.x != 0 ? std::copysign(1, vector.x) : 0,
+        vector.y != 0 ? std::copysign(1, vector.y) : 0
+    };
+}
+
+template <typename T>
+TDirection from_vector(const T& vector)
+{
+    return Direction::vector_directions[to_direction_vector<T>(vector)];
+}
 
 bool is_junction(Direction::TDirection direction);
 

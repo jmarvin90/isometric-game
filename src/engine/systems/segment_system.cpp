@@ -1,7 +1,5 @@
-#include <components/grid_position_component.h>
 #include <components/junction_component.h>
 #include <components/navigation_component.h>
-#include <components/pending_destruction_component.h>
 #include <components/segment_component.h>
 #include <components/segment_manager_component.h>
 #include <components/transform_component.h>
@@ -61,15 +59,15 @@ void junction_displace(
 void SegmentSystem::connect(entt::registry& registry, entt::entity entity)
 {
     const SegmentComponent& segment { registry.get<const SegmentComponent>(entity) };
-    junction_emplace(registry, segment.start, entity, segment.direction);
-    junction_emplace(registry, segment.end, entity, Direction::reverse(segment.direction));
+    junction_emplace(registry, segment.origin, entity, segment.direction);
+    junction_emplace(registry, segment.termination, entity, Direction::reverse(segment.direction));
 }
 
 void SegmentSystem::disconnect(entt::registry& registry, entt::entity entity)
 {
     const SegmentComponent& segment { registry.get<const SegmentComponent>(entity) };
-    junction_displace(registry, segment.start, entity, segment.direction);
-    junction_displace(registry, segment.end, entity, Direction::reverse(segment.direction));
+    junction_displace(registry, segment.origin, entity, segment.direction);
+    junction_displace(registry, segment.termination, entity, Direction::reverse(segment.direction));
 }
 
 void SegmentSystem::update(entt::registry& registry)
@@ -83,8 +81,8 @@ void SegmentSystem::update(entt::registry& registry)
         entt::entity segment_entity { registry.create() };
         registry.emplace<SegmentComponent>(
             segment_entity,
-            segment.start,
-            segment.end,
+            segment.origin,
+            segment.termination,
             segment.direction,
             segment.entities
         );

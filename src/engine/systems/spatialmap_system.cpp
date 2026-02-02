@@ -6,37 +6,34 @@
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
+#include <directions.h>
 #include <entt/entt.hpp>
 #include <position.h>
 #include <systems/spatialmap_system.h>
 #include <vector>
 
 namespace {
-// TODO - potentially a component member function
-SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, glm::ivec2 grid_position)
+// TODO - potentially a component member function;
+// TODO - be aware of pointer invalidation; perhaps return the entity ID instead
+SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, SpatialMapGridPosition grid_position)
 {
     SpatialMapComponent& spatial_map { registry.ctx().get<SpatialMapComponent>() };
-    entt::entity cell { spatial_map[grid_position] };
+    entt::entity cell { spatial_map[grid_position.position] };
 
     if (cell != entt::null) {
         return &registry.get<SpatialMapCellComponent>(cell);
     } else {
         cell = registry.create();
-        int cell_number = SpatialMapGridPosition(grid_position).to_spatial_map_cell(spatial_map);
-
-        [[maybe_unused]] bool check { spatial_map.map.find(cell_number) == spatial_map.map.end() };
+        int cell_number { Position::to_spatial_map_cell(grid_position, spatial_map) };
         spatial_map.map[cell_number] = cell;
-        assert(spatial_map.map[cell_number] == cell);
 
-        glm::ivec2 spatial_map_world_pos {
-            SpatialMapGridPosition(grid_position).to_world_position(spatial_map)
-        };
+        WorldPosition spatial_map_world_position { Position::to_world_position(grid_position, spatial_map) };
 
         return &registry.emplace<SpatialMapCellComponent>(
             cell,
             SDL_Rect {
-                spatial_map_world_pos.x,
-                spatial_map_world_pos.y,
+                spatial_map_world_position.position.x,
+                spatial_map_world_position.position.y,
                 spatial_map.cell_size.x,
                 spatial_map.cell_size.y }
         );
@@ -46,15 +43,16 @@ SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, glm::ivec2
 /*
     TODO: I need to come back to this because it doesn't consider any offsets for e.g.
     the centre of a tile
+    TODO - potentially a std::vector<entt::entity>
 */
 std::vector<SpatialMapCellComponent*> intersected_segments(
-    [[maybe_unused]] entt::registry& registry,
-    [[maybe_unused]] const SegmentComponent& segment
+    entt::registry& registry,
+    const SegmentComponent& segment
 )
 {
-    [[maybe_unused]] SpatialMapComponent& spatial_map { registry.ctx().get<SpatialMapComponent>() };
-    [[maybe_unused]] const TransformComponent& segment_start { registry.get<const TransformComponent>(segment.start) };
-    [[maybe_unused]] const TransformComponent& segment_end { registry.get<const TransformComponent>(segment.end) };
+    SpatialMapComponent& spatial_map { registry.ctx().get<SpatialMapComponent>() };
+    const TransformComponent& segment_start { registry.get<const TransformComponent>(segment.origin) };
+    const TransformComponent& segment_end { registry.get<const TransformComponent>(segment.termination) };
     std::vector<SpatialMapCellComponent*> output;
 
     glm::vec2 start { glm::vec2 { segment_start.position } / glm::vec2 { spatial_map.cell_size } };
@@ -63,7 +61,7 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
 
     glm::vec2 chunk { glm::floor(start) };
     glm::vec2 chunk_end { glm::floor(end) };
-    glm::vec2 step { delta.x != 0 ? std::copysign(1, delta.x) : 0, delta.y != 0 ? std::copysign(1, delta.y) : 0 };
+    glm::vec2 step { Direction::to_direction_vector(delta) };
 
     glm::vec2 tDelta {
         (delta.x != 0) ? std::abs(1.0f / delta.x) : std::numeric_limits<float>::infinity(),
@@ -74,7 +72,7 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
     glm::vec2 tMax { (next_boundary - start) / delta };
 
     while (true) {
-        output.push_back(get_or_create_cell(registry, chunk));
+        output.push_back(get_or_create_cell(registry, SpatialMapGridPosition { chunk }));
 
         if (chunk == chunk_end)
             break;
@@ -90,40 +88,49 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
 
     return output;
 }
+
+std::pair<SpatialMapGridPosition, SpatialMapGridPosition> spanned_cells(entt::registry& registry, entt::entity entity)
+{
+    const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
+    const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
+
+    WorldPosition AA { transform.position };
+    WorldPosition BB { AA.position + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
+
+    return {
+        Position::to_spatial_map_grid_position(AA, registry),
+        Position::to_spatial_map_grid_position(BB, registry)
+    };
+}
+
 } // namespace
 
 void SpatialMapSystem::emplace_entity(entt::registry& registry, entt::entity entity)
 {
-    const TransformComponent* transform { registry.try_get<const TransformComponent>(entity) };
-
-    // TODO - raise a problem if the transform is missing
-    if (!transform)
-        return;
-
-    glm::ivec2 cell_position { WorldPosition(transform->position).to_spatial_map_position(registry) };
-    SpatialMapCellComponent* cell_component { get_or_create_cell(registry, cell_position) };
-    cell_component->entities.emplace_back(entity);
+    std::pair<SpatialMapGridPosition, SpatialMapGridPosition> cells { spanned_cells(registry, entity) };
+    for (int x = cells.first.position.x; x <= cells.second.position.x; x++) {
+        for (int y = cells.first.position.y; y <= cells.second.position.y; y++) {
+            SpatialMapCellComponent* cell { get_or_create_cell(registry, SpatialMapGridPosition { { x, y } }) };
+            cell->entities.emplace_back(entity);
+        }
+    }
 }
 
 void SpatialMapSystem::remove_entity(entt::registry& registry, entt::entity entity)
 {
-    const TransformComponent* transform { registry.try_get<const TransformComponent>(entity) };
-
-    // TODO - raise a problem if the transform is missing
-    if (!transform)
-        return;
-
-    glm::ivec2 cell { WorldPosition(transform->position).to_spatial_map_position(registry) };
-    SpatialMapCellComponent* cell_component { get_or_create_cell(registry, cell) };
-    cell_component->entities.erase(
-        std::remove_if(
-            cell_component->segments.begin(),
-            cell_component->segments.end(),
-            [entity](const entt::entity comparator) {
-                return comparator == entity;
-            }
-        )
-    );
+    std::pair<SpatialMapGridPosition, SpatialMapGridPosition> cells { spanned_cells(registry, entity) };
+    for (int x = cells.first.position.x; x <= cells.second.position.x; x++) {
+        for (int y = cells.first.position.y; y <= cells.second.position.y; y++) {
+            SpatialMapCellComponent* cell { get_or_create_cell(registry, SpatialMapGridPosition { { x, y } }) };
+            std::remove_if(
+                cell->entities.begin(),
+                cell->entities.end(),
+                [entity](const entt::entity comparator) {
+                    return comparator == entity;
+                }
+            );
+        }
+    }
 }
 
 void SpatialMapSystem::emplace_segment(entt::registry& registry, entt::entity entity)
@@ -139,7 +146,6 @@ void SpatialMapSystem::remove_segment(entt::registry& registry, entt::entity ent
 {
     const SegmentComponent& segment { registry.get<SegmentComponent>(entity) };
     std::vector<SpatialMapCellComponent*> cells { intersected_segments(registry, segment) };
-    [[maybe_unused]] int number_of_segments { static_cast<int>(cells.size()) };
     for (auto cell : cells) {
         cell->segments.erase(
             std::remove_if(
