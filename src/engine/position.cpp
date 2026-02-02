@@ -240,10 +240,3 @@ bool is_valid(SpatialMapGridPosition& position, const entt::registry& registry)
 };
 
 } // namespace
-
-/*
-
-
-
-
-*/

@@ -1,3 +1,4 @@
+#include <SDL2/SDL.h>
 #include <algorithm>
 #include <components/junction_component.h>
 #include <components/spatialmapcell_component.h>
@@ -59,7 +60,7 @@ entt::entity get_segment(const entt::registry& registry, entt::entity tile)
 }
 
 struct PathStep {
-    entt::entity segment;
+    entt::entity tile;
     int priority;
 };
 
@@ -69,6 +70,12 @@ struct Compare {
         return lhs.priority > rhs.priority;
     }
 };
+
+int heuristic(const glm::ivec2& lhs, const glm::ivec2& rhs)
+{
+    glm::ivec2 delta { glm::abs(rhs - lhs) };
+    return delta.x + delta.y;
+}
 
 } // namespace
 
@@ -85,73 +92,94 @@ void path_between(
     if (from_tile == to_tile)
         return;
 
-    entt::entity start_segment { get_segment(registry, from_tile) };
-    entt::entity end_segment { get_segment(registry, to_tile) };
-
-    if (start_segment == entt::null || end_segment == entt::null)
-        return;
-
-    /*
-        TODO - determine if I want to return a single segment
-        in case the start and the end are on the same seg
-    */
-    if (start_segment == end_segment) {
-        path.push_back(start_segment);
-        return;
-    }
+    const TileMapGridPositionComponent& to_tile_position {
+        registry.get<const TileMapGridPositionComponent>(to_tile)
+    };
 
     std::priority_queue<PathStep, std::vector<PathStep>, Compare> frontier;
-    std::unordered_map<const entt::entity, const entt::entity> came_from;
-
-    frontier.push({ start_segment, 0 });
-    came_from.emplace(start_segment, entt::null);
+    std::unordered_map<entt::entity, entt::entity> came_from;
+    frontier.push({ from_tile, 0 });
 
     while (!frontier.empty()) {
-        const PathStep current_segment { frontier.top() };
+        PathStep current { frontier.top() };
         frontier.pop();
 
-        if (current_segment.segment == end_segment)
+        if (current.tile == to_tile)
             break;
 
-        const SegmentComponent& current_segment_component {
-            registry.get<const SegmentComponent>(current_segment.segment)
+        const JunctionComponent* junction_component {
+            registry.try_get<const JunctionComponent>(current.tile)
         };
 
-        for (
-            entt::entity junction_entity : {
-                current_segment_component.origin,
-                current_segment_component.termination }
-        ) {
-            const JunctionComponent& junction_component {
-                registry.get<const JunctionComponent>(junction_entity)
+        std::vector<entt::entity> pending;
+
+        if (!junction_component) {
+            const SegmentComponent* segment_component {
+                &registry.get<const SegmentComponent>(get_segment(registry, current.tile))
             };
-            for (entt::entity next_segment : junction_component.connections) {
-                if (next_segment == entt::null)
+            pending.push_back(segment_component->origin);
+            pending.push_back(segment_component->termination);
+        } else {
+            for (auto segment : junction_component->connections) {
+                if (segment == entt::null)
                     continue;
-                if (came_from.find(next_segment) != came_from.end())
-                    continue;
-                const SegmentComponent& next_segment_component {
-                    registry.get<const SegmentComponent>(next_segment)
+
+                const SegmentComponent& segment_component {
+                    registry.get<const SegmentComponent>(segment)
                 };
-                frontier.push({ next_segment, next_segment_component.length });
-                came_from.emplace(next_segment, current_segment.segment);
+
+                if (
+                    std::find(
+                        segment_component.entities.begin(),
+                        segment_component.entities.end(),
+                        to_tile
+                    )
+                    != segment_component.entities.end()
+                ) {
+                    pending.push_back(to_tile);
+                    break;
+                }
+
+                if (segment_component.origin == current.tile) {
+                    pending.push_back(segment_component.termination);
+                } else if (segment_component.termination == current.tile) {
+                    pending.push_back(segment_component.origin);
+                } else {
+                    //
+                }
             }
+        }
+
+        for (auto next_tile : pending) {
+            if (came_from.find(next_tile) != came_from.end())
+                continue;
+
+            const TileMapGridPositionComponent& next_tile_position {
+                registry.get<const TileMapGridPositionComponent>(next_tile)
+            };
+
+            frontier.push(
+                { next_tile,
+                  heuristic(next_tile_position.position, to_tile_position.position) }
+            );
+
+            came_from.emplace(next_tile, current.tile);
         }
     }
 
-    if (came_from.find(end_segment) == came_from.end()) {
+    if (came_from.find(to_tile) == came_from.end())
         return;
-    }
 
     for (
-        entt::entity current = end_segment;
-        current != start_segment;
+        entt::entity current = to_tile;
+        current != from_tile;
         current = came_from.at(current)
     ) {
         path.push_back(current);
     }
 
-    path.push_back(start_segment);
+    path.push_back(from_tile);
     std::reverse(path.begin(), path.end());
 }
+
 } // namespace

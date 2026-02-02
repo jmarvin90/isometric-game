@@ -114,8 +114,8 @@ void Game::render()
 {
     // SDL_RenderSetClipRect(renderer, &camera.camera_rect);
     const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
-    glm::ivec2 start_pos { 2, 6 };
-    glm::ivec2 end_pos { 2, 1 };
+    glm::ivec2 start_pos { 2, 1 };
+    glm::ivec2 end_pos { 2, 6 };
 
     entt::entity start_entity { tilemap[start_pos] };
     entt::entity end_entity { tilemap[end_pos] };
