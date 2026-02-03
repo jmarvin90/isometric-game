@@ -34,12 +34,10 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
 
     while (true) {
         glm::ivec2 next_position { current_position + direction_vector };
-
         entt::entity next { tilemap[next_position] };
 
-        if (next == entt::null) {
+        if (next == entt::null)
             return output;
-        }
 
         const NavigationComponent* next_nav { registry.try_get<const NavigationComponent>(next) };
 

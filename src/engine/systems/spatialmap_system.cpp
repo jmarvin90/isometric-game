@@ -53,10 +53,9 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
     SpatialMapComponent& spatial_map { registry.ctx().get<SpatialMapComponent>() };
     const TransformComponent& segment_start { registry.get<const TransformComponent>(segment.origin) };
     const TransformComponent& segment_end { registry.get<const TransformComponent>(segment.termination) };
-    std::vector<SpatialMapCellComponent*> output;
 
-    glm::vec2 start { glm::vec2 { segment_start.position } / glm::vec2 { spatial_map.cell_size } };
-    glm::vec2 end { glm::vec2 { segment_end.position } / glm::vec2 { spatial_map.cell_size } };
+    glm::vec2 start { segment_start.position / glm::vec2 { spatial_map.cell_size } };
+    glm::vec2 end { segment_end.position / glm::vec2 { spatial_map.cell_size } };
     glm::vec2 delta { end - start };
 
     glm::vec2 chunk { glm::floor(start) };
@@ -70,6 +69,8 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
 
     glm::vec2 next_boundary { step.x > 0 ? chunk.x + 1 : chunk.x, step.y > 0 ? chunk.y + 1 : chunk.y };
     glm::vec2 tMax { (next_boundary - start) / delta };
+
+    std::vector<SpatialMapCellComponent*> output;
 
     while (true) {
         output.push_back(get_or_create_cell(registry, SpatialMapGridPosition { chunk }));

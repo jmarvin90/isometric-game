@@ -10,7 +10,6 @@ void CameraSystem::update(entt::registry& registry, const SDL_DisplayMode& displ
     const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
     CameraComponent& camera { registry.ctx().get<CameraComponent>() };
     const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
-    glm::ivec2 camera_previous_pos { camera.position() };
 
     if (mouse.window_current_position.x < constants::SCENE_BORDER_PX.x && camera.camera_rect.x > 0) {
         camera.camera_rect.x -= constants::CAMERA_SCROLL_SPEED.x;

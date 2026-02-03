@@ -58,10 +58,15 @@ struct TileSpecComponent {
             SDL_Point { centre.x, 0 },
         }
     {
-        for (int i = 0; i < 4; i++) {
-            road_gates[i] = {
-                centre + (road_mark_offset * translations[i].entry), // entry
-                centre + (road_mark_offset * translations[i].exit) // exit
+        for (
+            Direction::TDirection direction = Direction::TDirection::NORTH;
+            direction != Direction::TDirection::NO_DIRECTION;
+            direction = direction >> 1
+        ) {
+            uint8_t index { Direction::index_position(direction) };
+            road_gates[index] = {
+                centre + (road_mark_offset * translations[index].entry), // entry
+                centre + (road_mark_offset * translations[index].exit) // exit
             };
         }
     }

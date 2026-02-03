@@ -25,6 +25,7 @@ void junction_emplace(
         junct = &registry.get<JunctionComponent>(junction_entity);
         entt::entity current_segment { junct->connections[Direction::index_position(direction)] };
         if (current_segment != entt::null) {
+            // TODO - this approach causes some delay in segment being created
             SegmentManagerComponent& seg_manager { registry.ctx().get<SegmentManagerComponent>() };
             seg_manager.destruct_queue.push_back(current_segment);
         }
