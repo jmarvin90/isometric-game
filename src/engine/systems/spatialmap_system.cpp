@@ -4,6 +4,7 @@
 #include <components/segment_component.h>
 #include <components/spatialmap_component.h>
 #include <components/spatialmapcell_component.h>
+#include <components/spatialmapcell_span_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
 #include <directions.h>
@@ -90,7 +91,7 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
     return output;
 }
 
-std::pair<SpatialMapGridPosition, SpatialMapGridPosition> spanned_cells(entt::registry& registry, entt::entity entity)
+SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity entity)
 {
     const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
     const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
@@ -108,9 +109,9 @@ std::pair<SpatialMapGridPosition, SpatialMapGridPosition> spanned_cells(entt::re
 
 void SpatialMapSystem::emplace_entity(entt::registry& registry, entt::entity entity)
 {
-    std::pair<SpatialMapGridPosition, SpatialMapGridPosition> cells { spanned_cells(registry, entity) };
-    for (int x = cells.first.position.x; x <= cells.second.position.x; x++) {
-        for (int y = cells.first.position.y; y <= cells.second.position.y; y++) {
+    SpatialMapCellSpanComponent cell_span { spanned_cells(registry, entity) };
+    for (int x = cell_span.AA.position.x; x <= cell_span.BB.position.x; x++) {
+        for (int y = cell_span.AA.position.y; y <= cell_span.BB.position.y; y++) {
             SpatialMapCellComponent* cell { get_or_create_cell(registry, SpatialMapGridPosition { { x, y } }) };
             cell->entities.emplace_back(entity);
         }
@@ -119,9 +120,9 @@ void SpatialMapSystem::emplace_entity(entt::registry& registry, entt::entity ent
 
 void SpatialMapSystem::remove_entity(entt::registry& registry, entt::entity entity)
 {
-    std::pair<SpatialMapGridPosition, SpatialMapGridPosition> cells { spanned_cells(registry, entity) };
-    for (int x = cells.first.position.x; x <= cells.second.position.x; x++) {
-        for (int y = cells.first.position.y; y <= cells.second.position.y; y++) {
+    SpatialMapCellSpanComponent& cell_span { registry.get<SpatialMapCellSpanComponent>(entity) };
+    for (int x = cell_span.AA.position.x; x <= cell_span.BB.position.x; x++) {
+        for (int y = cell_span.AA.position.y; y <= cell_span.BB.position.y; y++) {
             SpatialMapCellComponent* cell { get_or_create_cell(registry, SpatialMapGridPosition { { x, y } }) };
             std::remove_if(
                 cell->entities.begin(),
@@ -132,6 +133,7 @@ void SpatialMapSystem::remove_entity(entt::registry& registry, entt::entity enti
             );
         }
     }
+    registry.remove<SpatialMapCellSpanComponent>(entity);
 }
 
 void SpatialMapSystem::emplace_segment(entt::registry& registry, entt::entity entity)
