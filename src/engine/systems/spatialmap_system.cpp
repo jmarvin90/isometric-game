@@ -95,13 +95,14 @@ SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity
 {
     const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
     const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
+    const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
 
     WorldPosition AA { transform.position };
     WorldPosition BB { AA.position + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
 
     return {
-        Position::to_spatial_map_grid_position(AA, registry),
-        Position::to_spatial_map_grid_position(BB, registry)
+        Position::to_spatial_map_grid_position(AA, spatial_map),
+        Position::to_spatial_map_grid_position(BB, spatial_map)
     };
 }
 

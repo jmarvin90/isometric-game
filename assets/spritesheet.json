@@ -4,21 +4,27 @@
         "origin_x": 0,
         "origin_y": 0,
         "width": 256,
-        "height": 143
+        "height": 143,
+        "anchor_x": 128,
+        "anchor_y": 64
     },
     {
         "name": "sand",
         "origin_x": 257,
         "origin_y": 0,
         "width": 256,
-        "height": 143
+        "height": 143,
+        "anchor_x": 128,
+        "anchor_y": 64
     },
     {
         "name": "water",
         "origin_x": 0,
         "origin_y": 144,
         "width": 256,
-        "height": 143
+        "height": 143,
+        "anchor_x": 128,
+        "anchor_y": 64
     },
     {
         "name": "grass_ew",
@@ -26,6 +32,8 @@
         "origin_y": 144,
         "width": 256,
         "height": 143,
+        "anchor_x": 128,
+        "anchor_y": 64,
         "directions": 10
     },
     {
@@ -34,6 +42,8 @@
         "origin_y": 288,
         "width": 256,
         "height": 143,
+        "anchor_x": 128,
+        "anchor_y": 64,
         "directions": 5
     },
     {
@@ -42,6 +52,8 @@
         "origin_y": 288,
         "width": 256,
         "height": 143,
+        "anchor_x": 128,
+        "anchor_y": 64,
         "directions": 15
     },
     {
@@ -50,6 +62,8 @@
         "origin_y": 431,
         "width": 256,
         "height": 143,
+        "anchor_x": 128,
+        "anchor_y": 64,
         "directions": 12
     },
     {
@@ -58,6 +72,8 @@
         "origin_y": 431,
         "width": 256,
         "height": 143,
+        "anchor_x": 128,
+        "anchor_y": 64,
         "directions": 6
     },
     {
@@ -66,6 +82,8 @@
         "origin_y": 575,
         "width": 256,
         "height": 143,
+        "anchor_x": 128,
+        "anchor_y": 64,
         "directions": 9
     },
     {
@@ -74,6 +92,8 @@
         "origin_y": 575,
         "width": 256,
         "height": 143,
+        "anchor_x": 128,
+        "anchor_y": 64,
         "directions": 3
     },
     {
@@ -81,13 +101,17 @@
         "origin_x": 0,
         "origin_y": 719,
         "width": 256,
-        "height": 195
+        "height": 195,
+        "anchor_x": 128,
+        "anchor_y": 131
     },
     {
         "name": "building_tall",
         "origin_x": 257,
         "origin_y": 719,
         "width": 256,
-        "height": 225
+        "height": 225,
+        "anchor_x": 128,
+        "anchor_y": 161
     }
 ]

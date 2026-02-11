@@ -18,6 +18,14 @@ entt::entity get_segment(const entt::registry& registry, entt::entity tile)
         registry.ctx().get<const SpatialMapComponent>()
     };
 
+    const TileSpecComponent& tilespec {
+        registry.ctx().get<const TileSpecComponent>()
+    };
+
+    const TileMapComponent& tilemap {
+        registry.ctx().get<const TileMapComponent>()
+    };
+
     // TODO - am fetching this multiple times?
     const TileMapGridPositionComponent* grid_position {
         registry.try_get<const TileMapGridPositionComponent>(tile)
@@ -27,7 +35,10 @@ entt::entity get_segment(const entt::registry& registry, entt::entity tile)
         return entt::null;
 
     SpatialMapGridPosition spatial_map_position {
-        Position::to_spatial_map_grid_position(*grid_position, registry)
+        Position::to_spatial_map_grid_position(
+            Position::to_world_position(*grid_position, tilespec, tilemap),
+            spatial_map
+        )
     };
 
     entt::entity spatial_map_cell_entity {

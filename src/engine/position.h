@@ -19,7 +19,11 @@ struct SpatialMapGridPosition {
     glm::ivec2 position;
 };
 
-glm::vec2 to_grid_gross(const WorldPosition& position, const entt::registry& registry);
+glm::vec2 to_grid_gross(
+    const WorldPosition& position,
+    const TileSpecComponent& tilespec,
+    const TileMapComponent& tilemap
+);
 
 /*
     operator glm::ivec2() const { return position; }
@@ -35,39 +39,42 @@ bool _in_min_bounds(const T& position)
 
 namespace Position {
 
-WorldPosition to_world_position(const TileMapGridPositionComponent& position, const entt::registry& registry);
-WorldPosition to_world_position(const ScreenPositionComponent& position, const entt::registry& registry);
+WorldPosition to_world_position(
+    const TileMapGridPositionComponent& position,
+    const TileSpecComponent& tilespec,
+    const TileMapComponent& tilemap
+);
+WorldPosition to_world_position(const ScreenPositionComponent& position, const CameraComponent& camera);
 WorldPosition to_world_position(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map);
-WorldPosition to_world_position(const SpatialMapGridPosition& position, const entt::registry& registry);
 
-TileMapGridPositionComponent to_grid_position(const ScreenPositionComponent& position, const entt::registry& registry);
-TileMapGridPositionComponent to_grid_position(const WorldPosition& position, const entt::registry& registry);
+TileMapGridPositionComponent to_grid_position(
+    const WorldPosition& position,
+    const TileSpecComponent& tilespec,
+    const TileMapComponent& tilemap
+);
 
-TileMapGridPositionComponent from_tile_number(const entt::registry& registry, const int cell_number);
+TileMapGridPositionComponent from_tile_number(const TileMapComponent& tilemap, const int cell_number);
 
 ScreenPositionComponent to_screen_position(const WorldPosition& position, const CameraComponent& camera);
-ScreenPositionComponent to_screen_position(const WorldPosition& position, const entt::registry& registry);
 
-SpatialMapGridPosition to_spatial_map_grid_position(const TileMapGridPositionComponent& position, const entt::registry& registry);
-SpatialMapGridPosition to_spatial_map_grid_position(const TileMapGridPositionComponent& position, const SpatialMapComponent& spatial_map);
-SpatialMapGridPosition to_spatial_map_grid_position(const WorldPosition& position, const entt::registry& registry);
+SpatialMapGridPosition to_spatial_map_grid_position(
+    const TileMapGridPositionComponent& position,
+    const SpatialMapComponent& spatial_map,
+    const TileSpecComponent& tilespec,
+    const TileMapComponent& tilemap
+);
 SpatialMapGridPosition to_spatial_map_grid_position(const WorldPosition& position, const SpatialMapComponent& spatial_map);
 
 int to_spatial_map_cell(const WorldPosition& position, const SpatialMapComponent& spatial_map);
-int to_spatial_map_cell(const WorldPosition& position, const entt::registry& registry);
 int to_spatial_map_cell(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map);
-int to_spatial_map_cell(const SpatialMapGridPosition& position, const entt::registry& registry);
 
-SpatialMapGridPosition from_cell_number(const entt::registry& registry, const int cell_number);
 SpatialMapGridPosition from_cell_number(const SpatialMapComponent& spatial_map, const int cell_number);
 
 bool is_valid(const TileMapGridPositionComponent& position, const TileMapComponent& tilemap);
-bool is_valid(const TileMapGridPositionComponent& position, const entt::registry& registry);
-bool is_valid(const WorldPosition& position, const entt::registry& registry);
 bool is_valid(const WorldPosition& position, const TileMapComponent& tilemap);
-bool is_valid(const SpatialMapGridPosition& position, const entt::registry& registry);
 bool is_valid(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map);
 bool is_valid(const ScreenPositionComponent& position, const SDL_DisplayMode& display_mode);
+
 }
 
 #endif

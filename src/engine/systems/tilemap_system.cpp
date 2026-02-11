@@ -111,8 +111,8 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     for (int i = 0; i < tilemap.n_tiles; i++) {
         entt::entity tile { tilemap.tiles.emplace_back(registry.create()) };
 
-        const TileMapGridPositionComponent grid_position = Position::from_tile_number(registry, i);
-        const WorldPosition world_position = Position::to_world_position(grid_position, registry);
+        const TileMapGridPositionComponent grid_position = Position::from_tile_number(tilemap, i);
+        const WorldPosition world_position = Position::to_world_position(grid_position, tilespec, tilemap);
 
         registry.emplace<TransformComponent>(tile, world_position.position, 0, 0.0);
         registry.emplace<HighlightComponent>(tile, SDL_Color { 0, 0, 255, 255 }, tilespec.iso_points);
