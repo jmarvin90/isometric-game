@@ -62,8 +62,8 @@ void Game::initialise()
     registry.ctx().emplace<MouseComponent>();
     registry.ctx().emplace<CameraComponent>(display_mode);
     registry.ctx().emplace<SpriteSheet>(
-        std::string { "assets/spritesheet_scaled.png" },
-        std::string { "assets/spritesheet.json" },
+        std::string { "assets/tile_spritesheet_scaled.png" },
+        std::string { "assets/tile_spritesheet.json" },
         renderer
     );
 
