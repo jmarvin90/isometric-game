@@ -30,6 +30,8 @@ public:
 
     SpriteSheet(const SpriteSheet&) = delete;
     SpriteSheet& operator=(const SpriteSheet&) = delete;
+
+    // TODO - default move with raw pointer will cause issues
     SpriteSheet(SpriteSheet&&) = default;
     SpriteSheet& operator=(SpriteSheet&&) = default;
 };
