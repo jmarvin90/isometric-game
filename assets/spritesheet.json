@@ -103,7 +103,7 @@
         "width": 256,
         "height": 195,
         "anchor_x": 128,
-        "anchor_y": 131
+        "anchor_y": 116
     },
     {
         "name": "building_tall",
@@ -112,6 +112,6 @@
         "width": 256,
         "height": 225,
         "anchor_x": 128,
-        "anchor_y": 161
+        "anchor_y": 146
     }
 ]
