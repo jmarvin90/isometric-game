@@ -48,6 +48,13 @@ void Game::initialise()
 
     registry = entt::registry();
 
+    registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
+    registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
+    registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
+    registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
+    registry.on_destroy<SegmentComponent>().connect<&SegmentSystem::disconnect>();
+    registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
+
     // TODO: move this somewhere smart under some smart condition
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(256, 14, 3, 68) };
@@ -63,14 +70,6 @@ void Game::initialise()
     const TileMapComponent& tilemap { registry.ctx().emplace<TileMapComponent>(tilespec, 32) };
     registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 2);
     registry.ctx().emplace<SegmentManagerComponent>();
-
-    registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
-    registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
-    registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
-    registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
-    registry.on_destroy<SegmentComponent>().connect<&SegmentSystem::disconnect>();
-    registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
-
     TileMapSystem::emplace_tiles(registry);
 
     ImGui::CreateContext();

@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include <cmath>
+#include <components/debug_component.h>
 #include <components/segment_component.h>
 #include <components/spatialmap_component.h>
 #include <components/spatialmapcell_component.h>
@@ -95,21 +96,36 @@ SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity
 {
     const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
     const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
+    const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
 
     WorldPosition AA { transform.position };
     WorldPosition BB { AA.position + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
 
     return {
-        Position::to_spatial_map_grid_position(AA, registry),
-        Position::to_spatial_map_grid_position(BB, registry)
+        Position::to_spatial_map_grid_position(AA, spatial_map),
+        Position::to_spatial_map_grid_position(BB, spatial_map)
     };
 }
 
 } // namespace
 
+void SpatialMapSystem::update_entity(entt::registry& registry, entt::entity entity)
+{
+    SpatialMapCellSpanComponent& current_span { registry.get<SpatialMapCellSpanComponent>(entity) };
+    const SpatialMapCellSpanComponent new_span { spanned_cells(registry, entity) };
+
+    if (current_span != new_span) {
+        SpatialMapSystem::remove_entity(registry, entity);
+        SpatialMapSystem::emplace_entity(registry, entity);
+        current_span = new_span;
+    }
+}
+
 void SpatialMapSystem::emplace_entity(entt::registry& registry, entt::entity entity)
 {
-    SpatialMapCellSpanComponent cell_span { spanned_cells(registry, entity) };
+    const SpatialMapCellSpanComponent& cell_span {
+        registry.emplace<SpatialMapCellSpanComponent>(entity, spanned_cells(registry, entity))
+    };
     for (int x = cell_span.AA.position.x; x <= cell_span.BB.position.x; x++) {
         for (int y = cell_span.AA.position.y; y <= cell_span.BB.position.y; y++) {
             SpatialMapCellComponent* cell { get_or_create_cell(registry, SpatialMapGridPosition { { x, y } }) };
