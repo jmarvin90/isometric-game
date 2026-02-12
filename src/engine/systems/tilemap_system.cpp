@@ -1,18 +1,22 @@
+#include <components/debug_component.h>
 #include <components/highlight_component.h>
 #include <components/junction_component.h>
 #include <components/mouseover_component.h>
 #include <components/navigation_component.h>
 #include <components/segment_component.h>
 #include <components/segment_manager_component.h>
+#include <components/spatialmapcell_span_component.h>
 #include <components/sprite_component.h>
 #include <components/tilemap_component.h>
 #include <components/tilemap_grid_position_component.h>
 #include <components/tilespec_component.h>
+#include <components/transform_component.h>
 #include <directions.h>
 #include <position.h>
 #include <spdlog/spdlog.h>
 #include <spritesheet.h>
 #include <systems/tilemap_system.h>
+#include <utility.h>
 
 #include <algorithm>
 #include <array>
@@ -185,6 +189,50 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             registry.emplace<NavigationComponent>(tile, spritedef.navigation_definition.value());
         }
     }
+
+    entt::entity building { registry.create() };
+    registry.emplace<DebugComponent>(building);
+    [[maybe_unused]] TransformComponent& resulting_transform {
+        registry.emplace<TransformComponent>(building, glm::vec2 { 55, 55 }, 1, 0.0)
+    };
+    const SpriteSheetEntry& spritedef { spritesheet.get("building_tall") };
+    registry.emplace<SpriteComponent>(building, spritedef.sprite_definition);
+
+    assert(registry.all_of<SpatialMapCellSpanComponent>(building));
+
+    entt::entity target_tile { tilemap[{ 3, 6 }] };
+    const SpriteComponent& target_tile_sprite { registry.get<const SpriteComponent>(target_tile) };
+    const TransformComponent& target_tile_transform { registry.get<const TransformComponent>(target_tile) };
+    WorldPosition target_position { glm::ivec2 { target_tile_transform.position } + target_tile_sprite.anchor };
+
+    Utility::align_sprite_to(
+        registry,
+        building,
+        Utility::SpriteAnchor::SPRITE_ANCHOR,
+        target_position
+    );
+
+    entt::entity building_2 { registry.create() };
+    registry.emplace<DebugComponent>(building_2);
+    [[maybe_unused]] TransformComponent& resulting_transform_2 {
+        registry.emplace<TransformComponent>(building_2, glm::vec2 { 55, 55 }, 1, 0.0)
+    };
+    const SpriteSheetEntry& spritedef_2 { spritesheet.get("building_short") };
+    registry.emplace<SpriteComponent>(building_2, spritedef_2.sprite_definition);
+
+    assert(registry.all_of<SpatialMapCellSpanComponent>(building_2));
+
+    entt::entity target_tile_2 { tilemap[{ 3, 5 }] };
+    const SpriteComponent& target_tile_sprite_2 { registry.get<const SpriteComponent>(target_tile_2) };
+    const TransformComponent& target_tile_transform_2 { registry.get<const TransformComponent>(target_tile_2) };
+    WorldPosition target_position_2 { glm::ivec2 { target_tile_transform_2.position } + target_tile_sprite_2.anchor };
+
+    Utility::align_sprite_to(
+        registry,
+        building_2,
+        Utility::SpriteAnchor::SPRITE_ANCHOR,
+        target_position_2
+    );
 }
 
 void TileMapSystem::connect(entt::registry& registry, entt::entity entity)

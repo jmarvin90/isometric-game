@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include <cmath>
+#include <components/debug_component.h>
 #include <components/segment_component.h>
 #include <components/spatialmap_component.h>
 #include <components/spatialmapcell_component.h>
@@ -108,9 +109,23 @@ SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity
 
 } // namespace
 
+void SpatialMapSystem::update_entity(entt::registry& registry, entt::entity entity)
+{
+    SpatialMapCellSpanComponent& current_span { registry.get<SpatialMapCellSpanComponent>(entity) };
+    const SpatialMapCellSpanComponent new_span { spanned_cells(registry, entity) };
+
+    if (current_span != new_span) {
+        SpatialMapSystem::remove_entity(registry, entity);
+        SpatialMapSystem::emplace_entity(registry, entity);
+        current_span = new_span;
+    }
+}
+
 void SpatialMapSystem::emplace_entity(entt::registry& registry, entt::entity entity)
 {
-    SpatialMapCellSpanComponent cell_span { spanned_cells(registry, entity) };
+    const SpatialMapCellSpanComponent& cell_span {
+        registry.emplace<SpatialMapCellSpanComponent>(entity, spanned_cells(registry, entity))
+    };
     for (int x = cell_span.AA.position.x; x <= cell_span.BB.position.x; x++) {
         for (int y = cell_span.AA.position.y; y <= cell_span.BB.position.y; y++) {
             SpatialMapCellComponent* cell { get_or_create_cell(registry, SpatialMapGridPosition { { x, y } }) };
