@@ -9,11 +9,7 @@
 #include <position.h>
 #include <spdlog/spdlog.h>
 
-glm::vec2 to_grid_gross(
-    const glm::ivec2 world_position,
-    const TileSpecComponent& tilespec,
-    const TileMapComponent& tilemap
-)
+glm::vec2 to_grid_gross(const glm::ivec2 world_position, const TileSpecComponent& tilespec, const TileMapComponent& tilemap)
 {
     const glm::ivec2 world_pos_adjusted { world_position - tilespec.centre };
     const glm::ivec2 centred_world_pos { world_pos_adjusted - tilemap.origin_px };
@@ -22,57 +18,32 @@ glm::vec2 to_grid_gross(
 
 namespace Position {
 
-glm::ivec2 to_world_position(
-    const TileMapGridPositionComponent& position,
-    const TileSpecComponent& tilespec,
-    const TileMapComponent& tilemap
-)
+glm::ivec2 to_world_position(const glm::ivec2 grid_position, const TileSpecComponent& tilespec, const TileMapComponent& tilemap)
 {
-    const glm::ivec2 movement { tilespec.matrix * position.position };
+    const glm::ivec2 movement { tilespec.matrix * grid_position };
     const glm::ivec2 world_pos_gross { (movement + tilemap.origin_px) - tilespec.centre };
     return world_pos_gross + tilespec.centre;
 }
 
-glm::ivec2 to_world_position(const ScreenPositionComponent& position, const CameraComponent& camera)
+glm::ivec2 to_world_position(const glm::ivec2 screen_position, const CameraComponent& camera)
 {
-    return (position.position + camera.position()) - constants::SCENE_BORDER_PX;
+    return (screen_position + camera.position()) - constants::SCENE_BORDER_PX;
 }
 
-glm::ivec2 to_world_position(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map)
+glm::ivec2 to_world_position(const glm::ivec2 spatial_map_cell_position, const SpatialMapComponent& spatial_map)
 {
-    return position.position * spatial_map.cell_size;
+    return spatial_map_cell_position * spatial_map.cell_size;
 }
 
-TileMapGridPositionComponent to_grid_position(
-    const glm::ivec2 world_position,
-    const TileSpecComponent& tilespec,
-    const TileMapComponent& tilemap
-)
+glm::ivec2 to_grid_position(const glm::ivec2 world_position, const TileSpecComponent& tilespec, const TileMapComponent& tilemap)
 {
     const glm::vec2 gross_position { to_grid_gross(world_position, tilespec, tilemap) };
-    return TileMapGridPositionComponent {
-        { std::round(gross_position.x), std::round(gross_position.y) }
-    };
-}
-ScreenPositionComponent to_screen_position(const glm::ivec2 world_position, const CameraComponent& camera)
-{
-    return ScreenPositionComponent { (world_position - camera.position()) + constants::SCENE_BORDER_PX };
+    return glm::round(gross_position);
 }
 
-bool is_valid(const glm::ivec2 world_position, const TileMapComponent& tilemap)
+glm::ivec2 to_screen_position(const glm::ivec2 world_position, const CameraComponent& camera)
 {
-    return (
-        glm::all(glm::greaterThanEqual(world_position, glm::ivec2 { 0, 0 })) && //
-        glm::all(glm::lessThan(world_position, tilemap.area))
-    );
-}
-
-bool is_valid(const ScreenPositionComponent& position, const SDL_DisplayMode& display_mode)
-{
-    return (
-        glm::all(glm::greaterThanEqual(position.position, glm::ivec2 { 0, 0 })) && //
-        glm::all(glm::lessThan(position.position, glm::ivec2 { display_mode.w, display_mode.h }))
-    );
+    return (world_position - camera.position()) + constants::SCENE_BORDER_PX;
 }
 
 } // namespace

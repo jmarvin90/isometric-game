@@ -28,7 +28,7 @@ SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, SpatialMap
         cell = registry.create();
         spatial_map.emplace_at(grid_position, cell);
 
-        glm::ivec2 spatial_map_world_position { Position::to_world_position(grid_position, spatial_map) };
+        glm::ivec2 spatial_map_world_position { Position::to_world_position(grid_position.position, spatial_map) };
 
         return &registry.emplace<SpatialMapCellComponent>(
             cell,

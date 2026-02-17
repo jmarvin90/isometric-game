@@ -17,7 +17,7 @@ void MouseSystem::update(entt::registry& registry)
     const ScreenPositionComponent screen_position { mouse.window_current_position };
     const TileMapGridPositionComponent grid_position {
         Position::to_grid_position(
-            Position::to_world_position(screen_position, registry.ctx().get<const CameraComponent>()),
+            Position::to_world_position(screen_position.position, registry.ctx().get<const CameraComponent>()),
             registry.ctx().get<const TileSpecComponent>(),
             registry.ctx().get<const TileMapComponent>()
         )

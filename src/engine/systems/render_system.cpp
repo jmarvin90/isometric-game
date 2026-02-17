@@ -120,7 +120,7 @@ void RenderSystem::update(entt::registry& registry)
                 const TransformComponent& transform { registry.get<const TransformComponent>(renderable) };
                 registry.emplace_or_replace<ScreenPositionComponent>(
                     renderable,
-                    Position::to_screen_position(transform.position, camera).position
+                    Position::to_screen_position(transform.position, camera)
                 );
             }
 
@@ -216,14 +216,15 @@ void RenderSystem::render_imgui_ui(
     [[maybe_unused]] const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
 
     // The mouse and world positions
-    const ScreenPositionComponent screen_position { mouse.window_current_position };
+
     const glm::ivec2 world_position {
         Position::to_world_position(
-            screen_position,
+            mouse.window_current_position,
             registry.ctx().get<const CameraComponent>()
         )
     };
-    const TileMapGridPositionComponent grid_position {
+
+    const glm::ivec2 grid_position {
         Position::to_grid_position(
             world_position,
             registry.ctx().get<const TileSpecComponent>(),
@@ -235,8 +236,8 @@ void RenderSystem::render_imgui_ui(
 
     ImGui::Text(
         "Mouse Screen position: (%d) (%d)",
-        screen_position.position.x,
-        screen_position.position.y
+        mouse.window_current_position.x,
+        mouse.window_current_position.y
     );
 
     ImGui::Text(
@@ -247,8 +248,8 @@ void RenderSystem::render_imgui_ui(
 
     ImGui::Text(
         "Mouse Grid position: (%d) (%d)",
-        grid_position.position.x,
-        grid_position.position.y
+        grid_position.x,
+        grid_position.y
     );
 
     // if (tilemap.highlighted_tile != entt::null) {
@@ -339,7 +340,6 @@ void RenderSystem::render_path(
                 glm::ivec2 { glm::ivec2 { current_world_position->position } },
                 camera_component
             )
-                .position
             + tile_exit_offset
         };
 
@@ -348,7 +348,6 @@ void RenderSystem::render_path(
                 glm::ivec2 { glm::ivec2 { next_world_position->position } },
                 camera_component
             )
-                .position
             + tile_entry_offset
         };
 

@@ -71,12 +71,12 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
     transform.z_index += factor;
 }
 
-TileMapGridPositionComponent from_tile_number(const TileMapComponent& tilemap, const int tile_n)
+glm::ivec2 from_tile_number(const TileMapComponent& tilemap, const int tile_n)
 {
     if (tile_n < tilemap.n_per_row) {
-        return TileMapGridPositionComponent { { tile_n, 0 } };
+        return { tile_n, 0 };
     } else {
-        return TileMapGridPositionComponent { { tile_n % tilemap.n_per_row, tile_n / tilemap.n_per_row } };
+        return { tile_n % tilemap.n_per_row, tile_n / tilemap.n_per_row };
     }
 }
 
@@ -124,7 +124,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     for (int i = 0; i < tilemap.n_tiles; i++) {
         entt::entity tile { tilemap.tiles.emplace_back(registry.create()) };
 
-        const TileMapGridPositionComponent grid_position = from_tile_number(tilemap, i);
+        const glm::ivec2 grid_position = from_tile_number(tilemap, i);
         const glm::ivec2 world_position = Position::to_world_position(grid_position, tilespec, tilemap);
 
         registry.emplace<TransformComponent>(tile, world_position, 0, 0.0);
@@ -137,7 +137,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             std::find(
                 ew_positions.begin(),
                 ew_positions.end(),
-                grid_position.position
+                grid_position
             )
             != ew_positions.end()
         ) {
@@ -146,7 +146,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             std::find(
                 nesw_positions.begin(),
                 nesw_positions.end(),
-                grid_position.position
+                grid_position
             )
             != nesw_positions.end()
         ) {
@@ -155,7 +155,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             std::find(
                 ns_positions.begin(),
                 ns_positions.end(),
-                grid_position.position
+                grid_position
             )
             != ns_positions.end()
         ) {
@@ -164,7 +164,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             std::find(
                 sw_positions.begin(),
                 sw_positions.end(),
-                grid_position.position
+                grid_position
             )
             != sw_positions.end()
         ) {
@@ -173,7 +173,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             std::find(
                 ne_positions.begin(),
                 ne_positions.end(),
-                grid_position.position
+                grid_position
             )
             != ne_positions.end()
         ) {
@@ -182,7 +182,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             std::find(
                 nw_positions.begin(),
                 nw_positions.end(),
-                grid_position.position
+                grid_position
             )
             != nw_positions.end()
         ) {
