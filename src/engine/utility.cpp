@@ -1,7 +1,6 @@
 #include <components/spatialmapcell_span_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
-#include <position.h>
 #include <systems/spatialmap_system.h>
 #include <utility.h>
 

@@ -1,7 +1,7 @@
 #ifndef SPATIALMAPCELLSPANCOMPONENT_H
 #define SPATIALMAPCELLSPANCOMPONENT_H
 
-#include <position.h>
+#include <components/spatialmap_component.h>
 
 struct SpatialMapCellSpanComponent {
     SpatialMapGridPosition AA;

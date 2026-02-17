@@ -4,7 +4,6 @@
 #include <components/segment_manager_component.h>
 #include <components/transform_component.h>
 #include <directions.h>
-#include <position.h>
 #include <systems/segment_system.h>
 
 #include <entt/entt.hpp>

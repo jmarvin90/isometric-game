@@ -1,11 +1,12 @@
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include <components/junction_component.h>
+#include <components/spatialmap_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/tilemap_grid_position_component.h>
+#include <components/transform_component.h>
 #include <glm/glm.hpp>
 #include <pathfinding.h>
-#include <position.h>
 #include <queue>
 #include <unordered_map>
 #include <vector>
