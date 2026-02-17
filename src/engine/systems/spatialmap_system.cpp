@@ -28,13 +28,13 @@ SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, SpatialMap
         cell = registry.create();
         spatial_map.emplace_at(grid_position, cell);
 
-        WorldPosition spatial_map_world_position { Position::to_world_position(grid_position, spatial_map) };
+        glm::ivec2 spatial_map_world_position { Position::to_world_position(grid_position, spatial_map) };
 
         return &registry.emplace<SpatialMapCellComponent>(
             cell,
             SDL_Rect {
-                spatial_map_world_position.position.x,
-                spatial_map_world_position.position.y,
+                spatial_map_world_position.x,
+                spatial_map_world_position.y,
                 spatial_map.cell_size.x,
                 spatial_map.cell_size.y }
         );
@@ -91,10 +91,10 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
     return output;
 }
 
-SpatialMapGridPosition to_spatial_map_grid_position(const WorldPosition& position, const SpatialMapComponent& spatial_map)
+SpatialMapGridPosition to_spatial_map_grid_position(const glm::ivec2 world_position, const SpatialMapComponent& spatial_map)
 {
     assert(spatial_map.cell_size.x > 0 && spatial_map.cell_size.y > 0);
-    return SpatialMapGridPosition { position.position / spatial_map.cell_size };
+    return SpatialMapGridPosition { world_position / spatial_map.cell_size };
 }
 
 SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity entity)
@@ -103,8 +103,8 @@ SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity
     const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
     const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
 
-    WorldPosition AA { transform.position };
-    WorldPosition BB { AA.position + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
+    glm::ivec2 AA { transform.position };
+    glm::ivec2 BB { AA + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
 
     return {
         to_spatial_map_grid_position(AA, spatial_map),

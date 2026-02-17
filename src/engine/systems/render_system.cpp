@@ -75,8 +75,8 @@ void draw_segment_path(
 )
 {
     const CameraComponent& camera_component { registry.ctx().get<const CameraComponent>() };
-    WorldPosition segment_start_world { registry.get<TransformComponent>(segment_start).position };
-    WorldPosition segment_end_world { registry.get<TransformComponent>(segment_end).position };
+    glm::ivec2 segment_start_world { registry.get<TransformComponent>(segment_start).position };
+    glm::ivec2 segment_end_world { registry.get<TransformComponent>(segment_end).position };
     ScreenPositionComponent segment_start_screen { Position::to_screen_position(segment_start_world, camera_component) };
     ScreenPositionComponent segment_end_screen { Position::to_screen_position(segment_end_world, camera_component) };
     glm::ivec2 entry { segment_start_screen.position + tilespec.road_gates.at(Direction::index_position(direction)).exit };
@@ -120,7 +120,7 @@ void RenderSystem::update(entt::registry& registry)
                 const TransformComponent& transform { registry.get<const TransformComponent>(renderable) };
                 registry.emplace_or_replace<ScreenPositionComponent>(
                     renderable,
-                    Position::to_screen_position(WorldPosition { transform.position }, camera).position
+                    Position::to_screen_position(transform.position, camera).position
                 );
             }
 
@@ -217,7 +217,7 @@ void RenderSystem::render_imgui_ui(
 
     // The mouse and world positions
     const ScreenPositionComponent screen_position { mouse.window_current_position };
-    const WorldPosition world_position {
+    const glm::ivec2 world_position {
         Position::to_world_position(
             screen_position,
             registry.ctx().get<const CameraComponent>()
@@ -241,8 +241,8 @@ void RenderSystem::render_imgui_ui(
 
     ImGui::Text(
         "Mouse World position: (%d) (%d)",
-        world_position.position.x,
-        world_position.position.y
+        world_position.x,
+        world_position.y
     );
 
     ImGui::Text(
@@ -336,7 +336,7 @@ void RenderSystem::render_path(
 
         [[maybe_unused]] glm::ivec2 start_screen_position {
             Position::to_screen_position(
-                WorldPosition { glm::ivec2 { current_world_position->position } },
+                glm::ivec2 { glm::ivec2 { current_world_position->position } },
                 camera_component
             )
                 .position
@@ -345,7 +345,7 @@ void RenderSystem::render_path(
 
         [[maybe_unused]] glm::ivec2 end_screen_position {
             Position::to_screen_position(
-                WorldPosition { glm::ivec2 { next_world_position->position } },
+                glm::ivec2 { glm::ivec2 { next_world_position->position } },
                 camera_component
             )
                 .position

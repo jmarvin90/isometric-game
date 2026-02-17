@@ -125,9 +125,9 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
         entt::entity tile { tilemap.tiles.emplace_back(registry.create()) };
 
         const TileMapGridPositionComponent grid_position = from_tile_number(tilemap, i);
-        const WorldPosition world_position = Position::to_world_position(grid_position, tilespec, tilemap);
+        const glm::ivec2 world_position = Position::to_world_position(grid_position, tilespec, tilemap);
 
-        registry.emplace<TransformComponent>(tile, world_position.position, 0, 0.0);
+        registry.emplace<TransformComponent>(tile, world_position, 0, 0.0);
         registry.emplace<HighlightComponent>(tile, SDL_Color { 0, 0, 255, 255 }, tilespec.iso_points);
         registry.emplace<TileMapGridPositionComponent>(tile, grid_position);
 
@@ -212,7 +212,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     entt::entity target_tile { tilemap[{ 3, 6 }] };
     const SpriteComponent& target_tile_sprite { registry.get<const SpriteComponent>(target_tile) };
     const TransformComponent& target_tile_transform { registry.get<const TransformComponent>(target_tile) };
-    WorldPosition target_position { glm::ivec2 { target_tile_transform.position } + target_tile_sprite.anchor };
+    glm::ivec2 target_position { glm::ivec2 { target_tile_transform.position } + target_tile_sprite.anchor };
 
     Utility::align_sprite_to(
         registry,
@@ -234,7 +234,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     entt::entity target_tile_2 { tilemap[{ 3, 5 }] };
     const SpriteComponent& target_tile_sprite_2 { registry.get<const SpriteComponent>(target_tile_2) };
     const TransformComponent& target_tile_transform_2 { registry.get<const TransformComponent>(target_tile_2) };
-    WorldPosition target_position_2 { glm::ivec2 { target_tile_transform_2.position } + target_tile_sprite_2.anchor };
+    glm::ivec2 target_position_2 { glm::ivec2 { target_tile_transform_2.position } + target_tile_sprite_2.anchor };
 
     Utility::align_sprite_to(
         registry,

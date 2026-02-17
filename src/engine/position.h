@@ -12,12 +12,8 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
-struct WorldPosition {
-    glm::ivec2 position;
-};
-
 glm::vec2 to_grid_gross(
-    const WorldPosition& position,
+    const glm::ivec2 position,
     const TileSpecComponent& tilespec,
     const TileMapComponent& tilemap
 );
@@ -36,24 +32,24 @@ bool _in_min_bounds(const T& position)
 
 namespace Position {
 
-WorldPosition to_world_position(
+glm::ivec2 to_world_position(
     const TileMapGridPositionComponent& position,
     const TileSpecComponent& tilespec,
     const TileMapComponent& tilemap
 );
-WorldPosition to_world_position(const ScreenPositionComponent& position, const CameraComponent& camera);
-WorldPosition to_world_position(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map);
+glm::ivec2 to_world_position(const ScreenPositionComponent& position, const CameraComponent& camera);
+glm::ivec2 to_world_position(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map);
 
 TileMapGridPositionComponent to_grid_position(
-    const WorldPosition& position,
+    const glm::ivec2 world_position,
     const TileSpecComponent& tilespec,
     const TileMapComponent& tilemap
 );
 
-ScreenPositionComponent to_screen_position(const WorldPosition& position, const CameraComponent& camera);
+ScreenPositionComponent to_screen_position(const glm::ivec2 world_position, const CameraComponent& camera);
 
 bool is_valid(const TileMapGridPositionComponent& position, const TileMapComponent& tilemap);
-bool is_valid(const WorldPosition& position, const TileMapComponent& tilemap);
+bool is_valid(const glm::ivec2 world_position, const TileMapComponent& tilemap);
 bool is_valid(const ScreenPositionComponent& position, const SDL_DisplayMode& display_mode);
 
 }

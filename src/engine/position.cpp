@@ -10,12 +10,12 @@
 #include <spdlog/spdlog.h>
 
 glm::vec2 to_grid_gross(
-    const WorldPosition& position,
+    const glm::ivec2 world_position,
     const TileSpecComponent& tilespec,
     const TileMapComponent& tilemap
 )
 {
-    const glm::ivec2 world_pos_adjusted { position.position - tilespec.centre };
+    const glm::ivec2 world_pos_adjusted { world_position - tilespec.centre };
     const glm::ivec2 centred_world_pos { world_pos_adjusted - tilemap.origin_px };
     return glm::vec2 { tilespec.matrix_inverted * centred_world_pos };
 }
@@ -40,7 +40,7 @@ bool generic_valid(const T& position, const M& map)
 
 namespace Position {
 
-WorldPosition to_world_position(
+glm::ivec2 to_world_position(
     const TileMapGridPositionComponent& position,
     const TileSpecComponent& tilespec,
     const TileMapComponent& tilemap
@@ -48,38 +48,26 @@ WorldPosition to_world_position(
 {
     const glm::ivec2 movement { tilespec.matrix * position.position };
     const glm::ivec2 world_pos_gross { (movement + tilemap.origin_px) - tilespec.centre };
-    return WorldPosition { world_pos_gross + tilespec.centre };
+    return world_pos_gross + tilespec.centre;
 }
 
-WorldPosition to_world_position(const ScreenPositionComponent& position, const CameraComponent& camera)
+glm::ivec2 to_world_position(const ScreenPositionComponent& position, const CameraComponent& camera)
 {
-    return WorldPosition { (position.position + camera.position()) - constants::SCENE_BORDER_PX };
+    return (position.position + camera.position()) - constants::SCENE_BORDER_PX;
 }
 
-WorldPosition to_world_position(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map)
+glm::ivec2 to_world_position(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map)
 {
-    return WorldPosition { position.position * spatial_map.cell_size };
+    return position.position * spatial_map.cell_size;
 }
-
-// WorldPosition to_world_position(const SpatialMapGridPosition& position, const entt::registry& registry)
-// {
-//     const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
-//     return to_world_position(position, spatial_map);
-// }
-
-/*
-
-
-
-*/
 
 TileMapGridPositionComponent to_grid_position(
-    const WorldPosition& position,
+    const glm::ivec2 world_position,
     const TileSpecComponent& tilespec,
     const TileMapComponent& tilemap
 )
 {
-    const glm::vec2 gross_position { to_grid_gross(position, tilespec, tilemap) };
+    const glm::vec2 gross_position { to_grid_gross(world_position, tilespec, tilemap) };
     return TileMapGridPositionComponent {
         { std::round(gross_position.x), std::round(gross_position.y) }
     };
@@ -91,9 +79,9 @@ TileMapGridPositionComponent to_grid_position(
 
 */
 
-ScreenPositionComponent to_screen_position(const WorldPosition& position, const CameraComponent& camera)
+ScreenPositionComponent to_screen_position(const glm::ivec2 world_position, const CameraComponent& camera)
 {
-    return ScreenPositionComponent { (position.position - camera.position()) + constants::SCENE_BORDER_PX };
+    return ScreenPositionComponent { (world_position - camera.position()) + constants::SCENE_BORDER_PX };
 }
 
 /*
@@ -141,13 +129,10 @@ bool is_valid(const TileMapGridPositionComponent& position, const TileMapCompone
     return generic_valid(position, tilemap);
 }
 
-bool is_valid(const WorldPosition& position, const TileMapComponent& tilemap)
+bool is_valid(const glm::ivec2 world_position, const TileMapComponent& tilemap)
 {
     return (
-        _in_min_bounds<glm::ivec2>(position.position) //
-        && (position.position.x < tilemap.area.x && //
-            position.position.y < tilemap.area.y //
-        )
+        _in_min_bounds<glm::ivec2>(world_position) && glm::all(glm::lessThan(world_position, tilemap.area))
     );
 }
 
@@ -155,7 +140,7 @@ bool is_valid(const ScreenPositionComponent& position, const SDL_DisplayMode& di
 {
     return (
         _in_min_bounds<glm::ivec2>(position.position) && //
-        (position.position.x < display_mode.w && position.position.y < display_mode.h)
+        glm::all(glm::lessThan(position.position, glm::ivec2 { display_mode.w, display_mode.h }))
     );
 }
 
