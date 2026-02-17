@@ -20,12 +20,6 @@ glm::vec2 to_grid_gross(
     return glm::vec2 { tilespec.matrix_inverted * centred_world_pos };
 }
 
-/*
-
-
-
-*/
-
 namespace Position {
 
 glm::ivec2 to_world_position(
@@ -60,13 +54,6 @@ TileMapGridPositionComponent to_grid_position(
         { std::round(gross_position.x), std::round(gross_position.y) }
     };
 }
-
-/*
-
-
-
-*/
-
 ScreenPositionComponent to_screen_position(const glm::ivec2 world_position, const CameraComponent& camera)
 {
     return ScreenPositionComponent { (world_position - camera.position()) + constants::SCENE_BORDER_PX };
@@ -75,14 +62,15 @@ ScreenPositionComponent to_screen_position(const glm::ivec2 world_position, cons
 bool is_valid(const glm::ivec2 world_position, const TileMapComponent& tilemap)
 {
     return (
-        _in_min_bounds<glm::ivec2>(world_position) && glm::all(glm::lessThan(world_position, tilemap.area))
+        glm::all(glm::greaterThanEqual(world_position, glm::ivec2 { 0, 0 })) && //
+        glm::all(glm::lessThan(world_position, tilemap.area))
     );
 }
 
 bool is_valid(const ScreenPositionComponent& position, const SDL_DisplayMode& display_mode)
 {
     return (
-        _in_min_bounds<glm::ivec2>(position.position) && //
+        glm::all(glm::greaterThanEqual(position.position, glm::ivec2 { 0, 0 })) && //
         glm::all(glm::lessThan(position.position, glm::ivec2 { display_mode.w, display_mode.h }))
     );
 }

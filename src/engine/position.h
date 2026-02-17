@@ -18,18 +18,6 @@ glm::vec2 to_grid_gross(
     const TileMapComponent& tilemap
 );
 
-/*
-    operator glm::ivec2() const { return position; }
-    operator glm::vec2() const { return position; }
-    operator SDL_Point() const { return SDL_Point { position.x, position.y }; }
-*/
-
-template <typename T>
-bool _in_min_bounds(const T& position)
-{
-    return position.x >= 0 && position.y >= 0;
-}
-
 namespace Position {
 
 glm::ivec2 to_world_position(
