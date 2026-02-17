@@ -28,7 +28,7 @@ SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, const glm:
         cell = registry.create();
         spatial_map.emplace_at(grid_position, cell);
 
-        glm::ivec2 spatial_map_world_position { Position::to_world_position(grid_position, spatial_map) };
+        glm::ivec2 spatial_map_world_position { Position::spatial_map_to_world(grid_position, spatial_map.cell_size) };
 
         return &registry.emplace<SpatialMapCellComponent>(
             cell,
@@ -91,12 +91,6 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
     return output;
 }
 
-glm::ivec2 to_spatial_map_grid_position(const glm::ivec2 world_position, const SpatialMapComponent& spatial_map)
-{
-    assert(spatial_map.cell_size.x > 0 && spatial_map.cell_size.y > 0);
-    return world_position / spatial_map.cell_size;
-}
-
 SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity entity)
 {
     const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
@@ -107,8 +101,8 @@ SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity
     glm::ivec2 BB { AA + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
 
     return {
-        to_spatial_map_grid_position(AA, spatial_map),
-        to_spatial_map_grid_position(BB, spatial_map)
+        Position::world_to_spatial_map(AA, spatial_map.cell_size),
+        Position::world_to_spatial_map(BB, spatial_map.cell_size)
     };
 }
 

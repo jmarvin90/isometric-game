@@ -60,7 +60,6 @@ void Game::initialise()
     const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(256, 14, 3, 68) };
 
     registry.ctx().emplace<MouseComponent>();
-    registry.ctx().emplace<CameraComponent>(display_mode);
     registry.ctx().emplace<SpriteSheet>(
         std::string { "assets/spritesheet_scaled.png" },
         std::string { "assets/spritesheet.json" },
@@ -68,8 +67,9 @@ void Game::initialise()
     );
 
     const TileMapComponent& tilemap { registry.ctx().emplace<TileMapComponent>(tilespec, 32) };
-    registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 2);
+    [[maybe_unused]] const SpatialMapComponent& spatial_map { registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 2) };
     registry.ctx().emplace<SegmentManagerComponent>();
+    registry.ctx().emplace<CameraComponent>(display_mode, spatial_map);
     TileMapSystem::emplace_tiles(registry);
 
     ImGui::CreateContext();

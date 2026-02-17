@@ -125,7 +125,13 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
         entt::entity tile { tilemap.tiles.emplace_back(registry.create()) };
 
         const glm::ivec2 grid_position = from_tile_number(tilemap, i);
-        const glm::ivec2 world_position = Position::to_world_position(grid_position, tilespec, tilemap);
+
+        const glm::ivec2 world_position = Position::grid_to_world(
+            grid_position,
+            tilespec.centre,
+            tilemap.origin_px,
+            tilespec.matrix
+        );
 
         registry.emplace<TransformComponent>(tile, world_position, 0, 0.0);
         registry.emplace<HighlightComponent>(tile, SDL_Color { 0, 0, 255, 255 }, tilespec.iso_points);

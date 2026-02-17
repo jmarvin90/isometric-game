@@ -8,7 +8,7 @@ struct MouseComponent {
     glm::ivec2 window_current_position;
     glm::ivec2 window_previous_position;
     glm::ivec2 world_position;
-    bool moved;
+    bool moved_in_frame;
 
     MouseComponent(const MouseComponent&) = delete;
 };
