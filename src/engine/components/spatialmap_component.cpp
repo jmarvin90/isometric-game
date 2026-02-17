@@ -4,16 +4,16 @@
 
 namespace {
 // TODO: guaranteed to be the same as TileMapGridPosition
-bool is_valid(const SpatialMapComponent& spatial_map, const SpatialMapGridPosition grid_position)
+bool is_valid(const SpatialMapComponent& spatial_map, const glm::ivec2 grid_position)
 {
-    bool is_positive { glm::all(glm::greaterThanEqual(grid_position.position, glm::ivec2 { 0, 0 })) };
-    bool is_in_bounds { glm::all(glm::lessThan(grid_position.position, glm::ivec2 { spatial_map.n_per_row, spatial_map.n_per_row })) };
+    bool is_positive { glm::all(glm::greaterThanEqual(grid_position, glm::ivec2 { 0, 0 })) };
+    bool is_in_bounds { glm::all(glm::lessThan(grid_position, glm::ivec2 { spatial_map.n_per_row, spatial_map.n_per_row })) };
     return is_positive && is_in_bounds;
 }
 
-int to_cell_number(const SpatialMapComponent& spatial_map, const SpatialMapGridPosition grid_position)
+int to_cell_number(const SpatialMapComponent& spatial_map, const glm::ivec2 grid_position)
 {
-    return (grid_position.position.y * spatial_map.n_per_row) + grid_position.position.x;
+    return (grid_position.y * spatial_map.n_per_row) + grid_position.x;
 }
 }
 
@@ -26,7 +26,7 @@ entt::entity SpatialMapComponent::operator[](const int cell_number) const
     return map.at(cell_number);
 }
 
-entt::entity SpatialMapComponent::operator[](const SpatialMapGridPosition grid_position) const
+entt::entity SpatialMapComponent::operator[](const glm::ivec2 grid_position) const
 {
     int cell_number { to_cell_number(*this, grid_position) };
 
@@ -39,12 +39,12 @@ entt::entity SpatialMapComponent::operator[](const SpatialMapGridPosition grid_p
 
 entt::entity SpatialMapComponent::operator[](const TransformComponent& transform) const
 {
-    assert(cell_size.x > 0 && cell_size.y > 0);
-    SpatialMapGridPosition grid_position { glm::ivec2 { transform.position } / cell_size };
+    // TODO: watch for potential redundancy grid position logic
+    glm::ivec2 grid_position { glm::ivec2 { transform.position } / cell_size };
     return (*this)[grid_position];
 }
 
-void SpatialMapComponent::emplace_at(const SpatialMapGridPosition grid_position, entt::entity entity)
+void SpatialMapComponent::emplace_at(const glm::ivec2 grid_position, entt::entity entity)
 {
     map[to_cell_number(*this, grid_position)] = entity;
 }

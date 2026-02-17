@@ -4,11 +4,11 @@
 #include <components/spatialmap_component.h>
 
 struct SpatialMapCellSpanComponent {
-    SpatialMapGridPosition AA;
-    SpatialMapGridPosition BB;
+    glm::ivec2 AA;
+    glm::ivec2 BB;
     bool operator!=(const SpatialMapCellSpanComponent& other) const
     {
-        return AA.position != other.AA.position || BB.position != other.BB.position;
+        return AA != other.AA || BB != other.BB;
     }
 };
 
