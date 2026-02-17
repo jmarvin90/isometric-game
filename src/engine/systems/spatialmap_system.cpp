@@ -20,14 +20,13 @@ namespace {
 SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, SpatialMapGridPosition grid_position)
 {
     SpatialMapComponent& spatial_map { registry.ctx().get<SpatialMapComponent>() };
-    entt::entity cell { spatial_map[grid_position.position] };
+    entt::entity cell { spatial_map[grid_position] };
 
     if (cell != entt::null) {
         return &registry.get<SpatialMapCellComponent>(cell);
     } else {
         cell = registry.create();
-        int cell_number { Position::to_spatial_map_cell(grid_position, spatial_map) };
-        spatial_map.map[cell_number] = cell;
+        spatial_map.emplace_at(grid_position, cell);
 
         WorldPosition spatial_map_world_position { Position::to_world_position(grid_position, spatial_map) };
 
@@ -92,6 +91,12 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
     return output;
 }
 
+SpatialMapGridPosition to_spatial_map_grid_position(const WorldPosition& position, const SpatialMapComponent& spatial_map)
+{
+    assert(spatial_map.cell_size.x > 0 && spatial_map.cell_size.y > 0);
+    return SpatialMapGridPosition { position.position / spatial_map.cell_size };
+}
+
 SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity entity)
 {
     const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
@@ -102,8 +107,8 @@ SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity
     WorldPosition BB { AA.position + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
 
     return {
-        Position::to_spatial_map_grid_position(AA, spatial_map),
-        Position::to_spatial_map_grid_position(BB, spatial_map)
+        to_spatial_map_grid_position(AA, spatial_map),
+        to_spatial_map_grid_position(BB, spatial_map)
     };
 }
 

@@ -91,21 +91,6 @@ TileMapGridPositionComponent to_grid_position(
 
 */
 
-TileMapGridPositionComponent from_tile_number(const TileMapComponent& tilemap, const int tile_n)
-{
-    if (tile_n < tilemap.n_per_row) {
-        return TileMapGridPositionComponent { { tile_n, 0 } };
-    } else {
-        return TileMapGridPositionComponent { { tile_n % tilemap.n_per_row, tile_n / tilemap.n_per_row } };
-    }
-}
-
-/*
-
-
-
-*/
-
 ScreenPositionComponent to_screen_position(const WorldPosition& position, const CameraComponent& camera)
 {
     return ScreenPositionComponent { (position.position - camera.position()) + constants::SCENE_BORDER_PX };
@@ -117,11 +102,16 @@ ScreenPositionComponent to_screen_position(const WorldPosition& position, const 
 
 */
 
-SpatialMapGridPosition to_spatial_map_grid_position(const WorldPosition& position, const SpatialMapComponent& spatial_map)
-{
-    assert(spatial_map.cell_size.x > 0 && spatial_map.cell_size.y > 0);
-    return SpatialMapGridPosition { position.position / spatial_map.cell_size };
-}
+// int to_spatial_map_cell(const WorldPosition& position, const SpatialMapComponent& spatial_map)
+// {
+//     glm::ivec2 cell { position.position / spatial_map.cell_size };
+//     return (cell.y * spatial_map.n_per_row) + cell.x;
+// }
+
+// int to_spatial_map_cell(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map)
+// {
+//     return (position.position.y * spatial_map.n_per_row) + position.position.x;
+// }
 
 /*
 
@@ -129,33 +119,16 @@ SpatialMapGridPosition to_spatial_map_grid_position(const WorldPosition& positio
 
 */
 
-int to_spatial_map_cell(const WorldPosition& position, const SpatialMapComponent& spatial_map)
-{
-    glm::ivec2 cell { position.position / spatial_map.cell_size };
-    return (cell.y * spatial_map.n_per_row) + cell.x;
-}
-
-int to_spatial_map_cell(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map)
-{
-    return (position.position.y * spatial_map.n_per_row) + position.position.x;
-}
-
-/*
-
-
-
-*/
-
-SpatialMapGridPosition from_cell_number(const SpatialMapComponent& spatial_map, const int cell_number)
-{
-    if (cell_number < spatial_map.n_per_row) {
-        return SpatialMapGridPosition { { cell_number, 0 } };
-    } else {
-        return SpatialMapGridPosition {
-            { cell_number % spatial_map.n_per_row, cell_number / spatial_map.n_per_row }
-        };
-    }
-}
+// SpatialMapGridPosition from_cell_number(const SpatialMapComponent& spatial_map, const int cell_number)
+// {
+//     if (cell_number < spatial_map.n_per_row) {
+//         return SpatialMapGridPosition { { cell_number, 0 } };
+//     } else {
+//         return SpatialMapGridPosition {
+//             { cell_number % spatial_map.n_per_row, cell_number / spatial_map.n_per_row }
+//         };
+//     }
+// }
 
 /*
 
@@ -176,12 +149,6 @@ bool is_valid(const WorldPosition& position, const TileMapComponent& tilemap)
             position.position.y < tilemap.area.y //
         )
     );
-}
-
-// TODO: basically identical to GridPosition::is_valid();
-bool is_valid(const SpatialMapGridPosition& position, const SpatialMapComponent& spatial_map)
-{
-    return generic_valid(position, spatial_map);
 }
 
 bool is_valid(const ScreenPositionComponent& position, const SDL_DisplayMode& display_mode)

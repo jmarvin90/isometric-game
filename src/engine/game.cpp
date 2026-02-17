@@ -116,8 +116,8 @@ void Game::render()
     glm::ivec2 start_pos { 2, 1 };
     glm::ivec2 end_pos { 2, 6 };
 
-    entt::entity start_entity { tilemap[start_pos] };
-    entt::entity end_entity { tilemap[end_pos] };
+    [[maybe_unused]] entt::entity start_entity { tilemap[start_pos] };
+    [[maybe_unused]] entt::entity end_entity { tilemap[end_pos] };
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);

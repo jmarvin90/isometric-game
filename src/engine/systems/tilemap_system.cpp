@@ -71,6 +71,15 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
     transform.z_index += factor;
 }
 
+TileMapGridPositionComponent from_tile_number(const TileMapComponent& tilemap, const int tile_n)
+{
+    if (tile_n < tilemap.n_per_row) {
+        return TileMapGridPositionComponent { { tile_n, 0 } };
+    } else {
+        return TileMapGridPositionComponent { { tile_n % tilemap.n_per_row, tile_n / tilemap.n_per_row } };
+    }
+}
+
 } // namespace
 
 void TileMapSystem::update(
@@ -115,7 +124,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     for (int i = 0; i < tilemap.n_tiles; i++) {
         entt::entity tile { tilemap.tiles.emplace_back(registry.create()) };
 
-        const TileMapGridPositionComponent grid_position = Position::from_tile_number(tilemap, i);
+        const TileMapGridPositionComponent grid_position = from_tile_number(tilemap, i);
         const WorldPosition world_position = Position::to_world_position(grid_position, tilespec, tilemap);
 
         registry.emplace<TransformComponent>(tile, world_position.position, 0, 0.0);
