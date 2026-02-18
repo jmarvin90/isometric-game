@@ -74,6 +74,7 @@ void draw_segment_path(
     Direction::TDirection direction
 )
 {
+    // TODO: this function is nasty
     const glm::ivec2 camera_position { registry.ctx().get<const CameraComponent>().position() };
     glm::ivec2 segment_start_world { registry.get<TransformComponent>(segment_start).position };
     glm::ivec2 segment_end_world { registry.get<TransformComponent>(segment_end).position };
@@ -118,28 +119,11 @@ void RenderSystem::update(entt::registry& registry)
     registry.clear<ScreenPositionComponent>();
 
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
+    auto spatialmap_cells { registry.view<SpatialMapCellComponent>() };
 
-    for (
-        int x = camera.spatial_map_cell_span.AA.x;
-        x <= camera.spatial_map_cell_span.BB.x;
-        x++
-    ) {
-        for (
-            int y = camera.spatial_map_cell_span.AA.y;
-            y <= camera.spatial_map_cell_span.BB.y;
-            y++
-        ) {
-            entt::entity spatial_map_cell { spatial_map[{ x, y }] };
-
-            if (spatial_map_cell == entt::null)
-                continue;
-
-            const SpatialMapCellComponent& spatial_map_cell_component {
-                registry.get<const SpatialMapCellComponent>(spatial_map_cell)
-            };
-
-            for (entt::entity renderable : spatial_map_cell_component.entities) {
+    for (auto [entity, cell] : spatialmap_cells.each()) {
+        if (SDL_HasIntersection(&cell.cell, &camera.camera_rect)) {
+            for (entt::entity renderable : cell.entities) {
                 registry.emplace_or_replace<VisibilityComponent>(renderable);
                 const TransformComponent& transform { registry.get<const TransformComponent>(renderable) };
                 registry.emplace_or_replace<ScreenPositionComponent>(
@@ -148,7 +132,7 @@ void RenderSystem::update(entt::registry& registry)
                 );
             }
 
-            for (entt::entity renderable : spatial_map_cell_component.segments) {
+            for (entt::entity renderable : cell.segments) {
                 registry.emplace_or_replace<VisibilityComponent>(renderable);
             }
         }
