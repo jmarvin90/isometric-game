@@ -71,6 +71,15 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
     transform.z_index += factor;
 }
 
+glm::ivec2 from_tile_number(const TileMapComponent& tilemap, const int tile_n)
+{
+    if (tile_n < tilemap.n_per_row) {
+        return { tile_n, 0 };
+    } else {
+        return { tile_n % tilemap.n_per_row, tile_n / tilemap.n_per_row };
+    }
+}
+
 } // namespace
 
 void TileMapSystem::update(
@@ -115,10 +124,16 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     for (int i = 0; i < tilemap.n_tiles; i++) {
         entt::entity tile { tilemap.tiles.emplace_back(registry.create()) };
 
-        const TileMapGridPositionComponent grid_position = Position::from_tile_number(tilemap, i);
-        const WorldPosition world_position = Position::to_world_position(grid_position, tilespec, tilemap);
+        const glm::ivec2 grid_position = from_tile_number(tilemap, i);
 
-        registry.emplace<TransformComponent>(tile, world_position.position, 0, 0.0);
+        const glm::ivec2 world_position = Position::grid_to_world(
+            grid_position,
+            tilespec.centre,
+            tilemap.origin_px,
+            tilespec.matrix
+        );
+
+        registry.emplace<TransformComponent>(tile, world_position, 0, 0.0);
         registry.emplace<HighlightComponent>(tile, SDL_Color { 0, 0, 255, 255 }, tilespec.iso_points);
         registry.emplace<TileMapGridPositionComponent>(tile, grid_position);
 
@@ -128,7 +143,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             std::find(
                 ew_positions.begin(),
                 ew_positions.end(),
-                grid_position.position
+                grid_position
             )
             != ew_positions.end()
         ) {
@@ -137,7 +152,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             std::find(
                 nesw_positions.begin(),
                 nesw_positions.end(),
-                grid_position.position
+                grid_position
             )
             != nesw_positions.end()
         ) {
@@ -146,7 +161,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             std::find(
                 ns_positions.begin(),
                 ns_positions.end(),
-                grid_position.position
+                grid_position
             )
             != ns_positions.end()
         ) {
@@ -155,7 +170,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             std::find(
                 sw_positions.begin(),
                 sw_positions.end(),
-                grid_position.position
+                grid_position
             )
             != sw_positions.end()
         ) {
@@ -164,7 +179,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             std::find(
                 ne_positions.begin(),
                 ne_positions.end(),
-                grid_position.position
+                grid_position
             )
             != ne_positions.end()
         ) {
@@ -173,7 +188,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
             std::find(
                 nw_positions.begin(),
                 nw_positions.end(),
-                grid_position.position
+                grid_position
             )
             != nw_positions.end()
         ) {
@@ -203,7 +218,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     entt::entity target_tile { tilemap[{ 3, 6 }] };
     const SpriteComponent& target_tile_sprite { registry.get<const SpriteComponent>(target_tile) };
     const TransformComponent& target_tile_transform { registry.get<const TransformComponent>(target_tile) };
-    WorldPosition target_position { glm::ivec2 { target_tile_transform.position } + target_tile_sprite.anchor };
+    glm::ivec2 target_position { glm::ivec2 { target_tile_transform.position } + target_tile_sprite.anchor };
 
     Utility::align_sprite_to(
         registry,
@@ -225,7 +240,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     entt::entity target_tile_2 { tilemap[{ 3, 5 }] };
     const SpriteComponent& target_tile_sprite_2 { registry.get<const SpriteComponent>(target_tile_2) };
     const TransformComponent& target_tile_transform_2 { registry.get<const TransformComponent>(target_tile_2) };
-    WorldPosition target_position_2 { glm::ivec2 { target_tile_transform_2.position } + target_tile_sprite_2.anchor };
+    glm::ivec2 target_position_2 { glm::ivec2 { target_tile_transform_2.position } + target_tile_sprite_2.anchor };
 
     Utility::align_sprite_to(
         registry,

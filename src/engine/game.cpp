@@ -60,7 +60,6 @@ void Game::initialise()
     const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(256, 14, 3, 68) };
 
     registry.ctx().emplace<MouseComponent>();
-    registry.ctx().emplace<CameraComponent>(display_mode);
     registry.ctx().emplace<SpriteSheet>(
         std::string { "assets/spritesheet_scaled.png" },
         std::string { "assets/spritesheet.json" },
@@ -68,8 +67,9 @@ void Game::initialise()
     );
 
     const TileMapComponent& tilemap { registry.ctx().emplace<TileMapComponent>(tilespec, 32) };
-    registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 2);
+    [[maybe_unused]] const SpatialMapComponent& spatial_map { registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 2) };
     registry.ctx().emplace<SegmentManagerComponent>();
+    registry.ctx().emplace<CameraComponent>(display_mode, spatial_map);
     TileMapSystem::emplace_tiles(registry);
 
     ImGui::CreateContext();
@@ -116,8 +116,8 @@ void Game::render()
     glm::ivec2 start_pos { 2, 1 };
     glm::ivec2 end_pos { 2, 6 };
 
-    entt::entity start_entity { tilemap[start_pos] };
-    entt::entity end_entity { tilemap[end_pos] };
+    [[maybe_unused]] entt::entity start_entity { tilemap[start_pos] };
+    [[maybe_unused]] entt::entity end_entity { tilemap[end_pos] };
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);

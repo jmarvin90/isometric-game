@@ -3,6 +3,7 @@
 
 #include <components/tilemap_component.h>
 #include <components/tilespec_component.h>
+#include <components/transform_component.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <unordered_map>
@@ -32,6 +33,8 @@ struct SpatialMapComponent {
 
     entt::entity operator[](const int cell_number) const;
     entt::entity operator[](const glm::ivec2 grid_position) const;
+    entt::entity operator[](const TransformComponent& transform) const;
+    void emplace_at(const glm::ivec2 grid_position, entt::entity entity);
 };
 
 #endif

@@ -2,7 +2,7 @@
 #define UTILITY_H
 
 #include <entt/entt.hpp>
-#include <position.h>
+#include <glm/glm.hpp>
 
 namespace Utility {
 enum class SpriteAnchor {
@@ -14,7 +14,7 @@ void align_sprite_to(
     entt::registry& registry,
     entt::entity entity,
     SpriteAnchor alignment_anchor,
-    WorldPosition position
+    glm::ivec2 position
 );
 } // namespace
 

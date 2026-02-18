@@ -17,25 +17,24 @@
 namespace {
 // TODO - potentially a component member function;
 // TODO - be aware of pointer invalidation; perhaps return the entity ID instead
-SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, SpatialMapGridPosition grid_position)
+SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, const glm::ivec2 grid_position)
 {
     SpatialMapComponent& spatial_map { registry.ctx().get<SpatialMapComponent>() };
-    entt::entity cell { spatial_map[grid_position.position] };
+    entt::entity cell { spatial_map[grid_position] };
 
     if (cell != entt::null) {
         return &registry.get<SpatialMapCellComponent>(cell);
     } else {
         cell = registry.create();
-        int cell_number { Position::to_spatial_map_cell(grid_position, spatial_map) };
-        spatial_map.map[cell_number] = cell;
+        spatial_map.emplace_at(grid_position, cell);
 
-        WorldPosition spatial_map_world_position { Position::to_world_position(grid_position, spatial_map) };
+        glm::ivec2 spatial_map_world_position { Position::spatial_map_to_world(grid_position, spatial_map.cell_size) };
 
         return &registry.emplace<SpatialMapCellComponent>(
             cell,
             SDL_Rect {
-                spatial_map_world_position.position.x,
-                spatial_map_world_position.position.y,
+                spatial_map_world_position.x,
+                spatial_map_world_position.y,
                 spatial_map.cell_size.x,
                 spatial_map.cell_size.y }
         );
@@ -75,7 +74,7 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
     std::vector<SpatialMapCellComponent*> output;
 
     while (true) {
-        output.push_back(get_or_create_cell(registry, SpatialMapGridPosition { chunk }));
+        output.push_back(get_or_create_cell(registry, chunk));
 
         if (chunk == chunk_end)
             break;
@@ -98,12 +97,12 @@ SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity
     const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
     const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
 
-    WorldPosition AA { transform.position };
-    WorldPosition BB { AA.position + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
+    glm::ivec2 AA { transform.position };
+    glm::ivec2 BB { AA + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
 
     return {
-        Position::to_spatial_map_grid_position(AA, spatial_map),
-        Position::to_spatial_map_grid_position(BB, spatial_map)
+        Position::world_to_spatial_map(AA, spatial_map.cell_size),
+        Position::world_to_spatial_map(BB, spatial_map.cell_size)
     };
 }
 
@@ -126,9 +125,9 @@ void SpatialMapSystem::emplace_entity(entt::registry& registry, entt::entity ent
     const SpatialMapCellSpanComponent& cell_span {
         registry.emplace<SpatialMapCellSpanComponent>(entity, spanned_cells(registry, entity))
     };
-    for (int x = cell_span.AA.position.x; x <= cell_span.BB.position.x; x++) {
-        for (int y = cell_span.AA.position.y; y <= cell_span.BB.position.y; y++) {
-            SpatialMapCellComponent* cell { get_or_create_cell(registry, SpatialMapGridPosition { { x, y } }) };
+    for (int x = cell_span.AA.x; x <= cell_span.BB.x; x++) {
+        for (int y = cell_span.AA.y; y <= cell_span.BB.y; y++) {
+            SpatialMapCellComponent* cell { get_or_create_cell(registry, { x, y }) };
             cell->entities.emplace_back(entity);
         }
     }
@@ -137,9 +136,9 @@ void SpatialMapSystem::emplace_entity(entt::registry& registry, entt::entity ent
 void SpatialMapSystem::remove_entity(entt::registry& registry, entt::entity entity)
 {
     SpatialMapCellSpanComponent& cell_span { registry.get<SpatialMapCellSpanComponent>(entity) };
-    for (int x = cell_span.AA.position.x; x <= cell_span.BB.position.x; x++) {
-        for (int y = cell_span.AA.position.y; y <= cell_span.BB.position.y; y++) {
-            SpatialMapCellComponent* cell { get_or_create_cell(registry, SpatialMapGridPosition { { x, y } }) };
+    for (int x = cell_span.AA.x; x <= cell_span.BB.x; x++) {
+        for (int y = cell_span.AA.y; y <= cell_span.BB.y; y++) {
+            SpatialMapCellComponent* cell { get_or_create_cell(registry, { x, y }) };
             std::remove_if(
                 cell->entities.begin(),
                 cell->entities.end(),

@@ -74,11 +74,12 @@ void draw_segment_path(
     Direction::TDirection direction
 )
 {
-    const CameraComponent& camera_component { registry.ctx().get<const CameraComponent>() };
-    WorldPosition segment_start_world { registry.get<TransformComponent>(segment_start).position };
-    WorldPosition segment_end_world { registry.get<TransformComponent>(segment_end).position };
-    ScreenPositionComponent segment_start_screen { Position::to_screen_position(segment_start_world, camera_component) };
-    ScreenPositionComponent segment_end_screen { Position::to_screen_position(segment_end_world, camera_component) };
+    // TODO: this function is nasty
+    const glm::ivec2 camera_position { registry.ctx().get<const CameraComponent>().position() };
+    glm::ivec2 segment_start_world { registry.get<TransformComponent>(segment_start).position };
+    glm::ivec2 segment_end_world { registry.get<TransformComponent>(segment_end).position };
+    ScreenPositionComponent segment_start_screen { Position::world_to_screen(segment_start_world, camera_position) };
+    ScreenPositionComponent segment_end_screen { Position::world_to_screen(segment_end_world, camera_position) };
     glm::ivec2 entry { segment_start_screen.position + tilespec.road_gates.at(Direction::index_position(direction)).exit };
     glm::ivec2 exit { segment_end_screen.position + tilespec.road_gates.at(Direction::index_position(Direction::reverse(direction))).entry };
     SDL_RenderDrawLine(
@@ -107,6 +108,13 @@ void RenderSystem::render_segment_lines(
 
 void RenderSystem::update(entt::registry& registry)
 {
+    /*
+        TODO: possibility to early out if nothing has changed - incl.
+        - mouse
+        - camera
+        - movement
+    */
+
     registry.clear<VisibilityComponent>();
     registry.clear<ScreenPositionComponent>();
 
@@ -120,7 +128,7 @@ void RenderSystem::update(entt::registry& registry)
                 const TransformComponent& transform { registry.get<const TransformComponent>(renderable) };
                 registry.emplace_or_replace<ScreenPositionComponent>(
                     renderable,
-                    Position::to_screen_position(WorldPosition { transform.position }, camera).position
+                    Position::world_to_screen(transform.position, camera.position())
                 );
             }
 
@@ -214,20 +222,21 @@ void RenderSystem::render_imgui_ui(
 
     const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
     [[maybe_unused]] const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+    [[maybe_unused]] const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
+    [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
 
     // The mouse and world positions
-    const ScreenPositionComponent screen_position { mouse.window_current_position };
-    const WorldPosition world_position {
-        Position::to_world_position(
-            screen_position,
-            registry.ctx().get<const CameraComponent>()
-        )
+
+    const glm::ivec2 world_position {
+        Position::screen_to_world(mouse.window_current_position, camera.position())
     };
-    const TileMapGridPositionComponent grid_position {
-        Position::to_grid_position(
+
+    const glm::ivec2 grid_position {
+        Position::world_to_grid(
             world_position,
-            registry.ctx().get<const TileSpecComponent>(),
-            registry.ctx().get<const TileMapComponent>()
+            tilespec.centre,
+            tilemap.origin_px,
+            tilespec.matrix_inverted
         )
     };
 
@@ -235,20 +244,20 @@ void RenderSystem::render_imgui_ui(
 
     ImGui::Text(
         "Mouse Screen position: (%d) (%d)",
-        screen_position.position.x,
-        screen_position.position.y
+        mouse.window_current_position.x,
+        mouse.window_current_position.y
     );
 
     ImGui::Text(
         "Mouse World position: (%d) (%d)",
-        world_position.position.x,
-        world_position.position.y
+        world_position.x,
+        world_position.y
     );
 
     ImGui::Text(
         "Mouse Grid position: (%d) (%d)",
-        grid_position.position.x,
-        grid_position.position.y
+        grid_position.x,
+        grid_position.y
     );
 
     // if (tilemap.highlighted_tile != entt::null) {
@@ -335,20 +344,18 @@ void RenderSystem::render_path(
         };
 
         [[maybe_unused]] glm::ivec2 start_screen_position {
-            Position::to_screen_position(
-                WorldPosition { glm::ivec2 { current_world_position->position } },
-                camera_component
+            Position::world_to_screen(
+                glm::ivec2 { glm::ivec2 { current_world_position->position } },
+                camera_component.position()
             )
-                .position
             + tile_exit_offset
         };
 
         [[maybe_unused]] glm::ivec2 end_screen_position {
-            Position::to_screen_position(
-                WorldPosition { glm::ivec2 { next_world_position->position } },
-                camera_component
+            Position::world_to_screen(
+                glm::ivec2 { glm::ivec2 { next_world_position->position } },
+                camera_component.position()
             )
-                .position
             + tile_entry_offset
         };
 

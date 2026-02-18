@@ -9,6 +9,7 @@
 
 #include <directions.h>
 
+// TODO - probably move gates / translations
 struct Gate {
     glm::ivec2 entry;
     glm::ivec2 exit;
