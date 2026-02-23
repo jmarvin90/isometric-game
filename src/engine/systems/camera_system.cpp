@@ -13,8 +13,6 @@ void CameraSystem::update(entt::registry& registry)
     const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
     camera.moved_in_frame = false;
 
-    glm::ivec2 BB { camera.size - constants::SCENE_BORDER_PX };
-    glm::ivec2 camera_extent { camera.position + camera.size };
     glm::ivec2 map_extent { tilemap.area + (constants::SCENE_BORDER_PX * 2) };
     glm::ivec2 delta { 0, 0 };
 
@@ -28,8 +26,8 @@ void CameraSystem::update(entt::registry& registry)
                 -mouse.window_current_position[i]
             );
         } else if (
-            mouse.window_current_position[i] > BB[i]
-            && camera_extent[i] < map_extent[i]
+            mouse.window_current_position[i] > (camera.size - constants::SCENE_BORDER_PX)[i]
+            && (camera.position + camera.size)[i] < map_extent[i]
         ) {
             delta[i] = std::min(
                 constants::CAMERA_SCROLL_SPEED[i],
