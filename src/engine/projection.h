@@ -17,7 +17,7 @@ glm::mat2 projection_matrix(const glm::ivec2 cell_size)
 
 struct TileMapProjection {
     template <typename Grid>
-    glm::ivec2 grid_to_world(const glm::ivec2 grid_position, const Grid& grid) const
+    static glm::ivec2 grid_to_world(const glm::ivec2 grid_position, const Grid& grid)
     {
         int grid_width { grid.cell_size.x * grid.cells_per_row };
         glm::ivec2 tilemap_origin { (grid_width / 2) - (grid.cell_size.x / 2), 0 };
@@ -26,7 +26,7 @@ struct TileMapProjection {
     }
 
     template <typename Grid>
-    glm::ivec2 world_to_grid(const glm::ivec2 world_position, const Grid& grid) const
+    static glm::ivec2 world_to_grid(const glm::ivec2 world_position, const Grid& grid)
     {
         int grid_width { grid.cell_size.x * grid.cells_per_row };
         glm::ivec2 tile_centre { grid.cell_size / 2 };
@@ -39,13 +39,13 @@ struct TileMapProjection {
 
 struct SpatialMapProjection {
     template <typename Grid>
-    glm::ivec2 grid_to_world(const glm::ivec2 grid_position, const Grid& grid) const
+    static glm::ivec2 grid_to_world(const glm::ivec2 grid_position, const Grid& grid)
     {
         return grid_position * grid.cell_size;
     }
 
     template <typename Grid>
-    glm::ivec2 world_to_grid(const glm::ivec2 world_position, const Grid& grid) const
+    static glm::ivec2 world_to_grid(const glm::ivec2 world_position, const Grid& grid)
     {
         return world_position / grid.cell_size;
     }

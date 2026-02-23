@@ -10,7 +10,6 @@
 #include <grid.h>
 #include <imgui.h>
 #include <projection.h>
-#include <spatialmap_component.h>
 #include <spdlog/spdlog.h>
 #include <spritesheet.h>
 #include <systems/camera_system.h>
@@ -58,7 +57,7 @@ void Game::initialise()
 
     // TODO: move this somewhere smart under some smart condition
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(256, 14, 3, 68) };
+    [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(256, 14, 3, 68) };
 
     registry.ctx().emplace<MouseComponent>();
     registry.ctx().emplace<SpriteSheet>(
@@ -67,8 +66,8 @@ void Game::initialise()
         renderer
     );
 
-    const Grid<TileMapProjection>& tilemap { registry.ctx().emplace<Grid<TileMapProjection>>(registry, glm::ivec2 { 256, 128 }, 32, 32) };
-    [[maybe_unused]] const SpatialMapComponent& spatial_map { registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 2) };
+    [[maybe_unused]] const Grid<TileMapProjection>& tilemap { registry.ctx().emplace<Grid<TileMapProjection>>(registry, glm::ivec2 { 256, 128 }, 32, 32) };
+    const Grid<SpatialMapProjection>& spatial_map { registry.ctx().emplace<Grid<SpatialMapProjection>>(registry, glm::ivec2 { 512, 256 }, 16, 16) };
     registry.ctx().emplace<SegmentManagerComponent>();
     registry.ctx().emplace<CameraComponent>(display_mode, spatial_map);
     TileMapSystem::emplace_tiles(registry);

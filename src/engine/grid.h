@@ -48,7 +48,6 @@ glm::ivec2 index_to_grid_position(const int index_position, const Grid& grid)
 template <typename Projection>
 class Grid {
 private:
-    Projection _projection;
     entt::registry& registry;
 
 public:
@@ -70,10 +69,11 @@ public:
             entt::entity cell { registry.create() };
             cells.push_back(cell);
             registry.emplace<GridPositionComponent>(cell, grid_position);
-            registry.emplace<TransformComponent>(cell, _projection.grid_to_world(grid_position, *this), 0, 0.0);
+            registry.emplace<TransformComponent>(cell, Projection::grid_to_world(grid_position, *this), 0, 0.0);
         }
     }
 
+    // TODO: understand why this causes 'entity not in set' errors
     ~Grid()
     {
         // for (auto cell : cells) {
@@ -100,7 +100,7 @@ public:
 
     entt::entity at_world(const glm::ivec2 world_position) const
     {
-        return (*this)[_projection.world_to_grid(world_position, *this)];
+        return (*this)[Projection::world_to_grid(world_position, *this)];
     }
 };
 

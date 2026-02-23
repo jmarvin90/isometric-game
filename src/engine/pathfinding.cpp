@@ -2,11 +2,12 @@
 #include <algorithm>
 #include <components/grid_position_component.h>
 #include <components/junction_component.h>
-#include <components/spatialmap_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/transform_component.h>
 #include <glm/glm.hpp>
+#include <grid.h>
 #include <pathfinding.h>
+#include <projection.h>
 #include <queue>
 #include <unordered_map>
 #include <vector>
@@ -15,12 +16,12 @@ namespace {
 
 entt::entity get_segment(const entt::registry& registry, entt::entity tile)
 {
-    const SpatialMapComponent& spatial_map {
-        registry.ctx().get<const SpatialMapComponent>()
+    const Grid<SpatialMapProjection>& spatial_map {
+        registry.ctx().get<const Grid<SpatialMapProjection>>()
     };
 
     const TransformComponent& transform { registry.get<const TransformComponent>(tile) };
-    entt::entity spatial_map_cell_entity { spatial_map[transform] };
+    entt::entity spatial_map_cell_entity { spatial_map.at_world(transform.position) };
 
     // TODO: this shouldn't happen, really
     if (spatial_map_cell_entity == entt::null)

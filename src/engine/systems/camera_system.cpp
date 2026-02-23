@@ -1,6 +1,5 @@
 #include <components/camera_component.h>
 #include <components/mouse_component.h>
-#include <components/spatialmap_component.h>
 #include <constants.h>
 #include <grid.h>
 #include <projection.h>
@@ -39,10 +38,10 @@ void CameraSystem::update(entt::registry& registry, const SDL_DisplayMode& displ
     }
 
     if (camera.moved_in_frame) {
-        const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
+        const Grid<SpatialMapProjection>& spatial_map { registry.ctx().get<const Grid<SpatialMapProjection>>() };
         glm::ivec2 AA { camera.position() };
         glm::ivec2 BB { camera.position() + glm::ivec2 { camera.camera_rect.w, camera.camera_rect.h } };
-        camera.spatial_map_cell_span.AA = Position::world_to_spatial_map(AA, spatial_map.cell_size);
-        camera.spatial_map_cell_span.BB = Position::world_to_spatial_map(BB, spatial_map.cell_size);
+        camera.spatial_map_cell_span.AA = SpatialMapProjection::world_to_grid(AA, spatial_map);
+        camera.spatial_map_cell_span.BB = SpatialMapProjection::world_to_grid(BB, spatial_map);
     }
 }
