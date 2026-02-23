@@ -120,10 +120,17 @@ void RenderSystem::update(entt::registry& registry)
     registry.clear<ScreenPositionComponent>();
 
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    auto spatialmap_cells { registry.view<SpatialMapCellComponent>() };
+    const Grid<SpatialMapProjection>& spatial_map { registry.ctx().get<const Grid<SpatialMapProjection>>() };
+    auto spatialmap_cells { registry.view<SpatialMapCellComponent, TransformComponent>() };
 
-    for (auto [entity, cell] : spatialmap_cells.each()) {
-        if (SDL_HasIntersection(&cell.cell, &camera.camera_rect)) {
+    for (auto [entity, cell, transform] : spatialmap_cells.each()) {
+        SDL_Rect comparator {
+            static_cast<int>(transform.position.x),
+            static_cast<int>(transform.position.y),
+            spatial_map.cell_size.x,
+            spatial_map.cell_size.y
+        };
+        if (SDL_HasIntersection(&comparator, &camera.camera_rect)) {
             for (entt::entity renderable : cell.entities) {
                 registry.emplace_or_replace<VisibilityComponent>(renderable);
                 const TransformComponent& transform { registry.get<const TransformComponent>(renderable) };

@@ -36,14 +36,7 @@ SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, const glm:
     glm::ivec2 world_position { SpatialMapProjection::grid_to_world(grid_position, spatial_map) };
 
     // TODO - urgent! revise SpatialMapCellComponent
-    return &registry.emplace<SpatialMapCellComponent>(
-        cell,
-        SDL_Rect {
-            world_position.x,
-            world_position.y,
-            spatial_map.cell_size.x,
-            spatial_map.cell_size.y }
-    );
+    return &registry.emplace<SpatialMapCellComponent>(cell);
 }
 
 /*
