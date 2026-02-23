@@ -1,6 +1,7 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <camera_component.h>
+#include <components/grid_position_component.h>
 #include <components/highlight_component.h>
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
@@ -10,14 +11,15 @@
 #include <components/spatialmap_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
-#include <components/tilemap_grid_position_component.h>
 #include <components/tilespec_component.h>
 #include <components/transform_component.h>
 #include <components/visibility_component.h>
 #include <constants.h>
+#include <grid.h>
 #include <imgui.h>
 #include <pathfinding.h>
 #include <position.h>
+#include <projection.h>
 #include <systems/render_system.h>
 #include <tilespec_component.h>
 
@@ -221,7 +223,7 @@ void RenderSystem::render_imgui_ui(
     ImGui::NewFrame();
 
     const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
-    [[maybe_unused]] const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+    [[maybe_unused]] const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
     [[maybe_unused]] const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
     [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
 
@@ -231,14 +233,14 @@ void RenderSystem::render_imgui_ui(
         Position::screen_to_world(mouse.window_current_position, camera.position())
     };
 
-    const glm::ivec2 grid_position {
-        Position::world_to_grid(
-            world_position,
-            tilespec.centre,
-            tilemap.origin_px,
-            tilespec.matrix_inverted
-        )
-    };
+    // const glm::ivec2 grid_position {
+    //     Position::world_to_grid(
+    //         world_position,
+    //         tilespec.centre,
+    //         tilemap.origin_px,
+    //         tilespec.matrix_inverted
+    //     )
+    // };
 
     ImGui::SeparatorText("Mouse Position");
 
@@ -254,11 +256,11 @@ void RenderSystem::render_imgui_ui(
         world_position.y
     );
 
-    ImGui::Text(
-        "Mouse Grid position: (%d) (%d)",
-        grid_position.x,
-        grid_position.y
-    );
+    // ImGui::Text(
+    //     "Mouse Grid position: (%d) (%d)",
+    //     grid_position.x,
+    //     grid_position.y
+    // );
 
     // if (tilemap.highlighted_tile != entt::null) {
     //     const NavigationComponent* nav {
@@ -307,7 +309,7 @@ void RenderSystem::render_path(
     std::vector<entt::entity> path;
     Pathfinding::path_between(registry, from_tile, to_tile, path);
 
-    const TileMapGridPositionComponent* current_grid_position { nullptr };
+    const GridPositionComponent* current_grid_position { nullptr };
     const TransformComponent* current_world_position { nullptr };
     [[maybe_unused]] Direction::TDirection last_direction { Direction::TDirection::NO_DIRECTION };
 
@@ -316,15 +318,15 @@ void RenderSystem::render_path(
         entt::entity next = path[i + 1];
 
         if (!current_grid_position) {
-            current_grid_position = &registry.get<const TileMapGridPositionComponent>(current);
+            current_grid_position = &registry.get<const GridPositionComponent>(current);
         }
 
         if (!current_world_position) {
             current_world_position = &registry.get<const TransformComponent>(current);
         }
 
-        const TileMapGridPositionComponent* next_grid_position {
-            &registry.get<const TileMapGridPositionComponent>(next)
+        const GridPositionComponent* next_grid_position {
+            &registry.get<const GridPositionComponent>(next)
         };
 
         [[maybe_unused]] const TransformComponent* next_world_position {

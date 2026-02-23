@@ -18,14 +18,14 @@ namespace Position {
 
 glm::ivec2 grid_to_world(
     const glm::ivec2 grid_position,
-    const glm::ivec2 tile_centre,
+    [[maybe_unused]] const glm::ivec2 tile_centre,
     const glm::ivec2 tilemap_origin,
     const glm::mat2 conversion_matrix
 )
 {
     const glm::ivec2 movement { conversion_matrix * grid_position };
-    const glm::ivec2 world_pos_gross { (movement + tilemap_origin) - tile_centre };
-    return world_pos_gross + tile_centre;
+    const glm::ivec2 world_pos_gross { movement + tilemap_origin };
+    return world_pos_gross;
 }
 
 glm::ivec2 screen_to_world(

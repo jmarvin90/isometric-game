@@ -1,9 +1,9 @@
 #include <SDL2/SDL.h>
 #include <algorithm>
+#include <components/grid_position_component.h>
 #include <components/junction_component.h>
 #include <components/spatialmap_component.h>
 #include <components/spatialmapcell_component.h>
-#include <components/tilemap_grid_position_component.h>
 #include <components/transform_component.h>
 #include <glm/glm.hpp>
 #include <pathfinding.h>
@@ -80,8 +80,8 @@ void path_between(
     if (from_tile == to_tile)
         return;
 
-    const TileMapGridPositionComponent& to_tile_position {
-        registry.get<const TileMapGridPositionComponent>(to_tile)
+    const GridPositionComponent& to_tile_position {
+        registry.get<const GridPositionComponent>(to_tile)
     };
 
     std::priority_queue<PathStep, std::vector<PathStep>, Compare> frontier;
@@ -142,8 +142,8 @@ void path_between(
             if (came_from.find(next_tile) != came_from.end())
                 continue;
 
-            const TileMapGridPositionComponent& next_tile_position {
-                registry.get<const TileMapGridPositionComponent>(next_tile)
+            const GridPositionComponent& next_tile_position {
+                registry.get<const GridPositionComponent>(next_tile)
             };
 
             frontier.push(

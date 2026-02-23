@@ -1,6 +1,9 @@
 #ifndef TWODGRID_H
 #define TWODGRID_H
 
+#include <components/grid_position_component.h>
+#include <components/transform_component.h>
+
 #include <entt/entt.hpp>/
 #include <glm/glm.hpp>
 #include <vector>
@@ -26,6 +29,20 @@ int grid_position_to_index(const glm::ivec2 grid_position, const Grid& grid)
     return (grid_position.y * grid.cells_per_row) + grid_position.x;
 }
 
+template <typename Grid>
+glm::ivec2 index_to_grid_position(const int index_position, const Grid& grid)
+{
+    if (index_position < grid.cells_per_row)
+        return { index_position, 0 };
+
+    glm::ivec2 output {
+        index_position % grid.cells_per_row, //
+        index_position / grid.cells_per_row
+    };
+
+    return output;
+}
+
 }
 
 template <typename Projection>
@@ -49,19 +66,23 @@ public:
         int total_cells { cells_per_row * rows_per_grid };
         cells.reserve(total_cells);
         for (int i = 0; i < total_cells; i++) {
-            cells.push_back(registry.create());
+            glm::ivec2 grid_position { index_to_grid_position(i, *this) };
+            entt::entity cell { registry.create() };
+            cells.push_back(cell);
+            registry.emplace<GridPositionComponent>(cell, grid_position);
+            registry.emplace<TransformComponent>(cell, _projection.grid_to_world(grid_position, *this), 0, 0.0);
         }
     }
 
     ~Grid()
     {
-        for (auto cell : cells) {
-            registry.destroy(cell);
-        }
+        // for (auto cell : cells) {
+        //     registry.destroy(cell);
+        // }
     }
 
     // TODO - superfluous?
-    entt::entity operator[](const int index_position)
+    entt::entity operator[](const int index_position) const
     {
         if (index_is_valid(index_position, *this))
             return entt::null;
@@ -69,12 +90,17 @@ public:
         return cells.at(index_position);
     }
 
-    entt::entity operator[](const glm::ivec2 grid_position)
+    entt::entity operator[](const glm::ivec2 grid_position) const
     {
-        if (!position_is_valid)
+        if (!position_is_valid(grid_position, *this))
             return entt::null;
 
         return cells.at(grid_position_to_index(grid_position, *this));
+    }
+
+    entt::entity at_world(const glm::ivec2 world_position) const
+    {
+        return (*this)[_projection.world_to_grid(world_position, *this)];
     }
 };
 

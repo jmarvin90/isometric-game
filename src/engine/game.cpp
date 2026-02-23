@@ -4,11 +4,12 @@
 #include <components/navigation_component.h>
 #include <components/segment_component.h>
 #include <components/segment_manager_component.h>
-#include <components/tilemap_component.h>
 #include <components/tilespec_component.h>
 #include <constants.h>
 #include <game.h>
+#include <grid.h>
 #include <imgui.h>
+#include <projection.h>
 #include <spatialmap_component.h>
 #include <spdlog/spdlog.h>
 #include <spritesheet.h>
@@ -66,7 +67,7 @@ void Game::initialise()
         renderer
     );
 
-    const TileMapComponent& tilemap { registry.ctx().emplace<TileMapComponent>(tilespec, 32) };
+    const Grid<TileMapProjection>& tilemap { registry.ctx().emplace<Grid<TileMapProjection>>(registry, glm::ivec2 { 256, 128 }, 32, 32) };
     [[maybe_unused]] const SpatialMapComponent& spatial_map { registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 2) };
     registry.ctx().emplace<SegmentManagerComponent>();
     registry.ctx().emplace<CameraComponent>(display_mode, spatial_map);
@@ -112,7 +113,7 @@ void Game::update([[maybe_unused]] const float delta_time)
 void Game::render()
 {
     // SDL_RenderSetClipRect(renderer, &camera.camera_rect);
-    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+    const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
     glm::ivec2 start_pos { 2, 1 };
     glm::ivec2 end_pos { 2, 6 };
 
