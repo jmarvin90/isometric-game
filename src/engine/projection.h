@@ -19,8 +19,7 @@ struct TileMapProjection {
     template <typename Grid>
     static glm::ivec2 grid_to_world(const glm::ivec2 grid_position, const Grid& grid)
     {
-        int grid_width { grid.cell_size.x * grid.cells_per_row };
-        glm::ivec2 tilemap_origin { (grid_width / 2) - (grid.cell_size.x / 2), 0 };
+        glm::ivec2 tilemap_origin { (grid.area.x / 2) - (grid.cell_size.x / 2), 0 };
         glm::ivec2 movement { projection_matrix(grid.cell_size) * grid_position };
         return movement + tilemap_origin;
     }
@@ -28,9 +27,8 @@ struct TileMapProjection {
     template <typename Grid>
     static glm::ivec2 world_to_grid(const glm::ivec2 world_position, const Grid& grid)
     {
-        int grid_width { grid.cell_size.x * grid.cells_per_row };
         glm::ivec2 tile_centre { grid.cell_size / 2 };
-        glm::ivec2 tilemap_origin { (grid_width / 2) - (grid.cell_size.x / 2), 0 };
+        glm::ivec2 tilemap_origin { (grid.area.x / 2) - (grid.cell_size.x / 2), 0 };
         glm::ivec2 world_pos_adjusted { world_position - tile_centre };
         glm::ivec2 centred_world_pos { world_pos_adjusted - tilemap_origin };
         return glm::round(glm::inverse(projection_matrix(grid.cell_size)) * centred_world_pos);

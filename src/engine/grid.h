@@ -19,25 +19,25 @@ template <typename Grid>
 bool position_is_valid(const glm::ivec2 grid_position, const Grid& grid)
 {
     bool greater_than_zero { glm::all(glm::greaterThanEqual(grid_position, { 0, 0 })) };
-    bool in_bounds { glm::all(glm::lessThan(grid_position, { grid.cells_per_row, grid.rows_per_grid })) };
+    bool in_bounds { glm::all(glm::lessThan(grid_position, grid.grid_dimensions)) };
     return greater_than_zero && in_bounds;
 }
 
 template <typename Grid>
 int grid_position_to_index(const glm::ivec2 grid_position, const Grid& grid)
 {
-    return (grid_position.y * grid.cells_per_row) + grid_position.x;
+    return (grid_position.y * grid.grid_dimensions.x) + grid_position.x;
 }
 
 template <typename Grid>
 glm::ivec2 index_to_grid_position(const int index_position, const Grid& grid)
 {
-    if (index_position < grid.cells_per_row)
+    if (index_position < grid.grid_dimensions.x)
         return { index_position, 0 };
 
     glm::ivec2 output {
-        index_position % grid.cells_per_row, //
-        index_position / grid.cells_per_row
+        index_position % grid.grid_dimensions.x, //
+        index_position / grid.grid_dimensions.x
     };
 
     return output;
@@ -53,18 +53,16 @@ private:
 public:
     std::vector<entt::entity> cells;
     glm::ivec2 cell_size;
-    const int cells_per_row;
-    const int rows_per_grid;
+    glm::ivec2 grid_dimensions;
     glm::ivec2 area;
 
-    Grid(entt::registry& registry, glm::ivec2 cell_size, int cells_per_row, int rows_per_grid)
+    Grid(entt::registry& registry, glm::ivec2 cell_size, glm::ivec2 grid_dimensions)
         : registry { registry }
         , cell_size { cell_size }
-        , cells_per_row { cells_per_row }
-        , rows_per_grid { rows_per_grid }
-        , area { cell_size * glm::ivec2 { cells_per_row, rows_per_grid } }
+        , grid_dimensions { grid_dimensions }
+        , area { cell_size * grid_dimensions }
     {
-        int total_cells { cells_per_row * rows_per_grid };
+        int total_cells { grid_dimensions.x * grid_dimensions.y };
         cells.reserve(total_cells);
         for (int i = 0; i < total_cells; i++) {
             glm::ivec2 grid_position { index_to_grid_position(i, *this) };
@@ -76,6 +74,7 @@ public:
     }
 
     // TODO: understand why this causes 'entity not in set' errors
+    // Probably because the registry destroys entities before context
     ~Grid()
     {
         // for (auto cell : cells) {
