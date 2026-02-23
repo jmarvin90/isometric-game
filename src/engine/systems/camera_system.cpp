@@ -11,9 +11,6 @@ void CameraSystem::update(entt::registry& registry, const SDL_DisplayMode& displ
     CameraComponent& camera { registry.ctx().get<CameraComponent>() };
     const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
     camera.moved_in_frame = false;
-    glm::ivec2 tilemap_area {
-        tilemap.cell_size * glm::ivec2 { tilemap.cells_per_row, tilemap.rows_per_grid }
-    };
 
     if (mouse.window_current_position.x < constants::SCENE_BORDER_PX.x && camera.camera_rect.x > 0) {
         camera.camera_rect.x -= constants::CAMERA_SCROLL_SPEED.x;
@@ -26,13 +23,13 @@ void CameraSystem::update(entt::registry& registry, const SDL_DisplayMode& displ
     }
 
     if ((display_mode.w - mouse.window_current_position.x) < constants::SCENE_BORDER_PX.x
-        && (camera.camera_rect.x + display_mode.w) < (tilemap_area.x + (constants::SCENE_BORDER_PX.x * 2))) {
+        && (camera.camera_rect.x + display_mode.w) < (tilemap.area.x + (constants::SCENE_BORDER_PX.x * 2))) {
         camera.camera_rect.x += constants::CAMERA_SCROLL_SPEED.x;
         camera.moved_in_frame = true;
     }
 
     if ((display_mode.h - mouse.window_current_position.y) < constants::SCENE_BORDER_PX.y
-        && (camera.camera_rect.y + display_mode.h) < (tilemap_area.y + (constants::SCENE_BORDER_PX.y * 2))) {
+        && (camera.camera_rect.y + display_mode.h) < (tilemap.area.y + (constants::SCENE_BORDER_PX.y * 2))) {
         camera.camera_rect.y += constants::CAMERA_SCROLL_SPEED.y;
         camera.moved_in_frame = true;
     }

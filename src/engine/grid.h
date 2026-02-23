@@ -55,12 +55,14 @@ public:
     glm::ivec2 cell_size;
     const int cells_per_row;
     const int rows_per_grid;
+    glm::ivec2 area;
 
     Grid(entt::registry& registry, glm::ivec2 cell_size, int cells_per_row, int rows_per_grid)
         : registry { registry }
         , cell_size { cell_size }
         , cells_per_row { cells_per_row }
         , rows_per_grid { rows_per_grid }
+        , area { cell_size * glm::ivec2 { cells_per_row, rows_per_grid } }
     {
         int total_cells { cells_per_row * rows_per_grid };
         cells.reserve(total_cells);
