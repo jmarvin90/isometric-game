@@ -104,7 +104,7 @@ void Game::process_input()
 void Game::update([[maybe_unused]] const float delta_time)
 {
     MouseSystem::update(registry);
-    CameraSystem::update(registry, display_mode);
+    CameraSystem::update(registry);
     TileMapSystem::update(registry, debug_mode);
     SegmentSystem::update(registry);
     RenderSystem::update(registry);

@@ -19,7 +19,7 @@ void MouseSystem::update(entt::registry& registry)
     const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
 
     glm::ivec2 mouse_world_position {
-        Position::screen_to_world(mouse.window_current_position, camera.position())
+        Position::screen_to_world(mouse.window_current_position, camera.position)
     };
 
     entt::entity mouse_over_entity { tilemap.at_world(mouse_world_position) };
