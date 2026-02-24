@@ -36,6 +36,7 @@ struct SegmentComponent {
         , direction { direction }
         , entities {}
     {
+        entities.reserve(_entities.size());
         std::copy_if(
             _entities.begin(),
             _entities.end(),
