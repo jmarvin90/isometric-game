@@ -2,12 +2,10 @@
 #define TILESPECCOMPONENT_H
 
 #include <SDL2/SDL.h>
-
 #include <array>
+#include <directions.h>
 #include <glm/glm.hpp>
 #include <vector>
-
-#include <directions.h>
 
 // TODO - probably move gates / translations
 struct Gate {
