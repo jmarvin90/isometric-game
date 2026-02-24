@@ -27,24 +27,20 @@ constexpr std::array<Gate, 4> translations {
 struct TileSpecComponent {
     const int width;
     const int depth;
-    const int road_depth_offset;
     const int road_width;
 
     const glm::ivec2 iso_area;
-    const glm::ivec2 total_area;
     const glm::ivec2 centre;
     const glm::ivec2 road_mark_offset;
 
     std::array<Gate, 4> road_gates;
     std::vector<SDL_Point> iso_points;
 
-    TileSpecComponent(const int width, const int depth, const int road_depth_offset, const int road_width)
+    TileSpecComponent(const int width, const int depth, const int road_width)
         : width { width }
         , depth { depth }
-        , road_depth_offset { road_depth_offset }
         , road_width { road_width }
         , iso_area { width, width / 2 }
-        , total_area { iso_area.x, iso_area.y + depth }
         , centre { iso_area / 2 }
         , road_mark_offset { road_width / 4, road_width / 8 }
         , iso_points {

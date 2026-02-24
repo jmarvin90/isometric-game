@@ -240,7 +240,6 @@ void RenderSystem::render_imgui_ui(
     const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
     [[maybe_unused]] const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
     [[maybe_unused]] const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
 
     // The mouse and world positions
 
