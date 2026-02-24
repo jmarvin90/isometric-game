@@ -1,31 +1,15 @@
 #ifndef SEGMENTCOMPONENT_H
 #define SEGMENTCOMPONENT_H
 
+#include <algorithm>
 #include <directions.h>
 #include <entt/entt.hpp>
 #include <vector>
 
-struct Interval {
+struct SegmentComponent {
     entt::entity origin;
     entt::entity termination;
     Direction::TDirection direction;
-    int length;
-    Interval(
-        entt::entity origin,
-        entt::entity termination,
-        Direction::TDirection direction,
-        int length
-    )
-        : origin { origin }
-        , termination { termination }
-        , direction { direction }
-        , length { length }
-    {
-    }
-    bool operator<(const Interval& comparator) const { return length < comparator.length; }
-};
-
-struct SegmentComponent : public Interval {
     std::vector<entt::entity> entities;
 
     SegmentComponent(const SegmentComponent&) = default;
@@ -39,20 +23,33 @@ struct SegmentComponent : public Interval {
         Direction::TDirection direction,
         std::vector<entt::entity> entities
     )
-        : Interval(origin, termination, direction, entities.size())
+        : origin { origin }
+        , termination { termination }
+        , direction { direction }
         , entities { entities }
     {
     }
 
     SegmentComponent(std::vector<entt::entity>& _entities, Direction::TDirection direction)
-        : Interval(_entities.front(), _entities.back(), direction, _entities.size())
+        : origin { _entities.front() }
+        , termination { _entities.back() }
+        , direction { direction }
         , entities {}
     {
-        for (auto entity : _entities) {
-            if (entity != _entities.front() && entity != _entities.back()) {
-                entities.push_back(entity);
+        entities.reserve(_entities.size());
+        std::copy_if(
+            _entities.begin(),
+            _entities.end(),
+            std::back_inserter(entities),
+            [_entities](entt::entity x) {
+                return x != _entities.front() && x != _entities.back();
             }
-        }
+        );
+    }
+
+    bool operator<(const SegmentComponent& comparator) const
+    {
+        return entities.size() < comparator.entities.size();
     }
 };
 

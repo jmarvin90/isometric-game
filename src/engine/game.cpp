@@ -4,12 +4,12 @@
 #include <components/navigation_component.h>
 #include <components/segment_component.h>
 #include <components/segment_manager_component.h>
-#include <components/tilemap_component.h>
 #include <components/tilespec_component.h>
 #include <constants.h>
 #include <game.h>
+#include <grid.h>
 #include <imgui.h>
-#include <spatialmap_component.h>
+#include <projection.h>
 #include <spdlog/spdlog.h>
 #include <spritesheet.h>
 #include <systems/camera_system.h>
@@ -57,7 +57,7 @@ void Game::initialise()
 
     // TODO: move this somewhere smart under some smart condition
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(256, 14, 3, 68) };
+    [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(glm::ivec2 { 256, 128 }, 68) };
 
     registry.ctx().emplace<MouseComponent>();
     registry.ctx().emplace<SpriteSheet>(
@@ -66,10 +66,11 @@ void Game::initialise()
         renderer
     );
 
-    const TileMapComponent& tilemap { registry.ctx().emplace<TileMapComponent>(tilespec, 32) };
-    [[maybe_unused]] const SpatialMapComponent& spatial_map { registry.ctx().emplace<SpatialMapComponent>(tilespec, tilemap, 2) };
+    [[maybe_unused]] const Grid<TileMapProjection>& tilemap { registry.ctx().emplace<Grid<TileMapProjection>>(registry, glm::ivec2 { 256, 128 }, glm::ivec2 { 32, 32 }) };
+    const Grid<SpatialMapProjection>& spatial_map { registry.ctx().emplace<Grid<SpatialMapProjection>>(registry, tilemap.cell_size * 2, tilemap.grid_dimensions / 2) };
+    assert(tilemap.area == spatial_map.area);
     registry.ctx().emplace<SegmentManagerComponent>();
-    registry.ctx().emplace<CameraComponent>(display_mode, spatial_map);
+    registry.ctx().emplace<CameraComponent>(display_mode);
     TileMapSystem::emplace_tiles(registry);
 
     ImGui::CreateContext();
@@ -103,7 +104,7 @@ void Game::process_input()
 void Game::update([[maybe_unused]] const float delta_time)
 {
     MouseSystem::update(registry);
-    CameraSystem::update(registry, display_mode);
+    CameraSystem::update(registry);
     TileMapSystem::update(registry, debug_mode);
     SegmentSystem::update(registry);
     RenderSystem::update(registry);
@@ -112,7 +113,7 @@ void Game::update([[maybe_unused]] const float delta_time)
 void Game::render()
 {
     // SDL_RenderSetClipRect(renderer, &camera.camera_rect);
-    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+    const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
     glm::ivec2 start_pos { 2, 1 };
     glm::ivec2 end_pos { 2, 6 };
 

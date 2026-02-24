@@ -2,12 +2,10 @@
 #define TILESPECCOMPONENT_H
 
 #include <SDL2/SDL.h>
-
 #include <array>
+#include <directions.h>
 #include <glm/glm.hpp>
 #include <vector>
-
-#include <directions.h>
 
 // TODO - probably move gates / translations
 struct Gate {
@@ -25,36 +23,24 @@ constexpr std::array<Gate, 4> translations {
 };
 
 struct TileSpecComponent {
-    const int width;
-    const int depth;
-    const int road_depth_offset;
+    glm::ivec2 tile_size;
     const int road_width;
 
-    const glm::ivec2 iso_area;
-    const glm::ivec2 total_area;
     const glm::ivec2 centre;
     const glm::ivec2 road_mark_offset;
-    const glm::mat2 matrix;
-    const glm::mat2 matrix_inverted;
 
     std::array<Gate, 4> road_gates;
     std::vector<SDL_Point> iso_points;
 
-    TileSpecComponent(const int width, const int depth, const int road_depth_offset, const int road_width)
-        : width { width }
-        , depth { depth }
-        , road_depth_offset { road_depth_offset }
+    TileSpecComponent(const glm::ivec2 tile_size, const int road_width)
+        : tile_size { tile_size }
         , road_width { road_width }
-        , iso_area { width, width / 2 }
-        , total_area { iso_area.x, iso_area.y + depth }
-        , centre { iso_area / 2 }
+        , centre { tile_size / 2 }
         , road_mark_offset { road_width / 4, road_width / 8 }
-        , matrix { iso_area.x / 2.0f, iso_area.y / 2.0f, -iso_area.x / 2.0f, iso_area.y / 2.0f }
-        , matrix_inverted { glm::inverse(matrix) }
         , iso_points {
             SDL_Point { centre.x, 0 },
-            SDL_Point { iso_area.x, centre.y },
-            SDL_Point { centre.x, iso_area.y },
+            SDL_Point { tile_size.x, centre.y },
+            SDL_Point { centre.x, tile_size.y },
             SDL_Point { 0, centre.y },
             SDL_Point { centre.x, 0 },
         }

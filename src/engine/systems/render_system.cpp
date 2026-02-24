@@ -1,23 +1,24 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <camera_component.h>
+#include <components/grid_position_component.h>
 #include <components/highlight_component.h>
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
 #include <components/navigation_component.h>
 #include <components/screen_position_component.h>
 #include <components/segment_component.h>
-#include <components/spatialmap_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
-#include <components/tilemap_grid_position_component.h>
 #include <components/tilespec_component.h>
 #include <components/transform_component.h>
 #include <components/visibility_component.h>
 #include <constants.h>
+#include <grid.h>
 #include <imgui.h>
 #include <pathfinding.h>
 #include <position.h>
+#include <projection.h>
 #include <systems/render_system.h>
 #include <tilespec_component.h>
 
@@ -75,7 +76,7 @@ void draw_segment_path(
 )
 {
     // TODO: this function is nasty
-    const glm::ivec2 camera_position { registry.ctx().get<const CameraComponent>().position() };
+    const glm::ivec2 camera_position { registry.ctx().get<const CameraComponent>().position };
     glm::ivec2 segment_start_world { registry.get<TransformComponent>(segment_start).position };
     glm::ivec2 segment_end_world { registry.get<TransformComponent>(segment_end).position };
     ScreenPositionComponent segment_start_screen { Position::world_to_screen(segment_start_world, camera_position) };
@@ -119,16 +120,32 @@ void RenderSystem::update(entt::registry& registry)
     registry.clear<ScreenPositionComponent>();
 
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    auto spatialmap_cells { registry.view<SpatialMapCellComponent>() };
+    const Grid<SpatialMapProjection>& spatial_map { registry.ctx().get<const Grid<SpatialMapProjection>>() };
+    auto spatialmap_cells { registry.view<SpatialMapCellComponent, TransformComponent>() };
 
-    for (auto [entity, cell] : spatialmap_cells.each()) {
-        if (SDL_HasIntersection(&cell.cell, &camera.camera_rect)) {
+    for (auto [entity, cell, transform] : spatialmap_cells.each()) {
+
+        SDL_Rect comparator {
+            static_cast<int>(transform.position.x),
+            static_cast<int>(transform.position.y),
+            spatial_map.cell_size.x,
+            spatial_map.cell_size.y
+        };
+
+        SDL_Rect camera_rect {
+            camera.position.x,
+            camera.position.y,
+            camera.size.x,
+            camera.size.y
+        };
+
+        if (SDL_HasIntersection(&comparator, &camera_rect)) {
             for (entt::entity renderable : cell.entities) {
                 registry.emplace_or_replace<VisibilityComponent>(renderable);
                 const TransformComponent& transform { registry.get<const TransformComponent>(renderable) };
                 registry.emplace_or_replace<ScreenPositionComponent>(
                     renderable,
-                    Position::world_to_screen(transform.position, camera.position())
+                    Position::world_to_screen(transform.position, camera.position)
                 );
             }
 
@@ -221,23 +238,17 @@ void RenderSystem::render_imgui_ui(
     ImGui::NewFrame();
 
     const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
-    [[maybe_unused]] const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+    [[maybe_unused]] const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
     [[maybe_unused]] const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
 
     // The mouse and world positions
 
     const glm::ivec2 world_position {
-        Position::screen_to_world(mouse.window_current_position, camera.position())
+        Position::screen_to_world(mouse.window_current_position, camera.position)
     };
 
     const glm::ivec2 grid_position {
-        Position::world_to_grid(
-            world_position,
-            tilespec.centre,
-            tilemap.origin_px,
-            tilespec.matrix_inverted
-        )
+        TileMapProjection::world_to_grid(world_position, tilemap)
     };
 
     ImGui::SeparatorText("Mouse Position");
@@ -307,7 +318,7 @@ void RenderSystem::render_path(
     std::vector<entt::entity> path;
     Pathfinding::path_between(registry, from_tile, to_tile, path);
 
-    const TileMapGridPositionComponent* current_grid_position { nullptr };
+    const GridPositionComponent* current_grid_position { nullptr };
     const TransformComponent* current_world_position { nullptr };
     [[maybe_unused]] Direction::TDirection last_direction { Direction::TDirection::NO_DIRECTION };
 
@@ -316,15 +327,15 @@ void RenderSystem::render_path(
         entt::entity next = path[i + 1];
 
         if (!current_grid_position) {
-            current_grid_position = &registry.get<const TileMapGridPositionComponent>(current);
+            current_grid_position = &registry.get<const GridPositionComponent>(current);
         }
 
         if (!current_world_position) {
             current_world_position = &registry.get<const TransformComponent>(current);
         }
 
-        const TileMapGridPositionComponent* next_grid_position {
-            &registry.get<const TileMapGridPositionComponent>(next)
+        const GridPositionComponent* next_grid_position {
+            &registry.get<const GridPositionComponent>(next)
         };
 
         [[maybe_unused]] const TransformComponent* next_world_position {
@@ -346,7 +357,7 @@ void RenderSystem::render_path(
         [[maybe_unused]] glm::ivec2 start_screen_position {
             Position::world_to_screen(
                 glm::ivec2 { glm::ivec2 { current_world_position->position } },
-                camera_component.position()
+                camera_component.position
             )
             + tile_exit_offset
         };
@@ -354,7 +365,7 @@ void RenderSystem::render_path(
         [[maybe_unused]] glm::ivec2 end_screen_position {
             Position::world_to_screen(
                 glm::ivec2 { glm::ivec2 { next_world_position->position } },
-                camera_component.position()
+                camera_component.position
             )
             + tile_entry_offset
         };

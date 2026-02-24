@@ -3,8 +3,8 @@
 
 #include <glm/glm.hpp>
 
-struct TileMapGridPositionComponent {
-    const glm::ivec2 position;
+struct GridPositionComponent {
+    glm::ivec2 position;
 };
 
 #endif

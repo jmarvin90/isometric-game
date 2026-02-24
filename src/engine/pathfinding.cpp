@@ -1,12 +1,13 @@
 #include <SDL2/SDL.h>
 #include <algorithm>
+#include <components/grid_position_component.h>
 #include <components/junction_component.h>
-#include <components/spatialmap_component.h>
 #include <components/spatialmapcell_component.h>
-#include <components/tilemap_grid_position_component.h>
 #include <components/transform_component.h>
 #include <glm/glm.hpp>
+#include <grid.h>
 #include <pathfinding.h>
+#include <projection.h>
 #include <queue>
 #include <unordered_map>
 #include <vector>
@@ -15,12 +16,12 @@ namespace {
 
 entt::entity get_segment(const entt::registry& registry, entt::entity tile)
 {
-    const SpatialMapComponent& spatial_map {
-        registry.ctx().get<const SpatialMapComponent>()
+    const Grid<SpatialMapProjection>& spatial_map {
+        registry.ctx().get<const Grid<SpatialMapProjection>>()
     };
 
     const TransformComponent& transform { registry.get<const TransformComponent>(tile) };
-    entt::entity spatial_map_cell_entity { spatial_map[transform] };
+    entt::entity spatial_map_cell_entity { spatial_map.at_world(transform.position) };
 
     // TODO: this shouldn't happen, really
     if (spatial_map_cell_entity == entt::null)
@@ -80,8 +81,8 @@ void path_between(
     if (from_tile == to_tile)
         return;
 
-    const TileMapGridPositionComponent& to_tile_position {
-        registry.get<const TileMapGridPositionComponent>(to_tile)
+    const GridPositionComponent& to_tile_position {
+        registry.get<const GridPositionComponent>(to_tile)
     };
 
     std::priority_queue<PathStep, std::vector<PathStep>, Compare> frontier;
@@ -142,8 +143,8 @@ void path_between(
             if (came_from.find(next_tile) != came_from.end())
                 continue;
 
-            const TileMapGridPositionComponent& next_tile_position {
-                registry.get<const TileMapGridPositionComponent>(next_tile)
+            const GridPositionComponent& next_tile_position {
+                registry.get<const GridPositionComponent>(next_tile)
             };
 
             frontier.push(

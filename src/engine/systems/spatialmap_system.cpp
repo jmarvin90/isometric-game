@@ -3,14 +3,15 @@
 #include <cmath>
 #include <components/debug_component.h>
 #include <components/segment_component.h>
-#include <components/spatialmap_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/spatialmapcell_span_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
 #include <directions.h>
 #include <entt/entt.hpp>
+#include <grid.h>
 #include <position.h>
+#include <projection.h>
 #include <systems/spatialmap_system.h>
 #include <vector>
 
@@ -19,26 +20,22 @@ namespace {
 // TODO - be aware of pointer invalidation; perhaps return the entity ID instead
 SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, const glm::ivec2 grid_position)
 {
-    SpatialMapComponent& spatial_map { registry.ctx().get<SpatialMapComponent>() };
+    Grid<SpatialMapProjection>& spatial_map { registry.ctx().get<Grid<SpatialMapProjection>>() };
     entt::entity cell { spatial_map[grid_position] };
 
-    if (cell != entt::null) {
-        return &registry.get<SpatialMapCellComponent>(cell);
-    } else {
-        cell = registry.create();
-        spatial_map.emplace_at(grid_position, cell);
+    // TODO: Shouldn't happen;
+    // will happen if called on result of spanned_cells which overlaps map edge
+    if (cell == entt::null)
+        return nullptr;
 
-        glm::ivec2 spatial_map_world_position { Position::spatial_map_to_world(grid_position, spatial_map.cell_size) };
+    SpatialMapCellComponent* output { registry.try_get<SpatialMapCellComponent>(cell) };
 
-        return &registry.emplace<SpatialMapCellComponent>(
-            cell,
-            SDL_Rect {
-                spatial_map_world_position.x,
-                spatial_map_world_position.y,
-                spatial_map.cell_size.x,
-                spatial_map.cell_size.y }
-        );
-    }
+    if (output)
+        return output;
+
+    glm::ivec2 world_position { SpatialMapProjection::grid_to_world(grid_position, spatial_map) };
+
+    return &registry.emplace<SpatialMapCellComponent>(cell);
 }
 
 /*
@@ -51,7 +48,7 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
     const SegmentComponent& segment
 )
 {
-    SpatialMapComponent& spatial_map { registry.ctx().get<SpatialMapComponent>() };
+    Grid<SpatialMapProjection>& spatial_map { registry.ctx().get<Grid<SpatialMapProjection>>() };
     const TransformComponent& segment_start { registry.get<const TransformComponent>(segment.origin) };
     const TransformComponent& segment_end { registry.get<const TransformComponent>(segment.termination) };
 
@@ -93,16 +90,17 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
 
 SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity entity)
 {
+    // TODO: will return invalid cells if an entity spans the edge of the map
     const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
     const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
-    const SpatialMapComponent& spatial_map { registry.ctx().get<const SpatialMapComponent>() };
+    const Grid<SpatialMapProjection>& spatial_map { registry.ctx().get<Grid<SpatialMapProjection>>() };
 
     glm::ivec2 AA { transform.position };
     glm::ivec2 BB { AA + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
 
     return {
-        Position::world_to_spatial_map(AA, spatial_map.cell_size),
-        Position::world_to_spatial_map(BB, spatial_map.cell_size)
+        SpatialMapProjection::world_to_grid(AA, spatial_map),
+        SpatialMapProjection::world_to_grid(BB, spatial_map),
     };
 }
 
@@ -128,6 +126,8 @@ void SpatialMapSystem::emplace_entity(entt::registry& registry, entt::entity ent
     for (int x = cell_span.AA.x; x <= cell_span.BB.x; x++) {
         for (int y = cell_span.AA.y; y <= cell_span.BB.y; y++) {
             SpatialMapCellComponent* cell { get_or_create_cell(registry, { x, y }) };
+            if (!cell)
+                continue;
             cell->entities.emplace_back(entity);
         }
     }
@@ -139,6 +139,8 @@ void SpatialMapSystem::remove_entity(entt::registry& registry, entt::entity enti
     for (int x = cell_span.AA.x; x <= cell_span.BB.x; x++) {
         for (int y = cell_span.AA.y; y <= cell_span.BB.y; y++) {
             SpatialMapCellComponent* cell { get_or_create_cell(registry, { x, y }) };
+            if (!cell)
+                continue;
             std::remove_if(
                 cell->entities.begin(),
                 cell->entities.end(),

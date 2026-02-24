@@ -1,7 +1,7 @@
 #ifndef SPATIALMAPCELLSPANCOMPONENT_H
 #define SPATIALMAPCELLSPANCOMPONENT_H
 
-#include <components/spatialmap_component.h>
+#include <glm/glm.hpp>
 
 struct SpatialMapCellSpanComponent {
     glm::ivec2 AA;

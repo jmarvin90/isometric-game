@@ -6,7 +6,6 @@
 #include <vector>
 
 struct SpatialMapCellComponent {
-    SDL_Rect cell;
     std::vector<entt::entity> entities;
     std::vector<entt::entity> segments;
 };

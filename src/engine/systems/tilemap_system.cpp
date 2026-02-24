@@ -1,4 +1,5 @@
 #include <components/debug_component.h>
+#include <components/grid_position_component.h>
 #include <components/highlight_component.h>
 #include <components/junction_component.h>
 #include <components/mouseover_component.h>
@@ -7,12 +8,12 @@
 #include <components/segment_manager_component.h>
 #include <components/spatialmapcell_span_component.h>
 #include <components/sprite_component.h>
-#include <components/tilemap_component.h>
-#include <components/tilemap_grid_position_component.h>
 #include <components/tilespec_component.h>
 #include <components/transform_component.h>
 #include <directions.h>
+#include <grid.h>
 #include <position.h>
+#include <projection.h>
 #include <spdlog/spdlog.h>
 #include <spritesheet.h>
 #include <systems/tilemap_system.h>
@@ -26,7 +27,7 @@ namespace {
 
 std::vector<entt::entity> scan(const entt::registry& registry, entt::entity origin, Direction::TDirection direction)
 {
-    const TileMapComponent& tilemap { registry.ctx().get<const TileMapComponent>() };
+    const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
     glm::ivec2 direction_vector { Direction::direction_vectors[direction] };
     Direction::TDirection reverse { Direction::reverse(direction) };
 
@@ -34,7 +35,7 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
     std::vector<entt::entity> output { current };
 
     const NavigationComponent* current_nav { &registry.get<const NavigationComponent>(current) };
-    glm::ivec2 current_position { registry.get<const TileMapGridPositionComponent>(current).position };
+    glm::ivec2 current_position { registry.get<const GridPositionComponent>(current).position };
 
     while (true) {
         glm::ivec2 next_position { current_position + direction_vector };
@@ -45,7 +46,7 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
 
         const NavigationComponent* next_nav { registry.try_get<const NavigationComponent>(next) };
 
-        if (!next_nav || (current != origin && Direction::is_junction(current_nav->directions))) {
+        if (!next_nav || (current != origin && current_nav->is_junction)) {
             return output;
         }
 
@@ -71,15 +72,6 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
     transform.z_index += factor;
 }
 
-glm::ivec2 from_tile_number(const TileMapComponent& tilemap, const int tile_n)
-{
-    if (tile_n < tilemap.n_per_row) {
-        return { tile_n, 0 };
-    } else {
-        return { tile_n % tilemap.n_per_row, tile_n / tilemap.n_per_row };
-    }
-}
-
 } // namespace
 
 void TileMapSystem::update(
@@ -89,6 +81,7 @@ void TileMapSystem::update(
 {
     auto components { registry.view<MouseOverComponent>() };
 
+    // TODO - not sure on the logic here - pen & paper job
     for (auto [entity, component] : components.each()) {
         if (component.this_frame && component.previous_frame) {
             component.this_frame = false;
@@ -110,7 +103,7 @@ void TileMapSystem::update(
 
 void TileMapSystem::emplace_tiles(entt::registry& registry)
 {
-    TileMapComponent& tilemap { registry.ctx().get<TileMapComponent>() };
+    Grid<TileMapProjection>& tilemap { registry.ctx().get<Grid<TileMapProjection>>() };
     const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
     const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet&>() };
 
@@ -121,21 +114,9 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     std::vector<glm::ivec2> ne_positions { { 2, 7 } };
     std::vector<glm::ivec2> nw_positions { { 4, 7 } };
 
-    for (int i = 0; i < tilemap.n_tiles; i++) {
-        entt::entity tile { tilemap.tiles.emplace_back(registry.create()) };
-
-        const glm::ivec2 grid_position = from_tile_number(tilemap, i);
-
-        const glm::ivec2 world_position = Position::grid_to_world(
-            grid_position,
-            tilespec.centre,
-            tilemap.origin_px,
-            tilespec.matrix
-        );
-
-        registry.emplace<TransformComponent>(tile, world_position, 0, 0.0);
+    for (auto tile : tilemap.cells) {
+        glm::ivec2 grid_position { registry.get<const GridPositionComponent>(tile).position };
         registry.emplace<HighlightComponent>(tile, SDL_Color { 0, 0, 255, 255 }, tilespec.iso_points);
-        registry.emplace<TileMapGridPositionComponent>(tile, grid_position);
 
         std::string tile_handle {};
 
@@ -254,7 +235,6 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
 {
     SegmentManagerComponent& seg_manager { registry.ctx().get<SegmentManagerComponent>() };
     const NavigationComponent& current_nav { registry.get<const NavigationComponent>(entity) };
-    bool is_junction { Direction::is_junction(current_nav.directions) };
     std::array<std::vector<entt::entity>, 4> connections;
 
     for (
@@ -265,7 +245,7 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
         connections[Direction::index_position(direction)] = scan(registry, entity, direction);
     }
 
-    if (is_junction) {
+    if (current_nav.is_junction) {
         for (
             Direction::TDirection direction { Direction::TDirection::NORTH };
             direction != Direction::TDirection::NO_DIRECTION;
