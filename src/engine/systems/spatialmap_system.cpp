@@ -127,7 +127,7 @@ void SpatialMapSystem::emplace_entity(entt::registry& registry, entt::entity ent
         for (int y = cell_span.AA.y; y <= cell_span.BB.y; y++) {
             SpatialMapCellComponent* cell { get_or_create_cell(registry, { x, y }) };
             if (!cell)
-                return;
+                continue;
             cell->entities.emplace_back(entity);
         }
     }
@@ -140,7 +140,7 @@ void SpatialMapSystem::remove_entity(entt::registry& registry, entt::entity enti
         for (int y = cell_span.AA.y; y <= cell_span.BB.y; y++) {
             SpatialMapCellComponent* cell { get_or_create_cell(registry, { x, y }) };
             if (!cell)
-                return;
+                continue;
             std::remove_if(
                 cell->entities.begin(),
                 cell->entities.end(),

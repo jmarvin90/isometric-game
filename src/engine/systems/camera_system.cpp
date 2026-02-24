@@ -8,11 +8,11 @@
 
 void CameraSystem::update(entt::registry& registry)
 {
-    const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
     CameraComponent& camera { registry.ctx().get<CameraComponent>() };
+    const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
     const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
-    camera.moved_in_frame = false;
 
+    camera.moved_in_frame = false;
     glm::ivec2 map_extent { tilemap.area + (constants::SCENE_BORDER_PX * 2) };
     glm::ivec2 delta { 0, 0 };
 
