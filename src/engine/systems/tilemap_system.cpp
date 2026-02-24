@@ -46,7 +46,7 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
 
         const NavigationComponent* next_nav { registry.try_get<const NavigationComponent>(next) };
 
-        if (!next_nav || (current != origin && Direction::is_junction(current_nav->directions))) {
+        if (!next_nav || (current != origin && current_nav->is_junction)) {
             return output;
         }
 
@@ -81,6 +81,7 @@ void TileMapSystem::update(
 {
     auto components { registry.view<MouseOverComponent>() };
 
+    // TODO - not sure on the logic here - pen & paper job
     for (auto [entity, component] : components.each()) {
         if (component.this_frame && component.previous_frame) {
             component.this_frame = false;
@@ -234,7 +235,6 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
 {
     SegmentManagerComponent& seg_manager { registry.ctx().get<SegmentManagerComponent>() };
     const NavigationComponent& current_nav { registry.get<const NavigationComponent>(entity) };
-    bool is_junction { Direction::is_junction(current_nav.directions) };
     std::array<std::vector<entt::entity>, 4> connections;
 
     for (
@@ -245,7 +245,7 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
         connections[Direction::index_position(direction)] = scan(registry, entity, direction);
     }
 
-    if (is_junction) {
+    if (current_nav.is_junction) {
         for (
             Direction::TDirection direction { Direction::TDirection::NORTH };
             direction != Direction::TDirection::NO_DIRECTION;

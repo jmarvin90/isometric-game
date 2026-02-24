@@ -41,9 +41,12 @@ void junction_displace(
 {
     JunctionComponent& junction { registry.get<JunctionComponent>(junction_entity) };
     entt::entity current_segment { junction.connections[Direction::index_position(direction)] };
+
     if (current_segment == entt::null || current_segment != segment_entity)
         return;
+
     junction.connections[Direction::index_position(direction)] = entt::null;
+
     if (
         std::all_of(
             junction.connections.begin(),
