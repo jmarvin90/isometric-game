@@ -1,7 +1,6 @@
 #include <components/grid_position_component.h>
 #include <components/mouseover_component.h>
 #include <components/screen_position_component.h>
-#include <components/tilespec_component.h>
 #include <entt/entt.hpp>
 #include <grid.h>
 #include <position.h>

@@ -248,14 +248,9 @@ void RenderSystem::render_imgui_ui(
         Position::screen_to_world(mouse.window_current_position, camera.position)
     };
 
-    // const glm::ivec2 grid_position {
-    //     Position::world_to_grid(
-    //         world_position,
-    //         tilespec.centre,
-    //         tilemap.origin_px,
-    //         tilespec.matrix_inverted
-    //     )
-    // };
+    const glm::ivec2 grid_position {
+        TileMapProjection::world_to_grid(world_position, tilemap)
+    };
 
     ImGui::SeparatorText("Mouse Position");
 
@@ -271,11 +266,11 @@ void RenderSystem::render_imgui_ui(
         world_position.y
     );
 
-    // ImGui::Text(
-    //     "Mouse Grid position: (%d) (%d)",
-    //     grid_position.x,
-    //     grid_position.y
-    // );
+    ImGui::Text(
+        "Mouse Grid position: (%d) (%d)",
+        grid_position.x,
+        grid_position.y
+    );
 
     // if (tilemap.highlighted_tile != entt::null) {
     //     const NavigationComponent* nav {
