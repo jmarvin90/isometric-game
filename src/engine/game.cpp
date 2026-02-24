@@ -57,7 +57,7 @@ void Game::initialise()
 
     // TODO: move this somewhere smart under some smart condition
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(256, 14, 68) };
+    [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(glm::ivec2 { 256, 128 }, 68) };
 
     registry.ctx().emplace<MouseComponent>();
     registry.ctx().emplace<SpriteSheet>(
