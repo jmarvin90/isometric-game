@@ -40,10 +40,4 @@ void CameraSystem::update(entt::registry& registry)
         camera.moved_in_frame = true;
         camera.position += delta;
     }
-
-    if (camera.moved_in_frame) {
-        const Grid<SpatialMapProjection>& spatial_map { registry.ctx().get<const Grid<SpatialMapProjection>>() };
-        camera.spatial_map_cell_span.AA = SpatialMapProjection::world_to_grid(camera.position, spatial_map);
-        camera.spatial_map_cell_span.BB = SpatialMapProjection::world_to_grid(camera.position + camera.size, spatial_map);
-    }
 }
