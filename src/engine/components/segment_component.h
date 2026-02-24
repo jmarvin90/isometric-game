@@ -1,29 +1,16 @@
 #ifndef SEGMENTCOMPONENT_H
 #define SEGMENTCOMPONENT_H
 
+#include <algorithm>
 #include <directions.h>
 #include <entt/entt.hpp>
 #include <vector>
-
-struct Interval {
-
-    Interval(
-        entt::entity origin,
-        entt::entity termination,
-        Direction::TDirection direction,
-        int length
-    )
-
-    {
-    }
-};
 
 struct SegmentComponent {
     entt::entity origin;
     entt::entity termination;
     Direction::TDirection direction;
     std::vector<entt::entity> entities;
-    int length;
 
     SegmentComponent(const SegmentComponent&) = default;
     SegmentComponent(SegmentComponent&&) = default;
@@ -40,7 +27,6 @@ struct SegmentComponent {
         , termination { termination }
         , direction { direction }
         , entities { entities }
-        , length { entities.size() }
     {
     }
 
@@ -49,17 +35,21 @@ struct SegmentComponent {
         , termination { _entities.back() }
         , direction { direction }
         , entities {}
-        , length {}
     {
-        for (auto entity : _entities) {
-            if (entity != _entities.front() && entity != _entities.back()) {
-                entities.push_back(entity);
+        std::copy_if(
+            _entities.begin(),
+            _entities.end(),
+            std::back_inserter(entities),
+            [_entities](entt::entity x) {
+                return x != _entities.front() && x != _entities.back();
             }
-        }
-        length = entities.size();
+        );
     }
 
-    bool operator<(const SegmentComponent& comparator) const { return length < comparator.length; }
+    bool operator<(const SegmentComponent& comparator) const
+    {
+        return entities.size() < comparator.entities.size();
+    }
 };
 
 #endif
