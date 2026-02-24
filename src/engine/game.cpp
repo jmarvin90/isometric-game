@@ -70,7 +70,7 @@ void Game::initialise()
     const Grid<SpatialMapProjection>& spatial_map { registry.ctx().emplace<Grid<SpatialMapProjection>>(registry, tilemap.cell_size * 2, tilemap.grid_dimensions / 2) };
     assert(tilemap.area == spatial_map.area);
     registry.ctx().emplace<SegmentManagerComponent>();
-    registry.ctx().emplace<CameraComponent>(display_mode, spatial_map);
+    registry.ctx().emplace<CameraComponent>(display_mode);
     TileMapSystem::emplace_tiles(registry);
 
     ImGui::CreateContext();

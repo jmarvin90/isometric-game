@@ -20,6 +20,7 @@ struct SpriteSheetEntry {
 };
 
 class SpriteSheet {
+    // TODO - fix raw pointer
     SDL_Texture* spritesheet;
     std::unordered_map<std::string, SpriteSheetEntry> sprites;
 

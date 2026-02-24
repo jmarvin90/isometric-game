@@ -4,7 +4,7 @@
 #include <components/grid_position_component.h>
 #include <components/transform_component.h>
 
-#include <entt/entt.hpp>/
+#include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <vector>
 

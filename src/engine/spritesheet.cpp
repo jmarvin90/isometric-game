@@ -28,7 +28,13 @@ SpriteSheet::SpriteSheet(const std::string spritesheet_path, const std::string a
     my_document.ParseStream(read);
 
     for (const auto& json_object : my_document.GetArray()) {
-        sprites.try_emplace(json_object["name"].GetString(), SpriteComponent { json_object, spritesheet }, json_object.HasMember("directions") ? std::make_optional<NavigationComponent>(json_object) : std::nullopt);
+        sprites.try_emplace(
+            json_object["name"].GetString(), //
+            SpriteComponent { json_object, spritesheet }, //
+            json_object.HasMember("directions")
+                ? std::make_optional<NavigationComponent>(json_object)
+                : std::nullopt
+        );
     }
 }
 

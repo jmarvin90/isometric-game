@@ -2,9 +2,8 @@
 #define NAVIGATIONCOMPONENT_H
 
 #include <directions.h>
-#include <rapidjson/document.h>
-
 #include <entt/entt.hpp>
+#include <rapidjson/document.h>
 
 struct NavigationComponent {
     Direction::TDirection directions;

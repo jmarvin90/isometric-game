@@ -6,27 +6,24 @@
 #include <vector>
 
 struct Interval {
-    entt::entity origin;
-    entt::entity termination;
-    Direction::TDirection direction;
-    int length;
+
     Interval(
         entt::entity origin,
         entt::entity termination,
         Direction::TDirection direction,
         int length
     )
-        : origin { origin }
-        , termination { termination }
-        , direction { direction }
-        , length { length }
+
     {
     }
-    bool operator<(const Interval& comparator) const { return length < comparator.length; }
 };
 
-struct SegmentComponent : public Interval {
+struct SegmentComponent {
+    entt::entity origin;
+    entt::entity termination;
+    Direction::TDirection direction;
     std::vector<entt::entity> entities;
+    int length;
 
     SegmentComponent(const SegmentComponent&) = default;
     SegmentComponent(SegmentComponent&&) = default;
@@ -39,21 +36,30 @@ struct SegmentComponent : public Interval {
         Direction::TDirection direction,
         std::vector<entt::entity> entities
     )
-        : Interval(origin, termination, direction, entities.size())
+        : origin { origin }
+        , termination { termination }
+        , direction { direction }
         , entities { entities }
+        , length { entities.size() }
     {
     }
 
     SegmentComponent(std::vector<entt::entity>& _entities, Direction::TDirection direction)
-        : Interval(_entities.front(), _entities.back(), direction, _entities.size())
+        : origin { _entities.front() }
+        , termination { _entities.back() }
+        , direction { direction }
         , entities {}
+        , length {}
     {
         for (auto entity : _entities) {
             if (entity != _entities.front() && entity != _entities.back()) {
                 entities.push_back(entity);
             }
         }
+        length = entities.size();
     }
+
+    bool operator<(const SegmentComponent& comparator) const { return length < comparator.length; }
 };
 
 #endif
