@@ -8,14 +8,18 @@
 #include <fstream>
 #include <optional>
 
-SpriteSheet::SpriteSheet(const std::string spritesheet_path, const std::string atlas_path, SDL_Renderer* renderer)
+SpriteSheet::SpriteSheet(
+    const std::string spritesheet_path,
+    const std::string atlas_path,
+    std::unique_ptr<SDL_Renderer, Utility::SDLDestroyer>& renderer
+)
 {
     SDL_Surface* surface { IMG_Load(spritesheet_path.c_str()) };
     if (!surface) {
         spdlog::info("Could not load texture from path: " + spritesheet_path);
     };
 
-    spritesheet = SDL_CreateTextureFromSurface(renderer, surface);
+    spritesheet = SDL_CreateTextureFromSurface(renderer.get(), surface);
     if (!spritesheet) {
         spdlog::info("Could not load texture from surface using image: " + spritesheet_path);
     }

@@ -18,6 +18,7 @@
 #include <systems/segment_system.h>
 #include <systems/spatialmap_system.h>
 #include <systems/tilemap_system.h>
+#include <utility.h>
 
 #include <entt/entt.hpp>
 #include <string>
@@ -33,13 +34,15 @@ void Game::initialise()
     SDL_GetDesktopDisplayMode(0, &display_mode);
 
     // Create the SDL Window
-    window = SDL_CreateWindow(
-        NULL, // title - leave blank for now
-        SDL_WINDOWPOS_CENTERED, // Window xconstant position (centred)
-        SDL_WINDOWPOS_CENTERED, // Window y position (centred)
-        display_mode.w, // X res from current display mode
-        display_mode.h, // Y res from current display mode
-        SDL_WINDOW_FULLSCREEN // | SDL_WINDOW_ALLOW_HIGHDPI // Input grabbed flag
+    window = std::unique_ptr<SDL_Window, Utility::SDLDestroyer>(
+        SDL_CreateWindow(
+            NULL, // title - leave blank for now
+            SDL_WINDOWPOS_CENTERED, // Window xconstant position (centred)
+            SDL_WINDOWPOS_CENTERED, // Window y position (centred)
+            display_mode.w, // X res from current display mode
+            display_mode.h, // Y res from current display mode
+            SDL_WINDOW_FULLSCREEN // | SDL_WINDOW_ALLOW_HIGHDPI // Input grabbed flag
+        )
     );
 
     if (!window) {
@@ -56,7 +59,10 @@ void Game::initialise()
     registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
 
     // TODO: move this somewhere smart under some smart condition
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    renderer = std::unique_ptr<SDL_Renderer, Utility::SDLDestroyer>(
+        SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)
+    );
+
     [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(glm::ivec2 { 256, 128 }, 68) };
 
     registry.ctx().emplace<MouseComponent>();
@@ -75,8 +81,8 @@ void Game::initialise()
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
-    ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
-    ImGui_ImplSDLRenderer2_Init(renderer);
+    ImGui_ImplSDL2_InitForSDLRenderer(window.get(), renderer.get());
+    ImGui_ImplSDLRenderer2_Init(renderer.get());
 }
 
 void Game::process_input()
@@ -120,17 +126,17 @@ void Game::render()
     [[maybe_unused]] entt::entity start_entity { tilemap[start_pos] };
     [[maybe_unused]] entt::entity end_entity { tilemap[end_pos] };
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_RenderClear(renderer);
-    RenderSystem::render(registry, renderer);
+    SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
+    SDL_RenderClear(renderer.get());
+    RenderSystem::render(registry, renderer.get());
     if (debug_mode) {
-        RenderSystem::render_highlights(registry, renderer);
-        RenderSystem::render_imgui_ui(registry, renderer);
+        RenderSystem::render_highlights(registry, renderer.get());
+        RenderSystem::render_imgui_ui(registry, renderer.get());
         // RenderSystem::render_segment_lines(registry, renderer);
-        RenderSystem::render_junction_gates(registry, renderer);
-        RenderSystem::render_path(registry, renderer, start_entity, end_entity);
+        RenderSystem::render_junction_gates(registry, renderer.get());
+        RenderSystem::render_path(registry, renderer.get(), start_entity, end_entity);
     }
-    SDL_RenderPresent(renderer);
+    SDL_RenderPresent(renderer.get());
 }
 
 void Game::run()
@@ -165,6 +171,5 @@ void Game::destroy()
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
-    SDL_DestroyWindow(window);
     SDL_Quit();
 }
