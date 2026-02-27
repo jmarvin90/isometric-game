@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
+#include <nlohmann/json.hpp>
 
 namespace Utility {
 
@@ -15,6 +16,10 @@ struct SDLDestroyer {
     void operator()(SDL_Renderer* renderer) const
     {
         SDL_DestroyRenderer(renderer);
+    }
+    void operator()(SDL_Texture* texture) const
+    {
+        SDL_DestroyTexture(texture);
     }
 };
 

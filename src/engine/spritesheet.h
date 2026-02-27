@@ -21,8 +21,7 @@ struct SpriteSheetEntry {
 };
 
 class SpriteSheet {
-    // TODO - fix raw pointer
-    SDL_Texture* spritesheet;
+    std::unique_ptr<SDL_Texture, Utility::SDLDestroyer> spritesheet;
     std::unordered_map<std::string, SpriteSheetEntry> sprites;
 
 public:
@@ -32,7 +31,6 @@ public:
         std::unique_ptr<SDL_Renderer, Utility::SDLDestroyer>& renderer
     );
 
-    ~SpriteSheet();
     const SpriteSheetEntry& get(const std::string name) const;
 
     SpriteSheet(const SpriteSheet&) = delete;

@@ -1,12 +1,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <fstream>
+#include <nlohmann/json.hpp>
+#include <optional>
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 #include <spdlog/spdlog.h>
 #include <spritesheet.h>
-
-#include <fstream>
-#include <optional>
 
 SpriteSheet::SpriteSheet(
     const std::string spritesheet_path,
@@ -19,7 +19,10 @@ SpriteSheet::SpriteSheet(
         spdlog::info("Could not load texture from path: " + spritesheet_path);
     };
 
-    spritesheet = SDL_CreateTextureFromSurface(renderer.get(), surface);
+    spritesheet = std::unique_ptr<SDL_Texture, Utility::SDLDestroyer>(
+        SDL_CreateTextureFromSurface(renderer.get(), surface)
+    );
+
     if (!spritesheet) {
         spdlog::info("Could not load texture from surface using image: " + spritesheet_path);
     }
@@ -27,21 +30,22 @@ SpriteSheet::SpriteSheet(
     SDL_FreeSurface(surface);
 
     std::ifstream input { atlas_path };
-    rapidjson::IStreamWrapper read { input };
-    rapidjson::Document my_document;
-    my_document.ParseStream(read);
+    nlohmann::json data = nlohmann::json::parse(input);
 
-    for (const auto& json_object : my_document.GetArray()) {
+    // TODO - this is an untidy way of doing it that creates (potentially multiple) copies
+    for (const auto& json_object : data) {
+        const std::string sprite_name { json_object["name"] };
+        SpriteComponent sprite_component { json_object.get<SpriteComponent>() };
+        sprite_component.texture = spritesheet.get();
+
         sprites.try_emplace(
-            json_object["name"].GetString(), //
-            SpriteComponent { json_object, spritesheet }, //
-            json_object.HasMember("directions")
-                ? std::make_optional<NavigationComponent>(json_object)
+            sprite_name,
+            sprite_component,
+            json_object.contains("directions")
+                ? std::make_optional<NavigationComponent>(json_object.get<NavigationComponent>())
                 : std::nullopt
         );
     }
 }
 
 const SpriteSheetEntry& SpriteSheet::get(const std::string name) const { return sprites.at(name); }
-
-SpriteSheet::~SpriteSheet() { SDL_DestroyTexture(spritesheet); }
