@@ -7,13 +7,11 @@
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
 #include <components/navigation_component.h>
-#include <components/screen_position_component.h>
 #include <components/segment_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
 #include <components/tilespec_component.h>
 #include <components/transform_component.h>
-#include <components/visibility_component.h>
 #include <constants.h>
 #include <entt/entt.hpp>
 #include <grid.h>
@@ -27,11 +25,7 @@
 #include <utility>
 #include <vector>
 
-int total_count { 0 };
-
 namespace {
-
-// TODO: be aware of possible pointer invalidation
 
 bool transform_comparison(
     const Renderable& lhs, const Renderable& rhs
@@ -46,46 +40,36 @@ bool transform_comparison(
     );
 }
 
-void draw_segment_path(
-    SDL_Renderer* renderer,
-    const entt::registry& registry,
-    const TileSpecComponent& tilespec,
-    entt::entity segment_start,
-    entt::entity segment_end,
-    Direction::TDirection direction
+void render_highlights(
+    const glm::ivec2 screen_position,
+    const HighlightComponent* highlight_component,
+    SDL_Renderer* renderer
 )
 {
-    // TODO: this function is nasty
-    const glm::ivec2 camera_position { registry.ctx().get<const CameraComponent>().position };
-    glm::ivec2 segment_start_world { registry.get<TransformComponent>(segment_start).position };
-    glm::ivec2 segment_end_world { registry.get<TransformComponent>(segment_end).position };
-    ScreenPositionComponent segment_start_screen { Position::world_to_screen(segment_start_world, camera_position) };
-    ScreenPositionComponent segment_end_screen { Position::world_to_screen(segment_end_world, camera_position) };
-    glm::ivec2 entry { segment_start_screen.position + tilespec.road_gates.at(Direction::index_position(direction)).exit };
-    glm::ivec2 exit { segment_end_screen.position + tilespec.road_gates.at(Direction::index_position(Direction::reverse(direction))).entry };
-    SDL_RenderDrawLine(
-        renderer,
-        entry.x,
-        entry.y,
-        exit.x,
-        exit.y
-    );
-}
+    std::vector<SDL_Point> absolute_points;
+    absolute_points.reserve(highlight_component->points.size());
 
-}; // namespace
-
-void RenderSystem::render_segment_lines(
-    const entt::registry& registry, SDL_Renderer* renderer
-)
-{
-    auto segments = registry.view<SegmentComponent, VisibilityComponent>();
-    const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
-
-    for (auto [entity, segment] : segments.each()) {
-        draw_segment_path(renderer, registry, tilespec, segment.origin, segment.termination, segment.direction);
-        draw_segment_path(renderer, registry, tilespec, segment.termination, segment.origin, Direction::reverse(segment.direction));
+    for (auto point : highlight_component->points) {
+        absolute_points.emplace_back(
+            SDL_Point {
+                screen_position.x + point.x,
+                screen_position.y + point.y }
+        );
     }
+
+    SDL_SetRenderDrawColor(
+        renderer,
+        highlight_component->colour.r,
+        highlight_component->colour.g,
+        highlight_component->colour.b,
+        highlight_component->colour.a
+    );
+
+    SDL_RenderDrawLines(renderer, absolute_points.data(), absolute_points.size());
 }
+}
+
+; // namespace
 
 void RenderSystem::update(entt::registry& registry)
 {
@@ -132,16 +116,14 @@ void RenderSystem::update(entt::registry& registry)
                 }
             }
 
-            for (entt::entity renderable : cell.segments) {
-                registry.emplace_or_replace<VisibilityComponent>(renderable);
-            }
+            // TODO - can I add segments to the renderables pile?
         }
     }
 
     std::sort(renderables.begin(), renderables.end(), transform_comparison);
 }
 
-void RenderSystem::render(const entt::registry& registry, SDL_Renderer* renderer)
+void RenderSystem::render(const entt::registry& registry, SDL_Renderer* renderer, const bool debug_mode)
 {
     SDL_Texture* texture { registry.ctx().get<SpriteSheet>().texture.get() };
     const std::vector<Renderable>& renderables { registry.ctx().get<const std::vector<Renderable>>() };
@@ -164,34 +146,10 @@ void RenderSystem::render(const entt::registry& registry, SDL_Renderer* renderer
             NULL,
             SDL_FLIP_NONE
         );
-    }
-}
 
-void RenderSystem::render_highlights(const entt::registry& registry, SDL_Renderer* renderer)
-{
-    auto renderables { registry.view<VisibilityComponent, TransformComponent, ScreenPositionComponent, HighlightComponent>() };
-    for (auto [entity, transform, screen_position, highlight] : renderables.each()) {
-
-        std::vector<SDL_Point> absolute_points;
-        absolute_points.reserve(highlight.points.size());
-
-        for (auto point : highlight.points) {
-            absolute_points.emplace_back(
-                SDL_Point {
-                    screen_position.position.x + point.x,
-                    screen_position.position.y + point.y }
-            );
+        if (debug_mode && renderable.highlight) {
+            render_highlights(renderable.screen_position, renderable.highlight, renderer);
         }
-
-        SDL_SetRenderDrawColor(
-            renderer,
-            highlight.colour.r,
-            highlight.colour.g,
-            highlight.colour.b,
-            highlight.colour.a
-        );
-
-        SDL_RenderDrawLines(renderer, absolute_points.data(), absolute_points.size());
     }
 }
 
@@ -257,12 +215,14 @@ void RenderSystem::render_imgui_ui(
 
 void RenderSystem::render_junction_gates(const entt::registry& registry, SDL_Renderer* renderer)
 {
+    const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
     const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
-    auto junctions { registry.view<ScreenPositionComponent, JunctionComponent>() };
-    for (auto [entity, screen_position, junction] : junctions.each()) {
+    auto junctions { registry.view<TransformComponent, JunctionComponent>() };
+    for (auto [entity, transform, junction] : junctions.each()) {
         for (auto gate : tilespec.road_gates) {
-            glm::ivec2 entry { glm::ivec2 { screen_position.position } + gate.entry };
-            glm::ivec2 exit { glm::ivec2 { screen_position.position } + gate.exit };
+            glm::ivec2 screen_position { Position::world_to_screen(transform.position, camera.position) };
+            glm::ivec2 entry { screen_position + gate.entry };
+            glm::ivec2 exit { screen_position + gate.exit };
             SDL_Rect entry_rect { entry.x - 2, entry.y - 2, 4, 4 };
             SDL_Rect exit_rect { exit.x - 2, exit.y - 2, 4, 4 };
             SDL_SetRenderDrawColor(renderer, 255, 155, 155, 255);

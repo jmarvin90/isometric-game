@@ -129,11 +129,9 @@ void Game::render()
 
     SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
     SDL_RenderClear(renderer.get());
-    RenderSystem::render(registry, renderer.get());
+    RenderSystem::render(registry, renderer.get(), debug_mode);
     if (debug_mode) {
-        RenderSystem::render_highlights(registry, renderer.get());
         RenderSystem::render_imgui_ui(registry, renderer.get());
-        // RenderSystem::render_segment_lines(registry, renderer);
         RenderSystem::render_junction_gates(registry, renderer.get());
         RenderSystem::render_path(registry, renderer.get(), start_entity, end_entity);
     }
