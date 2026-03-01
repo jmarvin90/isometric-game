@@ -19,6 +19,7 @@
 #include <pathfinding.h>
 #include <position.h>
 #include <projection.h>
+#include <spritesheet.h>
 #include <systems/render_system.h>
 #include <tilespec_component.h>
 
@@ -158,6 +159,8 @@ void RenderSystem::update(entt::registry& registry)
 
 void RenderSystem::render(const entt::registry& registry, SDL_Renderer* renderer)
 {
+    SDL_Texture* texture { registry.ctx().get<SpriteSheet>().texture.get() };
+
     auto renderables_view {
         registry.view<
             const VisibilityComponent,
@@ -190,7 +193,7 @@ void RenderSystem::render(const entt::registry& registry, SDL_Renderer* renderer
 
         SDL_RenderCopyEx(
             renderer,
-            renderable.sprite->texture,
+            texture,
             &renderable.sprite->source_rect,
             &target_rect,
             renderable.transform->rotation,

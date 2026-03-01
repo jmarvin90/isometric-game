@@ -179,10 +179,9 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
         }
 
         // TODO: check for copies
-        const SpriteSheetEntry& spritedef { spritesheet.get(tile_handle) };
-        registry.emplace<SpriteComponent>(tile, spritedef.sprite_definition);
-        if (spritedef.navigation_definition) {
-            registry.emplace<NavigationComponent>(tile, spritedef.navigation_definition.value());
+        registry.emplace<SpriteComponent>(tile, spritesheet.sprites.at(tile_handle));
+        if (spritesheet.navigation.find(tile_handle) != spritesheet.navigation.end()) {
+            registry.emplace<NavigationComponent>(tile, spritesheet.navigation.at(tile_handle));
         }
     }
 
@@ -191,8 +190,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     [[maybe_unused]] TransformComponent& resulting_transform {
         registry.emplace<TransformComponent>(building, glm::vec2 { 55, 55 }, 1, 0.0)
     };
-    const SpriteSheetEntry& spritedef { spritesheet.get("building_tall") };
-    registry.emplace<SpriteComponent>(building, spritedef.sprite_definition);
+    registry.emplace<SpriteComponent>(building, spritesheet.sprites.at("building_tall"));
 
     assert(registry.all_of<SpatialMapCellSpanComponent>(building));
 
@@ -213,8 +211,7 @@ void TileMapSystem::emplace_tiles(entt::registry& registry)
     [[maybe_unused]] TransformComponent& resulting_transform_2 {
         registry.emplace<TransformComponent>(building_2, glm::vec2 { 55, 55 }, 1, 0.0)
     };
-    const SpriteSheetEntry& spritedef_2 { spritesheet.get("building_short") };
-    registry.emplace<SpriteComponent>(building_2, spritedef_2.sprite_definition);
+    registry.emplace<SpriteComponent>(building_2, spritesheet.sprites.at("building_short"));
 
     assert(registry.all_of<SpatialMapCellSpanComponent>(building_2));
 

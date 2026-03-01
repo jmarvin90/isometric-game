@@ -8,28 +8,22 @@
 
 struct SpriteComponent {
     SDL_Rect source_rect;
-    SDL_Texture* texture;
     glm::ivec2 anchor;
 
     SpriteComponent()
-        : source_rect {}
-        , texture { nullptr }
-        , anchor {}
+        : source_rect { 0, 0, 0, 0 }
+        , anchor { 0, 0 }
     {
     }
 
     SpriteComponent(
-        SDL_Rect source_rect,
-        SDL_Texture* texture
+        SDL_Rect source_rect
     )
         : source_rect { source_rect }
-        , texture { texture }
         , anchor { source_rect.w / 2,
                    source_rect.w / 4 }
     {
     }
 };
-
-void from_json(const nlohmann::json& json, SpriteComponent& sprite);
 
 #endif
