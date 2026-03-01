@@ -3,10 +3,32 @@
 
 #include <SDL2/SDL.h>
 #include <components/camera_component.h>
+#include <components/highlight_component.h>
 #include <components/mouse_component.h>
 #include <entt/entt.hpp>
 
+struct Renderable {
+    const TransformComponent* transform;
+    const SpriteComponent* sprite;
+    const HighlightComponent* highlight;
+    glm::ivec2 screen_position;
+
+    Renderable(
+        const TransformComponent* transform,
+        const SpriteComponent* sprite,
+        const HighlightComponent* highlight,
+        glm::ivec2 screen_position
+    )
+        : transform { transform }
+        , sprite { sprite }
+        , highlight { highlight }
+        , screen_position { screen_position }
+    {
+    }
+};
+
 class RenderSystem {
+
 public:
     static void update(
         entt::registry& registry

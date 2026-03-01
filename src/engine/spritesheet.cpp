@@ -25,6 +25,7 @@ SpriteSheet::SpriteSheet(
 )
 {
     SDL_Surface* surface { IMG_Load(spritesheet_path.c_str()) };
+
     if (!surface) {
         spdlog::info("Could not load texture from path: " + spritesheet_path);
     };
@@ -42,7 +43,6 @@ SpriteSheet::SpriteSheet(
     std::ifstream input { atlas_path };
     nlohmann::json data = nlohmann::json::parse(input);
 
-    // TODO - this is an untidy way of doing it that creates (potentially multiple) copies
     for (const auto& json_object : data) {
         auto emplacement_result { sprites.try_emplace(json_object["name"]) };
         emplacement_result.first->second = json_object.get<SpriteComponent>();

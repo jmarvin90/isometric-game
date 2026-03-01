@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <utility.h>
 
-class SpriteSheet {
+struct SpriteSheet {
 public:
     std::unique_ptr<SDL_Texture, Utility::SDLDestroyer> texture;
     std::unordered_map<std::string, SpriteComponent> sprites;
@@ -22,8 +22,6 @@ public:
         std::unique_ptr<SDL_Renderer, Utility::SDLDestroyer>& renderer
     );
 
-    // const SpriteComponent& get_sprite(std::string key) const;
-    // const NavigationComponent& get_navigation(std::string key) const;
     SpriteSheet(const SpriteSheet&) = delete;
     SpriteSheet& operator=(const SpriteSheet&) = delete;
     SpriteSheet(SpriteSheet&&) = default;

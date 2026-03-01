@@ -10,13 +10,6 @@ struct NavigationComponent {
     entt::entity segment_id;
     bool is_junction;
 
-    // NavigationComponent()
-    //     : directions { Direction::TDirection::NO_DIRECTION }
-    //     , segment_id { entt::null }
-    //     , is_junction { false }
-    // {
-    // }
-
     NavigationComponent(int directions)
         : directions { static_cast<uint8_t>(directions) }
         , segment_id { entt::null }

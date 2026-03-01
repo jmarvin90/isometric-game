@@ -74,6 +74,7 @@ void Game::initialise()
 
     [[maybe_unused]] const Grid<TileMapProjection>& tilemap { registry.ctx().emplace<Grid<TileMapProjection>>(registry, glm::ivec2 { 256, 128 }, glm::ivec2 { 32, 32 }) };
     const Grid<SpatialMapProjection>& spatial_map { registry.ctx().emplace<Grid<SpatialMapProjection>>(registry, tilemap.cell_size * 2, tilemap.grid_dimensions / 2) };
+    registry.ctx().emplace<std::vector<Renderable>>();
     assert(tilemap.area == spatial_map.area);
     registry.ctx().emplace<SegmentManagerComponent>();
     registry.ctx().emplace<CameraComponent>(display_mode);
