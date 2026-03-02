@@ -1,17 +1,21 @@
 #include <SDL2/SDL_image.h>
+#include <archive.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
+#include <components/junction_component.h>
 #include <components/navigation_component.h>
 #include <components/segment_component.h>
 #include <components/segment_manager_component.h>
 #include <components/tilespec_component.h>
 #include <constants.h>
+#include <entt/entt.hpp>
 #include <game.h>
 #include <grid.h>
 #include <imgui.h>
 #include <projection.h>
 #include <spdlog/spdlog.h>
 #include <spritesheet.h>
+#include <string>
 #include <systems/camera_system.h>
 #include <systems/mouse_system.h>
 #include <systems/render_system.h>
@@ -19,9 +23,6 @@
 #include <systems/spatialmap_system.h>
 #include <systems/tilemap_system.h>
 #include <utility.h>
-
-#include <entt/entt.hpp>
-#include <string>
 
 Game::Game() { spdlog::info("Game constructor called."); }
 
@@ -72,8 +73,12 @@ void Game::initialise()
         renderer
     );
 
-    [[maybe_unused]] const Grid<TileMapProjection>& tilemap { registry.ctx().emplace<Grid<TileMapProjection>>(registry, glm::ivec2 { 256, 128 }, glm::ivec2 { 32, 32 }) };
-    const Grid<SpatialMapProjection>& spatial_map { registry.ctx().emplace<Grid<SpatialMapProjection>>(registry, tilemap.cell_size * 2, tilemap.grid_dimensions / 2) };
+    [[maybe_unused]] const Grid<TileMapProjection>& tilemap {
+        registry.ctx().emplace<Grid<TileMapProjection>>(registry, glm::ivec2 { 256, 128 }, glm::ivec2 { 32, 32 })
+    };
+    const Grid<SpatialMapProjection>& spatial_map {
+        registry.ctx().emplace<Grid<SpatialMapProjection>>(registry, tilemap.cell_size * 2, tilemap.grid_dimensions / 2)
+    };
     registry.ctx().emplace<std::vector<Renderable>>();
     assert(tilemap.area == spatial_map.area);
     registry.ctx().emplace<SegmentManagerComponent>();
@@ -163,6 +168,17 @@ void Game::run()
 
         _last_time = start;
     }
+    OutputArchive my_archive;
+    entt::basic_snapshot(registry)
+        .get<entt::entity>(my_archive)
+        // .get<TransformComponent>(my_archive);
+        // .get<SpriteComponent>(my_archive)
+        // .get<GridPositionComponent>(my_archive)
+        .get<NavigationComponent>(my_archive)
+        .get<SegmentComponent>(my_archive)
+        .get<JunctionComponent>(my_archive);
+
+    my_archive.close();
 }
 
 void Game::destroy()
