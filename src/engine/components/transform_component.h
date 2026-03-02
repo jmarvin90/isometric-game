@@ -4,11 +4,14 @@
 #include <constants.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
+#include <nlohmann/json.hpp>
 
 struct TransformComponent {
     glm::vec2 position;
     int z_index;
     double rotation;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(TransformComponent, position, z_index, rotation)
 };
 
 #endif

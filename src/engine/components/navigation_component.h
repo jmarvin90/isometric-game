@@ -16,6 +16,8 @@ struct NavigationComponent {
         , is_junction { Direction::is_junction(this->directions) }
     {
     }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(NavigationComponent, directions, segment_id, is_junction)
 };
 
 #endif

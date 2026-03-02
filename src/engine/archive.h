@@ -19,6 +19,7 @@ class OutputArchive {
     uint32_t current_entity;
     nlohmann::json current_component;
     nlohmann::json current_component_pool;
+    void commit();
 
 public:
     OutputArchive()
@@ -49,12 +50,19 @@ public:
 
     void close()
     {
-        root.push_back(current_component_pool);
+        commit();
     }
 };
 
 class InputArchive {
+
+    nlohmann::json root;
+
 public:
+    InputArchive(std::string json_string)
+    {
+        root = nlohmann::json::parse(json_string);
+    }
     // ...to load entities
     void operator()(entt::entity&);
 
