@@ -11,6 +11,7 @@ public:
     static void emplace_segment(entt::registry& registry, entt::entity entity);
     static void remove_segment(entt::registry& registry, entt::entity entity);
     static void update_entity(entt::registry& registry, entt::entity entity);
+    static void update_on_load(entt::registry& registry);
 };
 
 #endif

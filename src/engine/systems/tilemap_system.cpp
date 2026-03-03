@@ -277,3 +277,7 @@ void TileMapSystem::disconnect(entt::registry& registry, entt::entity entity)
     if (nav.segment_id == entt::null)
         return;
 }
+
+void TileMapSystem::update_on_load(entt::registry& registry)
+{
+}

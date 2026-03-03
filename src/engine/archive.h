@@ -1,9 +1,14 @@
 #ifndef ARCHIVE_H
 #define ARCHIVE_H
 
+#include <SDL2/SDL.h>
 #include <entt/entt.hpp>
+#include <fstream>
+#include <glm/glm.hpp>
+#include <json_parse.h>
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
+#include <string>
 #include <vector>
 
 template <typename T>
@@ -48,21 +53,31 @@ public:
         current_component_pool.push_back(component_json);
     }
 
-    void close()
-    {
-        commit();
-    }
+    void to_file(std::string path);
 };
 
 class InputArchive {
 
+    uint32_t root_index { 0 };
+    uint32_t component_index { 0 };
+
     nlohmann::json root;
+    nlohmann::json current_component_pool;
+    nlohmann::json current_component;
+
+    bool fetch_component_pool();
+    void load_next_component_pool();
 
 public:
-    InputArchive(std::string json_string)
+    static InputArchive from_file(std::string file_path);
+
+    InputArchive(std::string file_path)
+    // : root { nlohmann::json::parse(json_string) }
     {
-        root = nlohmann::json::parse(json_string);
+        std::ifstream ifs(file_path);
+        root = nlohmann::json::parse(ifs);
     }
+
     // ...to load entities
     void operator()(entt::entity&);
 
@@ -71,7 +86,16 @@ public:
 
     // ...references to the types of component to restore
     template <typename T>
-    void operator()(T&);
+    void operator()(T& component)
+    {
+        spdlog::info(
+            "Loading {} from {} for entity {}",
+            typeid(component).name(),
+            current_component["component"].dump(),
+            current_component["entity_id"].get<int>()
+        );
+        component = current_component["component"].get<T>();
+    }
 };
 
 #endif

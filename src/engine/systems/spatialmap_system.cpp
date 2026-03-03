@@ -178,3 +178,11 @@ void SpatialMapSystem::remove_segment(entt::registry& registry, entt::entity ent
         );
     }
 }
+
+void SpatialMapSystem::update_on_load(entt::registry& registry)
+{
+    auto transform_view { registry.view<TransformComponent, SpriteComponent>() };
+    for (auto [entity, transform, sprite] : transform_view.each()) {
+        SpatialMapSystem::emplace_entity(registry, entity);
+    }
+}

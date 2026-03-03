@@ -18,6 +18,14 @@ struct SegmentComponent {
     SegmentComponent& operator=(const SegmentComponent&) = default;
     SegmentComponent& operator=(SegmentComponent&&) = default;
 
+    SegmentComponent()
+        : origin { entt::null }
+        , termination { entt::null }
+        , direction { Direction::TDirection::NO_DIRECTION }
+        , entities {}
+    {
+    }
+
     SegmentComponent(
         entt::entity origin,
         entt::entity termination,

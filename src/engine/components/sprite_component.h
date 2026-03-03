@@ -24,6 +24,8 @@ struct SpriteComponent {
                    source_rect.w / 4 }
     {
     }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteComponent, source_rect, anchor);
 };
 
 #endif

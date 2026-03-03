@@ -52,6 +52,18 @@ void Game::initialise()
 
     registry = entt::registry();
 
+    InputArchive my_archive("output.json");
+
+    entt::snapshot_loader { registry }
+        .get<entt::entity>(my_archive)
+        .get<TransformComponent>(my_archive)
+        .get<SpriteComponent>(my_archive)
+        .get<GridPositionComponent>(my_archive)
+        .get<NavigationComponent>(my_archive)
+        .get<SegmentComponent>(my_archive)
+        .get<JunctionComponent>(my_archive)
+        .orphans();
+
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
@@ -76,14 +88,18 @@ void Game::initialise()
     [[maybe_unused]] const Grid<TileMapProjection>& tilemap {
         registry.ctx().emplace<Grid<TileMapProjection>>(registry, glm::ivec2 { 256, 128 }, glm::ivec2 { 32, 32 })
     };
+
     const Grid<SpatialMapProjection>& spatial_map {
         registry.ctx().emplace<Grid<SpatialMapProjection>>(registry, tilemap.cell_size * 2, tilemap.grid_dimensions / 2)
     };
+
+    SpatialMapSystem::update_on_load(registry);
+
     registry.ctx().emplace<std::vector<Renderable>>();
     assert(tilemap.area == spatial_map.area);
     registry.ctx().emplace<SegmentManagerComponent>();
     registry.ctx().emplace<CameraComponent>(display_mode);
-    TileMapSystem::emplace_tiles(registry);
+    // TileMapSystem::emplace_tiles(registry);
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -125,20 +141,20 @@ void Game::update([[maybe_unused]] const float delta_time)
 void Game::render()
 {
     // SDL_RenderSetClipRect(renderer, &camera.camera_rect);
-    const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
+    [[maybe_unused]] const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
     glm::ivec2 start_pos { 2, 1 };
     glm::ivec2 end_pos { 2, 6 };
 
-    [[maybe_unused]] entt::entity start_entity { tilemap[start_pos] };
-    [[maybe_unused]] entt::entity end_entity { tilemap[end_pos] };
+    // [[maybe_unused]] entt::entity start_entity { tilemap[start_pos] };
+    // [[maybe_unused]] entt::entity end_entity { tilemap[end_pos] };
 
     SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
     SDL_RenderClear(renderer.get());
     RenderSystem::render(registry, renderer.get(), debug_mode);
     if (debug_mode) {
         RenderSystem::render_imgui_ui(registry, renderer.get());
-        RenderSystem::render_junction_gates(registry, renderer.get());
-        RenderSystem::render_path(registry, renderer.get(), start_entity, end_entity);
+        // RenderSystem::render_junction_gates(registry, renderer.get());
+        // RenderSystem::render_path(registry, renderer.get(), start_entity, end_entity);
     }
     SDL_RenderPresent(renderer.get());
 }
@@ -168,17 +184,18 @@ void Game::run()
 
         _last_time = start;
     }
-    OutputArchive my_archive;
-    entt::basic_snapshot(registry)
-        .get<entt::entity>(my_archive)
-        // .get<TransformComponent>(my_archive);
-        // .get<SpriteComponent>(my_archive)
-        // .get<GridPositionComponent>(my_archive)
-        .get<NavigationComponent>(my_archive)
-        .get<SegmentComponent>(my_archive)
-        .get<JunctionComponent>(my_archive);
 
-    my_archive.close();
+    // OutputArchive my_archive;
+    // entt::basic_snapshot(registry)
+    //     .get<entt::entity>(my_archive)
+    //     .get<TransformComponent>(my_archive)
+    //     .get<SpriteComponent>(my_archive)
+    //     .get<GridPositionComponent>(my_archive)
+    //     .get<NavigationComponent>(my_archive)
+    //     .get<SegmentComponent>(my_archive)
+    //     .get<JunctionComponent>(my_archive);
+
+    // my_archive.to_file("output.json");
 }
 
 void Game::destroy()
