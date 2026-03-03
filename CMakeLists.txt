@@ -51,6 +51,7 @@ add_executable(isometric-game
     src/engine/systems/spatialmap_system.cpp
     src/engine/systems/segment_system.cpp
     src/engine/archive.cpp
+    src/engine/json_parse.cpp
 )
 
 target_compile_options(isometric-game PRIVATE
