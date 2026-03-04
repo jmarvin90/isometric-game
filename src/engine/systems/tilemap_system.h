@@ -14,7 +14,6 @@ public:
     static void emplace_tiles(entt::registry& registry);
     static void connect(entt::registry& registry, entt::entity entity);
     static void disconnect(entt::registry& registry, entt::entity entity);
-    static void update_on_load(entt::registry& registry);
 };
 
 #endif

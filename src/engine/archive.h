@@ -7,7 +7,6 @@
 #include <glm/glm.hpp>
 #include <json_parse.h>
 #include <nlohmann/json.hpp>
-#include <spdlog/spdlog.h>
 #include <string>
 #include <vector>
 
@@ -35,7 +34,6 @@ public:
 
     ~OutputArchive()
     {
-        spdlog::info(root.dump());
     }
 
     // ...to store entities
@@ -53,6 +51,7 @@ public:
         current_component_pool.push_back(component_json);
     }
 
+    void context_vars(entt::registry& registry);
     void to_file(std::string path);
 };
 
@@ -88,12 +87,6 @@ public:
     template <typename T>
     void operator()(T& component)
     {
-        spdlog::info(
-            "Loading {} from {} for entity {}",
-            typeid(component).name(),
-            current_component["component"].dump(),
-            current_component["entity_id"].get<int>()
-        );
         component = current_component["component"].get<T>();
     }
 };

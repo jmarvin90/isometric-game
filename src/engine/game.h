@@ -34,6 +34,8 @@ public:
     void initialise();
     void run();
     void destroy();
+    void save_to(entt::registry& registry, const std::string output_path);
+    void load_from(entt::registry& registry, const std::string input_path);
 };
 
 #endif

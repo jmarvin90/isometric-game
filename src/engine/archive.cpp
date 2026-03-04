@@ -3,9 +3,10 @@
 #include <entt/entt.hpp>
 #include <fstream>
 #include <glm/glm.hpp>
+#include <grid.h>
 #include <json_parse.h>
 #include <nlohmann/json.hpp>
-#include <spdlog/spdlog.h>
+#include <projection.h>
 #include <sstream>
 #include <string>
 
@@ -29,6 +30,17 @@ void OutputArchive::operator()(std::underlying_type_t<entt::entity> size)
     }
 
     current_component["size"] = size;
+}
+
+void OutputArchive::context_vars(entt::registry& registry)
+{
+    root.push_back(
+        { { "tilemap", registry.ctx().get<const Grid<TileMapProjection>>() } }
+    );
+
+    root.push_back(
+        { { "spatialmap", registry.ctx().get<const Grid<SpatialMapProjection>>() } }
+    );
 }
 
 void OutputArchive::to_file(std::string path)

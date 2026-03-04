@@ -2,6 +2,7 @@
 #define SPATIALMAPCELLSPANCOMPONENT_H
 
 #include <glm/glm.hpp>
+#include <nlohmann/json.hpp>
 
 struct SpatialMapCellSpanComponent {
     glm::ivec2 AA;
@@ -10,6 +11,7 @@ struct SpatialMapCellSpanComponent {
     {
         return AA != other.AA || BB != other.BB;
     }
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpatialMapCellSpanComponent, AA, BB);
 };
 
 #endif

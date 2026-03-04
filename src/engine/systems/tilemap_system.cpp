@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <array>
 #include <components/debug_component.h>
 #include <components/grid_position_component.h>
 #include <components/highlight_component.h>
@@ -12,15 +14,13 @@
 #include <components/transform_component.h>
 #include <directions.h>
 #include <grid.h>
+#include <map>
 #include <position.h>
 #include <projection.h>
 #include <spdlog/spdlog.h>
 #include <spritesheet.h>
 #include <systems/tilemap_system.h>
 #include <utility.h>
-
-#include <algorithm>
-#include <array>
 #include <vector>
 
 namespace {
@@ -276,8 +276,4 @@ void TileMapSystem::disconnect(entt::registry& registry, entt::entity entity)
     const NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
     if (nav.segment_id == entt::null)
         return;
-}
-
-void TileMapSystem::update_on_load(entt::registry& registry)
-{
 }

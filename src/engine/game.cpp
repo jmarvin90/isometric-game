@@ -6,6 +6,8 @@
 #include <components/navigation_component.h>
 #include <components/segment_component.h>
 #include <components/segment_manager_component.h>
+#include <components/spatialmapcell_component.h>
+#include <components/spatialmapcell_span_component.h>
 #include <components/tilespec_component.h>
 #include <constants.h>
 #include <entt/entt.hpp>
@@ -52,18 +54,6 @@ void Game::initialise()
 
     registry = entt::registry();
 
-    InputArchive my_archive("output.json");
-
-    entt::snapshot_loader { registry }
-        .get<entt::entity>(my_archive)
-        .get<TransformComponent>(my_archive)
-        .get<SpriteComponent>(my_archive)
-        .get<GridPositionComponent>(my_archive)
-        .get<NavigationComponent>(my_archive)
-        .get<SegmentComponent>(my_archive)
-        .get<JunctionComponent>(my_archive)
-        .orphans();
-
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
@@ -93,13 +83,11 @@ void Game::initialise()
         registry.ctx().emplace<Grid<SpatialMapProjection>>(registry, tilemap.cell_size * 2, tilemap.grid_dimensions / 2)
     };
 
-    SpatialMapSystem::update_on_load(registry);
-
     registry.ctx().emplace<std::vector<Renderable>>();
     assert(tilemap.area == spatial_map.area);
     registry.ctx().emplace<SegmentManagerComponent>();
     registry.ctx().emplace<CameraComponent>(display_mode);
-    // TileMapSystem::emplace_tiles(registry);
+    TileMapSystem::emplace_tiles(registry);
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -184,24 +172,47 @@ void Game::run()
 
         _last_time = start;
     }
-
-    // OutputArchive my_archive;
-    // entt::basic_snapshot(registry)
-    //     .get<entt::entity>(my_archive)
-    //     .get<TransformComponent>(my_archive)
-    //     .get<SpriteComponent>(my_archive)
-    //     .get<GridPositionComponent>(my_archive)
-    //     .get<NavigationComponent>(my_archive)
-    //     .get<SegmentComponent>(my_archive)
-    //     .get<JunctionComponent>(my_archive);
-
-    // my_archive.to_file("output.json");
 }
 
 void Game::destroy()
 {
+    save_to(registry, "output.json");
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
     SDL_Quit();
+}
+
+void Game::load_from(entt::registry& registry, const std::string input_path)
+{
+    InputArchive my_archive(input_path);
+    entt::snapshot_loader { registry }
+        .get<entt::entity>(my_archive)
+        .get<TransformComponent>(my_archive)
+        .get<SpriteComponent>(my_archive)
+        .get<GridPositionComponent>(my_archive)
+        .get<NavigationComponent>(my_archive)
+        .get<SegmentComponent>(my_archive)
+        .get<JunctionComponent>(my_archive)
+        .get<SpatialMapCellComponent>(my_archive)
+        .get<SpatialMapCellSpanComponent>(my_archive)
+        .orphans();
+}
+
+void Game::save_to(entt::registry& registry, const std::string output_path)
+{
+    OutputArchive my_archive;
+    entt::basic_snapshot(registry)
+        .get<entt::entity>(my_archive)
+        .get<TransformComponent>(my_archive)
+        .get<SpriteComponent>(my_archive)
+        .get<GridPositionComponent>(my_archive)
+        .get<NavigationComponent>(my_archive)
+        .get<SegmentComponent>(my_archive)
+        .get<JunctionComponent>(my_archive)
+        .get<SpatialMapCellComponent>(my_archive)
+        .get<SpatialMapCellSpanComponent>(my_archive);
+
+    my_archive.context_vars(registry);
+    my_archive.to_file(output_path);
 }
