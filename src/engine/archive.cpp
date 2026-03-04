@@ -10,12 +10,24 @@
 #include <sstream>
 #include <string>
 
-void OutputArchive::commit()
+/*
+    Place the current component array into its own component document
+    (also containing size), then push that document into the component pool array
+*/
+
+void OutputArchive::commit_to_root()
 {
-    current_component["components"] = current_component_pool;
-    root.push_back(current_component);
-    current_component_pool = nlohmann::json::array();
-    current_component.clear();
+    commit_component_document();
+    root["component_pools"] = component_pool_array;
+    root["context"] = context;
+}
+
+void OutputArchive::commit_component_document()
+{
+    current_component_document["components"] = current_component_array;
+    component_pool_array.push_back(current_component_document);
+    current_component_array = nlohmann::json::array();
+    current_component_document.clear();
 }
 
 void OutputArchive::operator()([[maybe_unused]] entt::entity entity)
@@ -25,27 +37,16 @@ void OutputArchive::operator()([[maybe_unused]] entt::entity entity)
 
 void OutputArchive::operator()(std::underlying_type_t<entt::entity> size)
 {
-    if (!current_component.empty()) {
-        commit();
+    if (!current_component_array.empty()) {
+        commit_component_document();
     }
 
-    current_component["size"] = size;
-}
-
-void OutputArchive::context_vars(entt::registry& registry)
-{
-    root.push_back(
-        { { "tilemap", registry.ctx().get<const Grid<TileMapProjection>>() } }
-    );
-
-    root.push_back(
-        { { "spatialmap", registry.ctx().get<const Grid<SpatialMapProjection>>() } }
-    );
+    current_component_document["size"] = size;
 }
 
 void OutputArchive::to_file(std::string path)
 {
-    commit();
+    commit_to_root();
     std::ofstream file { path };
     file << root.dump();
 }

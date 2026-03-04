@@ -213,6 +213,7 @@ void Game::save_to(entt::registry& registry, const std::string output_path)
         .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive);
 
-    my_archive.context_vars(registry);
+    my_archive.save_context_element("tilemap", registry.ctx().get<Grid<TileMapProjection>>());
+    my_archive.save_context_element("spatialmap", registry.ctx().get<Grid<SpatialMapProjection>>());
     my_archive.to_file(output_path);
 }

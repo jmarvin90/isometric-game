@@ -21,14 +21,19 @@ class OutputArchive {
 
     nlohmann::json root;
     uint32_t current_entity;
-    nlohmann::json current_component;
-    nlohmann::json current_component_pool;
-    void commit();
+
+    nlohmann::json component_pool_array;
+    nlohmann::json current_component_document;
+    nlohmann::json current_component_array;
+    nlohmann::json context;
+
+    void commit_component_document();
+    void commit_to_root();
 
 public:
     OutputArchive()
-        : root { nlohmann::json::array() }
-        , current_component_pool { nlohmann::json::array() }
+        : component_pool_array { nlohmann::json::array() }
+        , current_component_array { nlohmann::json::array() }
     {
     }
 
@@ -48,10 +53,15 @@ public:
     {
         ComponentPair<T> my_pair { current_entity, component };
         nlohmann::json component_json = my_pair;
-        current_component_pool.push_back(component_json);
+        current_component_array.push_back(component_json);
     }
 
-    void context_vars(entt::registry& registry);
+    template <typename T>
+    void save_context_element(const std::string document_key, const T& element)
+    {
+        context[document_key] = element;
+    }
+
     void to_file(std::string path);
 };
 
