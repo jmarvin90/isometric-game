@@ -98,8 +98,6 @@ void Game::initialise()
     registry.ctx().emplace<SegmentManagerComponent>();
     registry.ctx().emplace<CameraComponent>(display_mode);
 
-    // TileMapSystem::emplace_tiles(registry);
-
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
     ImGui_ImplSDL2_InitForSDLRenderer(window.get(), renderer.get());

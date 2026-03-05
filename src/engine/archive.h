@@ -37,9 +37,7 @@ public:
     {
     }
 
-    ~OutputArchive()
-    {
-    }
+    ~OutputArchive() { }
 
     // ...to store entities
     void operator()(entt::entity);
