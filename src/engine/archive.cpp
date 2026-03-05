@@ -10,22 +10,22 @@
 #include <sstream>
 #include <string>
 
+// Commit the component pool array and the context document into the root JSON
+void OutputArchive::commit_to_root()
+{
+    commit_component_document();
+    root["component_pools"] = component_document_array;
+    root["context"] = context;
+}
+
 /*
     Place the current component array into its own component document
     (also containing size), then push that document into the component pool array
 */
-
-void OutputArchive::commit_to_root()
-{
-    commit_component_document();
-    root["component_pools"] = component_pool_array;
-    root["context"] = context;
-}
-
 void OutputArchive::commit_component_document()
 {
     current_component_document["components"] = current_component_array;
-    component_pool_array.push_back(current_component_document);
+    component_document_array.push_back(current_component_document);
     current_component_array = nlohmann::json::array();
     current_component_document.clear();
 }
@@ -35,6 +35,8 @@ void OutputArchive::operator()([[maybe_unused]] entt::entity entity)
     current_entity = uint32_t(entity);
 }
 
+// Effectively signals the start of a new component document -
+// meaning we should commit the "old" one and start a new
 void OutputArchive::operator()(std::underlying_type_t<entt::entity> size)
 {
     if (!current_component_array.empty()) {
@@ -51,19 +53,30 @@ void OutputArchive::to_file(std::string path)
     file << root.dump();
 }
 
-bool InputArchive::fetch_component_pool()
+InputArchive::InputArchive(std::string file_path)
 {
-    if (root_index > root.size())
-        return false;
-
-    current_component_pool = root[root_index++];
-    return true;
+    std::ifstream ifs(file_path);
+    root = nlohmann::json::parse(ifs);
+    component_document_array = root["component_pools"];
+    context = root["context"];
 }
 
-void InputArchive::load_next_component_pool()
+void InputArchive::fetch_component_document()
+{
+    if (component_document_index > component_document_array.size())
+        return;
+
+    current_component_document = component_document_array[component_document_index++];
+
+    if (current_component_document.contains("components")) {
+        current_component_array = current_component_document["components"];
+    }
+}
+
+void InputArchive::load_next_component_document()
 {
     component_index = 0;
-    fetch_component_pool();
+    fetch_component_document();
 
     // while (
     //     !current_component_pool.contains("components")
@@ -74,22 +87,29 @@ void InputArchive::load_next_component_pool()
     // }
 }
 
+// Effectively signals the start of a new component document -
+// meaning we should forget the "old" one and load a new
+// (via fetch_component_document)
 void InputArchive::operator()(std::underlying_type_t<entt::entity>& size)
 {
-    load_next_component_pool();
-    if (!current_component_pool.contains("size"))
+    component_index = 0;
+    load_next_component_document();
+    if (!current_component_document.contains("size"))
         return;
-    int _size { current_component_pool.at("size").get<int>() };
+    int _size { current_component_document.at("size").get<int>() };
     size = (std::underlying_type_t<entt::entity>)_size;
 }
 
 void InputArchive::operator()(entt::entity& entity)
 {
-    if (current_component_pool["components"].empty()) {
+    if (
+        current_component_document["components"].empty()
+        || current_component_document["components"][0].empty()
+    ) {
         return;
     }
 
-    current_component = current_component_pool["components"][component_index++];
-    int int_entity { current_component["entity_id"] };
+    active_component = current_component_array[component_index++];
+    int int_entity { active_component["entity_id"] };
     entity = entt::entity(int_entity);
 }

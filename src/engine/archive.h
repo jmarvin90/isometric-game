@@ -22,7 +22,7 @@ class OutputArchive {
     nlohmann::json root;
     uint32_t current_entity;
 
-    nlohmann::json component_pool_array;
+    nlohmann::json component_document_array;
     nlohmann::json current_component_document;
     nlohmann::json current_component_array;
     nlohmann::json context;
@@ -32,7 +32,7 @@ class OutputArchive {
 
 public:
     OutputArchive()
-        : component_pool_array { nlohmann::json::array() }
+        : component_document_array { nlohmann::json::array() }
         , current_component_array { nlohmann::json::array() }
     {
     }
@@ -67,25 +67,22 @@ public:
 
 class InputArchive {
 
-    uint32_t root_index { 0 };
+    uint32_t component_document_index { 0 };
     uint32_t component_index { 0 };
 
     nlohmann::json root;
-    nlohmann::json current_component_pool;
-    nlohmann::json current_component;
 
-    bool fetch_component_pool();
-    void load_next_component_pool();
+    nlohmann::json component_document_array;
+    nlohmann::json current_component_document;
+    nlohmann::json current_component_array;
+    nlohmann::json active_component;
+    nlohmann::json context;
+
+    void fetch_component_document();
+    void load_next_component_document();
 
 public:
-    static InputArchive from_file(std::string file_path);
-
-    InputArchive(std::string file_path)
-    // : root { nlohmann::json::parse(json_string) }
-    {
-        std::ifstream ifs(file_path);
-        root = nlohmann::json::parse(ifs);
-    }
+    InputArchive(std::string file_path);
 
     // ...to load entities
     void operator()(entt::entity&);
@@ -97,7 +94,13 @@ public:
     template <typename T>
     void operator()(T& component)
     {
-        component = current_component["component"].get<T>();
+        component = active_component["component"].get<T>();
+    }
+
+    template <typename T>
+    void load_context_element(const std::string document_key, T& element)
+    {
+        context.at(document_key).get_to(element);
     }
 };
 

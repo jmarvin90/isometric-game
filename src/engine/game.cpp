@@ -54,6 +54,16 @@ void Game::initialise()
 
     registry = entt::registry();
 
+    Grid<TileMapProjection>& tilemap {
+        registry.ctx().emplace<Grid<TileMapProjection>>()
+    };
+
+    Grid<SpatialMapProjection>& spatial_map {
+        registry.ctx().emplace<Grid<SpatialMapProjection>>()
+    };
+
+    load_from(registry, "output.json");
+
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
@@ -75,19 +85,20 @@ void Game::initialise()
         renderer
     );
 
-    [[maybe_unused]] const Grid<TileMapProjection>& tilemap {
-        registry.ctx().emplace<Grid<TileMapProjection>>(registry, glm::ivec2 { 256, 128 }, glm::ivec2 { 32, 32 })
-    };
+    // [[maybe_unused]] const Grid<TileMapProjection>& tilemap {
+    //     registry.ctx().emplace<Grid<TileMapProjection>>(registry, glm::ivec2 { 256, 128 }, glm::ivec2 { 32, 32 })
+    // };
 
-    const Grid<SpatialMapProjection>& spatial_map {
-        registry.ctx().emplace<Grid<SpatialMapProjection>>(registry, tilemap.cell_size * 2, tilemap.grid_dimensions / 2)
-    };
+    // const Grid<SpatialMapProjection>& spatial_map {
+    //     registry.ctx().emplace<Grid<SpatialMapProjection>>(registry, tilemap.cell_size * 2, tilemap.grid_dimensions / 2)
+    // };
 
     registry.ctx().emplace<std::vector<Renderable>>();
     assert(tilemap.area == spatial_map.area);
     registry.ctx().emplace<SegmentManagerComponent>();
     registry.ctx().emplace<CameraComponent>(display_mode);
-    TileMapSystem::emplace_tiles(registry);
+
+    // TileMapSystem::emplace_tiles(registry);
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -197,6 +208,9 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
         .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive)
         .orphans();
+
+    my_archive.load_context_element("tilemap", registry.ctx().get<Grid<TileMapProjection>>());
+    my_archive.load_context_element("spatialmap", registry.ctx().get<Grid<SpatialMapProjection>>());
 }
 
 void Game::save_to(entt::registry& registry, const std::string output_path)
