@@ -1,26 +1,12 @@
 #include <algorithm>
 #include <array>
-#include <components/debug_component.h>
 #include <components/grid_position_component.h>
-#include <components/highlight_component.h>
-#include <components/junction_component.h>
-#include <components/mouseover_component.h>
 #include <components/navigation_component.h>
-#include <components/segment_component.h>
 #include <components/segment_manager_component.h>
-#include <components/spatialmapcell_span_component.h>
-#include <components/sprite_component.h>
-#include <components/tilespec_component.h>
-#include <components/transform_component.h>
 #include <directions.h>
 #include <grid.h>
-#include <map>
-#include <position.h>
 #include <projection.h>
-#include <spdlog/spdlog.h>
-#include <spritesheet.h>
 #include <systems/tilemap_system.h>
-#include <utility.h>
 #include <vector>
 
 namespace {
@@ -63,44 +49,9 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
         output.emplace_back(current);
     }
 }
-
-// TODO - not really a tilemap system issue
-[[maybe_unused]] void apply_highlight(entt::registry& registry, const entt::entity tile, int factor = 1)
-{
-    TransformComponent& transform { registry.get<TransformComponent>(tile) };
-    transform.position.y -= (30 * factor);
-    transform.z_index += factor;
-}
-
 } // namespace
 
 namespace TileMapSystem {
-void update(
-    entt::registry& registry,
-    const bool debug_mode
-)
-{
-    auto components { registry.view<MouseOverComponent>() };
-
-    // TODO - not sure on the logic here - pen & paper job
-    for (auto [entity, component] : components.each()) {
-        if (component.this_frame && component.previous_frame) {
-            component.this_frame = false;
-            continue;
-        }
-
-        if (component.previous_frame) {
-            apply_highlight(registry, entity, -1);
-            registry.remove<MouseOverComponent>(entity);
-        }
-
-        if (component.this_frame && debug_mode) {
-            apply_highlight(registry, entity, 1);
-            component.this_frame = false;
-            component.previous_frame = true;
-        }
-    }
-}
 
 void connect(entt::registry& registry, entt::entity entity)
 {

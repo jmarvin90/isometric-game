@@ -62,7 +62,7 @@ void Game::initialise()
         registry.ctx().emplace<Grid<SpatialMapProjection>>()
     };
 
-    load_from(registry, "output.json");
+    load_from(registry, constants::SAVE_FILE_PATH);
 
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
@@ -130,7 +130,6 @@ void Game::update([[maybe_unused]] const float delta_time)
 {
     MouseSystem::update(registry);
     CameraSystem::update(registry);
-    TileMapSystem::update(registry, debug_mode);
     SegmentSystem::update(registry);
     RenderSystem::update(registry);
 }
@@ -185,7 +184,7 @@ void Game::run()
 
 void Game::destroy()
 {
-    save_to(registry, "output.json");
+    save_to(registry, constants::SAVE_FILE_PATH);
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();

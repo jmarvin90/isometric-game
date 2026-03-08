@@ -9,7 +9,6 @@
 #include <optional>
 
 namespace TileMapSystem {
-void update(entt::registry& registry, const bool debug_mode);
 void emplace_tiles(entt::registry& registry);
 void connect(entt::registry& registry, entt::entity entity);
 void disconnect(entt::registry& registry, entt::entity entity);
