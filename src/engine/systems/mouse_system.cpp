@@ -6,7 +6,8 @@
 #include <projection.h>
 #include <systems/mouse_system.h>
 
-void MouseSystem::update(entt::registry& registry)
+namespace MouseSystem {
+void update(entt::registry& registry)
 {
     MouseComponent& mouse { registry.ctx().get<MouseComponent>() };
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
@@ -32,4 +33,5 @@ void MouseSystem::update(entt::registry& registry)
     } else {
         registry.emplace<MouseOverComponent>(mouse_over_entity, true, false);
     }
+}
 }

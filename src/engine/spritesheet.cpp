@@ -5,8 +5,6 @@
 #include <fstream>
 #include <json_parse.h>
 #include <nlohmann/json.hpp>
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
 #include <spdlog/spdlog.h>
 #include <spritesheet.h>
 
@@ -36,7 +34,6 @@ SpriteSheet::SpriteSheet(
     nlohmann::json data = nlohmann::json::parse(input);
 
     for (const auto& json_object : data) {
-        spdlog::info(json_object.dump());
         auto emplacement_result { sprites.try_emplace(json_object["name"]) };
         emplacement_result.first->second = json_object.get<SpriteComponent>();
         if (json_object.contains("directions")) {

@@ -74,7 +74,8 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
 
 } // namespace
 
-void TileMapSystem::update(
+namespace TileMapSystem {
+void update(
     entt::registry& registry,
     const bool debug_mode
 )
@@ -101,7 +102,7 @@ void TileMapSystem::update(
     }
 }
 
-void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
+void connect(entt::registry& registry, entt::entity entity)
 {
     SegmentManagerComponent& seg_manager { registry.ctx().get<SegmentManagerComponent>() };
     const NavigationComponent& current_nav { registry.get<const NavigationComponent>(entity) };
@@ -144,9 +145,10 @@ void TileMapSystem::connect(entt::registry& registry, entt::entity entity)
     }
 }
 
-void TileMapSystem::disconnect(entt::registry& registry, entt::entity entity)
+void disconnect(entt::registry& registry, entt::entity entity)
 {
     const NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
     if (nav.segment_id == entt::null)
         return;
+}
 }

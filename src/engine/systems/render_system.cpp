@@ -71,7 +71,9 @@ void render_highlights(
 
 ; // namespace
 
-void RenderSystem::update(entt::registry& registry)
+namespace RenderSystem {
+
+void update(entt::registry& registry)
 {
     /*
         TODO: possibility to early out if nothing has changed - incl.
@@ -123,7 +125,7 @@ void RenderSystem::update(entt::registry& registry)
     std::sort(renderables.begin(), renderables.end(), transform_comparison);
 }
 
-void RenderSystem::render(const entt::registry& registry, SDL_Renderer* renderer, const bool debug_mode)
+void render(const entt::registry& registry, SDL_Renderer* renderer, const bool debug_mode)
 {
     SDL_Texture* texture { registry.ctx().get<SpriteSheet>().texture.get() };
     const std::vector<Renderable>& renderables { registry.ctx().get<const std::vector<Renderable>>() };
@@ -153,7 +155,7 @@ void RenderSystem::render(const entt::registry& registry, SDL_Renderer* renderer
     }
 }
 
-void RenderSystem::render_imgui_ui(
+void render_imgui_ui(
     const entt::registry& registry,
     SDL_Renderer* renderer
 )
@@ -213,7 +215,7 @@ void RenderSystem::render_imgui_ui(
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
 }
 
-void RenderSystem::render_junction_gates(const entt::registry& registry, SDL_Renderer* renderer)
+void render_junction_gates(const entt::registry& registry, SDL_Renderer* renderer)
 {
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
     const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
@@ -232,7 +234,7 @@ void RenderSystem::render_junction_gates(const entt::registry& registry, SDL_Ren
     }
 }
 
-void RenderSystem::render_path(
+void render_path(
     const entt::registry& registry,
     [[maybe_unused]] SDL_Renderer* renderer,
     entt::entity from_tile,
@@ -310,4 +312,5 @@ void RenderSystem::render_path(
         current_grid_position = next_grid_position;
         current_world_position = next_world_position;
     }
+}
 }

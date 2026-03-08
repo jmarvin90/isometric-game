@@ -8,12 +8,11 @@
 #include <glm/glm.hpp>
 #include <optional>
 
-class TileMapSystem {
-public:
-    static void update(entt::registry& registry, const bool debug_mode);
-    static void emplace_tiles(entt::registry& registry);
-    static void connect(entt::registry& registry, entt::entity entity);
-    static void disconnect(entt::registry& registry, entt::entity entity);
+namespace TileMapSystem {
+void update(entt::registry& registry, const bool debug_mode);
+void emplace_tiles(entt::registry& registry);
+void connect(entt::registry& registry, entt::entity entity);
+void disconnect(entt::registry& registry, entt::entity entity);
 };
 
 #endif

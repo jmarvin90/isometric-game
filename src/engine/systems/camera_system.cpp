@@ -6,7 +6,9 @@
 #include <projection.h>
 #include <systems/camera_system.h>
 
-void CameraSystem::update(entt::registry& registry)
+namespace CameraSystem {
+
+void update(entt::registry& registry)
 {
     CameraComponent& camera { registry.ctx().get<CameraComponent>() };
     const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
@@ -40,4 +42,5 @@ void CameraSystem::update(entt::registry& registry)
         camera.moved_in_frame = true;
         camera.position += delta;
     }
+}
 }

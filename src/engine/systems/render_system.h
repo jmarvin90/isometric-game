@@ -27,17 +27,12 @@ struct Renderable {
     }
 };
 
-class RenderSystem {
-
-public:
-    static void update(
-        entt::registry& registry
-    );
-
-    static void render(const entt::registry& registry, SDL_Renderer* renderer, const bool debug_mode);
-    static void render_imgui_ui(const entt::registry& registry, SDL_Renderer* renderer);
-    static void render_junction_gates(const entt::registry& registry, SDL_Renderer* renderer);
-    static void render_path(const entt::registry& registry, SDL_Renderer* renderer, entt::entity from_tile, entt::entity to_tile);
+namespace RenderSystem {
+void update(entt::registry& registry);
+void render(const entt::registry& registry, SDL_Renderer* renderer, const bool debug_mode);
+void render_imgui_ui(const entt::registry& registry, SDL_Renderer* renderer);
+void render_junction_gates(const entt::registry& registry, SDL_Renderer* renderer);
+void render_path(const entt::registry& registry, SDL_Renderer* renderer, entt::entity from_tile, entt::entity to_tile);
 };
 
 #endif

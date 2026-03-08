@@ -3,15 +3,13 @@
 
 #include <entt/entt.hpp>
 
-class SpatialMapSystem {
-
-public:
-    static void emplace_entity(entt::registry& registry, entt::entity entity);
-    static void remove_entity(entt::registry& registry, entt::entity entity);
-    static void emplace_segment(entt::registry& registry, entt::entity entity);
-    static void remove_segment(entt::registry& registry, entt::entity entity);
-    static void update_entity(entt::registry& registry, entt::entity entity);
-    static void update_on_load(entt::registry& registry);
+namespace SpatialMapSystem {
+void emplace_entity(entt::registry& registry, entt::entity entity);
+void remove_entity(entt::registry& registry, entt::entity entity);
+void emplace_segment(entt::registry& registry, entt::entity entity);
+void remove_segment(entt::registry& registry, entt::entity entity);
+void update_entity(entt::registry& registry, entt::entity entity);
+void update_on_load(entt::registry& registry);
 };
 
 #endif

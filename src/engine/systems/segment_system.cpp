@@ -59,21 +59,23 @@ void junction_displace(
 }
 }
 
-void SegmentSystem::connect(entt::registry& registry, entt::entity entity)
+namespace SegmentSystem {
+
+void connect(entt::registry& registry, entt::entity entity)
 {
     const SegmentComponent& segment { registry.get<const SegmentComponent>(entity) };
     junction_emplace(registry, segment.origin, entity, segment.direction);
     junction_emplace(registry, segment.termination, entity, Direction::reverse(segment.direction));
 }
 
-void SegmentSystem::disconnect(entt::registry& registry, entt::entity entity)
+void disconnect(entt::registry& registry, entt::entity entity)
 {
     const SegmentComponent& segment { registry.get<const SegmentComponent>(entity) };
     junction_displace(registry, segment.origin, entity, segment.direction);
     junction_displace(registry, segment.termination, entity, Direction::reverse(segment.direction));
 }
 
-void SegmentSystem::update(entt::registry& registry)
+void update(entt::registry& registry)
 {
     SegmentManagerComponent& seg_manager { registry.ctx().get<SegmentManagerComponent>() };
 
@@ -91,4 +93,6 @@ void SegmentSystem::update(entt::registry& registry)
         );
     }
     seg_manager.construct_queue.clear();
+}
+
 }
