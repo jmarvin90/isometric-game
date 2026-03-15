@@ -8,9 +8,8 @@
 
 #include <entt/entt.hpp>
 
-class MouseSystem {
-public:
-    static void update(entt::registry& registry);
+namespace MouseSystem {
+void update(entt::registry& registry);
 };
 
 #endif

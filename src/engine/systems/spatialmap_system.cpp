@@ -106,19 +106,21 @@ SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity
 
 } // namespace
 
-void SpatialMapSystem::update_entity(entt::registry& registry, entt::entity entity)
+namespace SpatialMapSystem {
+
+void update_entity(entt::registry& registry, entt::entity entity)
 {
     SpatialMapCellSpanComponent& current_span { registry.get<SpatialMapCellSpanComponent>(entity) };
     const SpatialMapCellSpanComponent new_span { spanned_cells(registry, entity) };
 
     if (current_span != new_span) {
-        SpatialMapSystem::remove_entity(registry, entity);
-        SpatialMapSystem::emplace_entity(registry, entity);
+        remove_entity(registry, entity);
+        emplace_entity(registry, entity);
         current_span = new_span;
     }
 }
 
-void SpatialMapSystem::emplace_entity(entt::registry& registry, entt::entity entity)
+void emplace_entity(entt::registry& registry, entt::entity entity)
 {
     const SpatialMapCellSpanComponent& cell_span {
         registry.emplace<SpatialMapCellSpanComponent>(entity, spanned_cells(registry, entity))
@@ -133,7 +135,7 @@ void SpatialMapSystem::emplace_entity(entt::registry& registry, entt::entity ent
     }
 }
 
-void SpatialMapSystem::remove_entity(entt::registry& registry, entt::entity entity)
+void remove_entity(entt::registry& registry, entt::entity entity)
 {
     SpatialMapCellSpanComponent& cell_span { registry.get<SpatialMapCellSpanComponent>(entity) };
     for (int x = cell_span.AA.x; x <= cell_span.BB.x; x++) {
@@ -153,7 +155,7 @@ void SpatialMapSystem::remove_entity(entt::registry& registry, entt::entity enti
     registry.remove<SpatialMapCellSpanComponent>(entity);
 }
 
-void SpatialMapSystem::emplace_segment(entt::registry& registry, entt::entity entity)
+void emplace_segment(entt::registry& registry, entt::entity entity)
 {
     const SegmentComponent& segment { registry.get<SegmentComponent>(entity) };
     std::vector<SpatialMapCellComponent*> cells { intersected_segments(registry, segment) };
@@ -162,7 +164,7 @@ void SpatialMapSystem::emplace_segment(entt::registry& registry, entt::entity en
     }
 }
 
-void SpatialMapSystem::remove_segment(entt::registry& registry, entt::entity entity)
+void remove_segment(entt::registry& registry, entt::entity entity)
 {
     const SegmentComponent& segment { registry.get<SegmentComponent>(entity) };
     std::vector<SpatialMapCellComponent*> cells { intersected_segments(registry, segment) };
@@ -177,4 +179,5 @@ void SpatialMapSystem::remove_segment(entt::registry& registry, entt::entity ent
             )
         );
     }
+}
 }

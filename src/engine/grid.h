@@ -48,7 +48,7 @@ glm::ivec2 index_to_grid_position(const int index_position, const Grid& grid)
 template <typename Projection>
 class Grid {
 private:
-    entt::registry& registry;
+    // entt::registry& registry;
 
 public:
     std::vector<entt::entity> cells;
@@ -56,22 +56,30 @@ public:
     glm::ivec2 grid_dimensions;
     glm::ivec2 area;
 
-    Grid(entt::registry& registry, glm::ivec2 cell_size, glm::ivec2 grid_dimensions)
-        : registry { registry }
-        , cell_size { cell_size }
-        , grid_dimensions { grid_dimensions }
-        , area { cell_size * grid_dimensions }
+    Grid()
+        : cells {}
+        , cell_size {}
+        , grid_dimensions {}
+        , area {}
     {
-        int total_cells { grid_dimensions.x * grid_dimensions.y };
-        cells.reserve(total_cells);
-        for (int i = 0; i < total_cells; i++) {
-            glm::ivec2 grid_position { index_to_grid_position(i, *this) };
-            entt::entity cell { registry.create() };
-            cells.push_back(cell);
-            registry.emplace<GridPositionComponent>(cell, grid_position);
-            registry.emplace<TransformComponent>(cell, Projection::grid_to_world(grid_position, *this), 0, 0.0);
-        }
     }
+
+    // Grid(entt::registry& registry, glm::ivec2 cell_size, glm::ivec2 grid_dimensions)
+    //     : registry { registry }
+    //     , cell_size { cell_size }
+    //     , grid_dimensions { grid_dimensions }
+    //     , area { cell_size * grid_dimensions }
+    // {
+    //     int total_cells { grid_dimensions.x * grid_dimensions.y };
+    //     cells.reserve(total_cells);
+    //     for (int i = 0; i < total_cells; i++) {
+    //         glm::ivec2 grid_position { index_to_grid_position(i, *this) };
+    //         entt::entity cell { registry.create() };
+    //         cells.push_back(cell);
+    //         registry.emplace<GridPositionComponent>(cell, grid_position);
+    //         registry.emplace<TransformComponent>(cell, Projection::grid_to_world(grid_position, *this), 0, 0.0);
+    //     }
+    // }
 
     // TODO: understand why this causes 'entity not in set' errors
     // Probably because the registry destroys entities before context

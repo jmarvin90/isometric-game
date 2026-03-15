@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <directions.h>
 #include <entt/entt.hpp>
+#include <nlohmann/json.hpp>
 #include <vector>
 
 struct SegmentComponent {
@@ -16,6 +17,14 @@ struct SegmentComponent {
     SegmentComponent(SegmentComponent&&) = default;
     SegmentComponent& operator=(const SegmentComponent&) = default;
     SegmentComponent& operator=(SegmentComponent&&) = default;
+
+    SegmentComponent()
+        : origin { entt::null }
+        , termination { entt::null }
+        , direction { Direction::TDirection::NO_DIRECTION }
+        , entities {}
+    {
+    }
 
     SegmentComponent(
         entt::entity origin,
@@ -51,6 +60,8 @@ struct SegmentComponent {
     {
         return entities.size() < comparator.entities.size();
     }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(SegmentComponent, origin, termination, direction, entities)
 };
 
 #endif

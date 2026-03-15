@@ -9,9 +9,8 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
-class CameraSystem {
-public:
-    static void update(entt::registry& registry);
+namespace CameraSystem {
+void update(entt::registry& registry);
 };
 
 #endif

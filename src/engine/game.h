@@ -3,6 +3,8 @@
 
 #include <SDL2/SDL.h>
 #include <entt/entt.hpp>
+#include <memory>
+#include <utility.h>
 
 class Game {
     bool is_running { false };
@@ -12,12 +14,14 @@ class Game {
     int millis_previous_frame {};
     uint64_t _last_time { 0 };
 
-    SDL_Window* window;
+    std::unique_ptr<SDL_Window, Utility::SDLDestroyer> window;
+    // SDL_Window* window;
     SDL_DisplayMode display_mode;
 
     // CameraComponent, renderer are smart pointers to allow late initialisation
     entt::registry registry;
-    SDL_Renderer* renderer;
+    std::unique_ptr<SDL_Renderer, Utility::SDLDestroyer> renderer;
+    // SDL_Renderer* renderer;
 
     void process_input();
     void update(const float delta_time);
@@ -30,6 +34,8 @@ public:
     void initialise();
     void run();
     void destroy();
+    void save_to(entt::registry& registry, const std::string output_path);
+    void load_from(entt::registry& registry, const std::string input_path);
 };
 
 #endif

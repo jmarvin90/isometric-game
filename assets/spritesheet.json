@@ -1,117 +1,165 @@
 [
     {
         "name": "grass",
-        "origin_x": 0,
-        "origin_y": 0,
-        "width": 256,
-        "height": 143,
-        "anchor_x": 128,
-        "anchor_y": 64
+        "source_rect": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 143
+        },
+        "anchor": {
+            "x": 128,
+            "y": 64
+        }
     },
     {
         "name": "sand",
-        "origin_x": 257,
-        "origin_y": 0,
-        "width": 256,
-        "height": 143,
-        "anchor_x": 128,
-        "anchor_y": 64
+        "source_rect": {
+            "x": 257,
+            "y": 0,
+            "w": 256,
+            "h": 143
+        },
+        "anchor": {
+            "x": 128,
+            "y": 64
+        }
     },
     {
         "name": "water",
-        "origin_x": 0,
-        "origin_y": 144,
-        "width": 256,
-        "height": 143,
-        "anchor_x": 128,
-        "anchor_y": 64
+        "source_rect": {
+            "x": 0,
+            "y": 144,
+            "w": 256,
+            "h": 143
+        },
+        "anchor": {
+            "x": 128,
+            "y": 64
+        }
     },
     {
         "name": "grass_ew",
-        "origin_x": 257,
-        "origin_y": 144,
-        "width": 256,
-        "height": 143,
-        "anchor_x": 128,
-        "anchor_y": 64,
+        "source_rect": {
+            "x": 257,
+            "y": 144,
+            "w": 256,
+            "h": 143
+        },
+        "anchor": {
+            "x": 128,
+            "y": 64
+        },
         "directions": 10
     },
     {
         "name": "grass_ns",
-        "origin_x": 0,
-        "origin_y": 288,
-        "width": 256,
-        "height": 143,
-        "anchor_x": 128,
-        "anchor_y": 64,
+        "source_rect": {
+            "x": 0,
+            "y": 288,
+            "w": 256,
+            "h": 143
+        },
+        "anchor": {
+            "x": 128,
+            "y": 64
+        },
         "directions": 5
     },
     {
         "name": "gass_nesw",
-        "origin_x": 257,
-        "origin_y": 288,
-        "width": 256,
-        "height": 143,
-        "anchor_x": 128,
-        "anchor_y": 64,
+        "source_rect": {
+            "x": 257,
+            "y": 288,
+            "w": 256,
+            "h": 143
+        },
+        "anchor": {
+            "x": 128,
+            "y": 64
+        },
         "directions": 15
     },
     {
         "name": "grass_es",
-        "origin_x": 0,
-        "origin_y": 431,
-        "width": 256,
-        "height": 143,
-        "anchor_x": 128,
-        "anchor_y": 64,
+        "source_rect": {
+            "x": 0,
+            "y": 431,
+            "w": 256,
+            "h": 143
+        },
+        "anchor": {
+            "x": 128,
+            "y": 64
+        },
         "directions": 12
     },
     {
         "name": "grass_sw",
-        "origin_x": 257,
-        "origin_y": 431,
-        "width": 256,
-        "height": 143,
-        "anchor_x": 128,
-        "anchor_y": 64,
+        "source_rect": {
+            "x": 257,
+            "y": 431,
+            "w": 256,
+            "h": 143
+        },
+        "anchor": {
+            "x": 128,
+            "y": 64
+        },
         "directions": 6
     },
     {
         "name": "grass_ne",
-        "origin_x": 0,
-        "origin_y": 575,
-        "width": 256,
-        "height": 143,
-        "anchor_x": 128,
-        "anchor_y": 64,
+        "source_rect": {
+            "x": 0,
+            "y": 575,
+            "w": 256,
+            "h": 143
+        },
+        "anchor": {
+            "x": 128,
+            "y": 64
+        },
         "directions": 9
     },
     {
         "name": "grass_nw",
-        "origin_x": 257,
-        "origin_y": 575,
-        "width": 256,
-        "height": 143,
-        "anchor_x": 128,
-        "anchor_y": 64,
+        "source_rect": {
+            "x": 257,
+            "y": 575,
+            "w": 256,
+            "h": 143
+        },
+        "anchor": {
+            "x": 128,
+            "y": 64
+        },
         "directions": 3
     },
     {
         "name": "building_short",
-        "origin_x": 0,
-        "origin_y": 719,
-        "width": 256,
-        "height": 195,
-        "anchor_x": 128,
-        "anchor_y": 116
+        "source_rect": {
+            "x": 0,
+            "y": 719,
+            "w": 256,
+            "h": 195
+        },
+        "anchor": {
+            "x": 128,
+            "y": 116
+        }
     },
     {
         "name": "building_tall",
-        "origin_x": 257,
-        "origin_y": 719,
-        "width": 256,
-        "height": 225,
-        "anchor_x": 128,
-        "anchor_y": 146
+        "source_rect": {
+            "x": 257,
+            "y": 719,
+            "w": 256,
+            "h": 225
+        },
+        "anchor": {
+            "x": 128,
+            "y": 146
+        }
     }
 ]
