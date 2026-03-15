@@ -32,11 +32,9 @@ bool transform_comparison(
 )
 {
     return (
-        lhs.transform->z_index < rhs.transform->z_index || //
-        (
-            lhs.transform->z_index == rhs.transform->z_index && //
-            lhs.transform->position.y < rhs.transform->position.y //
-        )
+        lhs.transform->z_index < rhs.transform->z_index
+        || (lhs.transform->z_index == rhs.transform->z_index
+            && lhs.transform->position.y < rhs.transform->position.y)
     );
 }
 
@@ -67,9 +65,7 @@ void render_highlights(
 
     SDL_RenderDrawLines(renderer, absolute_points.data(), absolute_points.size());
 }
-}
-
-; // namespace
+} // namespace
 
 namespace RenderSystem {
 
@@ -84,9 +80,9 @@ void update(entt::registry& registry)
 
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
     const Grid<SpatialMapProjection>& spatial_map { registry.ctx().get<const Grid<SpatialMapProjection>>() };
-    std::vector<Renderable>& renderables { registry.ctx().get<std::vector<Renderable>>() };
-    auto spatialmap_cells { registry.view<SpatialMapCellComponent, TransformComponent>() };
 
+    auto spatialmap_cells { registry.view<SpatialMapCellComponent, TransformComponent>() };
+    std::vector<Renderable>& renderables { registry.ctx().get<std::vector<Renderable>>() };
     renderables.clear();
 
     for (auto [entity, cell, transform] : spatialmap_cells.each()) {
@@ -106,13 +102,14 @@ void update(entt::registry& registry)
         };
 
         if (SDL_HasIntersection(&comparator, &camera_rect)) {
-            for (entt::entity renderable : cell.entities) {
-                if (registry.all_of<TransformComponent, SpriteComponent>(renderable)) {
-                    const TransformComponent& transform { registry.get<const TransformComponent>(renderable) };
+            for (entt::entity renderable_entity : cell.entities) {
+                if (registry.all_of<TransformComponent, SpriteComponent>(renderable_entity)) {
+                    const TransformComponent& transform { registry.get<const TransformComponent>(renderable_entity) };
                     renderables.emplace_back(
                         &transform,
-                        &registry.get<const SpriteComponent>(renderable),
-                        registry.try_get<const HighlightComponent>(renderable),
+                        &registry.get<const SpriteComponent>(renderable_entity),
+                        registry.try_get<const HighlightComponent>(renderable_entity),
+                        registry.all_of<MouseOverComponent>(renderable_entity),
                         Position::world_to_screen(transform.position, camera.position)
                     );
                 }
@@ -127,7 +124,7 @@ void update(entt::registry& registry)
 
 void render(const entt::registry& registry, SDL_Renderer* renderer, const bool debug_mode)
 {
-    SDL_Texture* texture { registry.ctx().get<SpriteSheet>().texture.get() };
+    const SpriteSheet& spritesheet { registry.ctx().get<SpriteSheet>() };
     const std::vector<Renderable>& renderables { registry.ctx().get<const std::vector<Renderable>>() };
 
     for (auto renderable : renderables) {
@@ -141,7 +138,7 @@ void render(const entt::registry& registry, SDL_Renderer* renderer, const bool d
 
         SDL_RenderCopyEx(
             renderer,
-            texture,
+            spritesheet.texture.get(),
             &renderable.sprite->source_rect,
             &target_rect,
             renderable.transform->rotation,
@@ -171,7 +168,7 @@ void render_imgui_ui(
     // The mouse and world positions
 
     const glm::ivec2 world_position {
-        Position::screen_to_world(mouse.window_current_position, camera.position)
+        Position::screen_to_world(mouse.screen_current_position, camera.position)
     };
 
     const glm::ivec2 grid_position {
@@ -182,8 +179,8 @@ void render_imgui_ui(
 
     ImGui::Text(
         "Mouse Screen position: (%d) (%d)",
-        mouse.window_current_position.x,
-        mouse.window_current_position.y
+        mouse.screen_current_position.x,
+        mouse.screen_current_position.y
     );
 
     ImGui::Text(

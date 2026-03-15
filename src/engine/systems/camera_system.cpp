@@ -20,20 +20,20 @@ void update(entt::registry& registry)
 
     for (int i = 0; i < 2; i++) {
         if (
-            mouse.window_current_position[i] < constants::SCENE_BORDER_PX[i]
+            mouse.screen_current_position[i] < constants::SCENE_BORDER_PX[i]
             && camera.position[i] > 0
         ) {
             delta[i] = std::max(
                 -constants::CAMERA_SCROLL_SPEED[i],
-                -mouse.window_current_position[i]
+                -mouse.screen_current_position[i]
             );
         } else if (
-            mouse.window_current_position[i] > (camera.size - constants::SCENE_BORDER_PX)[i]
+            mouse.screen_current_position[i] > (camera.size - constants::SCENE_BORDER_PX)[i]
             && (camera.position + camera.size)[i] < map_extent[i]
         ) {
             delta[i] = std::min(
                 constants::CAMERA_SCROLL_SPEED[i],
-                map_extent[i] - mouse.window_current_position[i]
+                map_extent[i] - mouse.screen_current_position[i]
             );
         }
     }

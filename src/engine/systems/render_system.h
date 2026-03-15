@@ -5,6 +5,7 @@
 #include <components/camera_component.h>
 #include <components/highlight_component.h>
 #include <components/mouse_component.h>
+#include <components/mouseover_component.h>
 #include <entt/entt.hpp>
 
 struct Renderable {
@@ -17,6 +18,7 @@ struct Renderable {
         const TransformComponent* transform,
         const SpriteComponent* sprite,
         const HighlightComponent* highlight,
+        bool mouseover,
         glm::ivec2 screen_position
     )
         : transform { transform }
