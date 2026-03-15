@@ -34,12 +34,15 @@ SpriteSheet::SpriteSheet(
     nlohmann::json data = nlohmann::json::parse(input);
 
     for (const auto& json_object : data) {
-        auto emplacement_result { sprites.try_emplace(json_object["name"]) };
-        emplacement_result.first->second = json_object.get<SpriteComponent>();
-        if (json_object.contains("directions")) {
-            int directions { json_object.at("directions") };
+        sprites.try_emplace(
+            json_object["name"],
+            json_object.get<SpriteComponent>()
+        );
+
+        if (auto it = json_object.find("directions"); it != json_object.end()) {
             navigation.try_emplace(
-                json_object["name"], NavigationComponent { directions }
+                json_object["name"],
+                NavigationComponent { it->get<int>() }
             );
         }
     }

@@ -30,7 +30,7 @@ struct SpriteComponent {
     {
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteComponent, source_rect, anchor);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteComponent, name, source_rect, anchor);
 };
 
 #endif

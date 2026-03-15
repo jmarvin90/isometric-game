@@ -50,6 +50,7 @@ void from_json(const nlohmann::json& json, SpriteComponent& sprite)
     // // json.at("w").get_to(sprite.source_rect.w);
     // // json.at("h").get_to(sprite.source_rect.h);
     json["anchor"].get_to(sprite.anchor);
+    json["name"].get_to(sprite.name);
     // // json.at("anchor_x").get_to(sprite.anchor.x);
     // // json.at("anchor_y").get_to(sprite.anchor.y);
 }
