@@ -18,6 +18,7 @@ struct ComponentPair {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(ComponentPair, entity_id, component)
 };
 
+// TODO - is this strictly necessary
 struct SpriteRecord {
     std::string name;
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteRecord, name)
@@ -107,6 +108,7 @@ public:
 
     void operator()(SpriteComponent& component);
 
+    // TODO - is this a const method? Or the method above?
     template <typename T>
     void load_context_element(const std::string document_key, T& element)
     {

@@ -3,6 +3,7 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <components/junction_component.h>
+#include <components/mouseover_component.h>
 #include <components/navigation_component.h>
 #include <components/segment_component.h>
 #include <components/segment_manager_component.h>
@@ -63,10 +64,12 @@ void Game::initialise()
     };
 
     // TODO: move this somewhere smart under some smart condition
+    // Needs to happen before spritesheet
     renderer = std::unique_ptr<SDL_Renderer, Utility::SDLDestroyer>(
         SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)
     );
 
+    // Needs to happen before load
     registry.ctx().emplace<SpriteSheet>(
         std::string { "assets/spritesheet_scaled.png" },
         std::string { "assets/spritesheet.json" },
@@ -75,6 +78,8 @@ void Game::initialise()
 
     load_from(registry, constants::SAVE_FILE_PATH);
 
+    registry.on_construct<MouseOverComponent>().connect<&MouseSystem::highlight>();
+    registry.on_destroy<MouseOverComponent>().connect<&MouseSystem::remove_highlight>();
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
@@ -85,14 +90,6 @@ void Game::initialise()
     [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(glm::ivec2 { 256, 128 }, 68) };
 
     registry.ctx().emplace<MouseComponent>();
-
-    // [[maybe_unused]] const Grid<entt::entity, TileMapProjection>& tilemap {
-    //     registry.ctx().emplace<Grid<entt::entity, TileMapProjection>>(registry, glm::ivec2 { 256, 128 }, glm::ivec2 { 32, 32 })
-    // };
-
-    // const Grid<entt::entity, SpatialMapProjection>& spatial_map {
-    //     registry.ctx().emplace<Grid<entt::entity, SpatialMapProjection>>(registry, tilemap.cell_size * 2, tilemap.grid_dimensions / 2)
-    // };
 
     registry.ctx().emplace<std::vector<Renderable>>();
     assert(tilemap.area == spatial_map.area);
@@ -219,7 +216,6 @@ void Game::save_to(entt::registry& registry, const std::string output_path)
         .get<TransformComponent>(my_archive)
         .get<SpriteComponent>(my_archive)
         .get<GridPositionComponent>(my_archive)
-        .get<NavigationComponent>(my_archive)
         .get<SegmentComponent>(my_archive)
         .get<JunctionComponent>(my_archive)
         .get<SpatialMapCellComponent>(my_archive)

@@ -9,9 +9,6 @@
 #include <systems/mouse_system.h>
 #include <utility.h>
 
-namespace {
-}
-
 namespace MouseSystem {
 void update(entt::registry& registry)
 {
@@ -43,9 +40,23 @@ void update(entt::registry& registry)
 
         for (entt::entity entity : spatialmap_cell->entities) {
             if (Utility::AABB(registry, entity, mouse_world_position)) {
-                continue;
+                registry.emplace<MouseOverComponent>(entity);
             }
         }
     }
+}
+
+void highlight(entt::registry& registry, entt::entity entity)
+{
+    TransformComponent& transform { registry.get<TransformComponent>(entity) };
+    transform.position.y -= 30;
+    transform.z_index += 1;
+}
+
+void remove_highlight(entt::registry& registry, entt::entity entity)
+{
+    TransformComponent& transform { registry.get<TransformComponent>(entity) };
+    transform.position.y += 30;
+    transform.z_index -= 1;
 }
 }
