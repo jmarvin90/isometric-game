@@ -7,20 +7,9 @@
 #include <projection.h>
 #include <sprite_component.h>
 #include <systems/mouse_system.h>
+#include <utility.h>
 
 namespace {
-// TODO - surely I'm doing this somewhere else
-bool aabb(const entt::registry& registry, entt::entity entity, const glm::ivec2 mouse_position)
-{
-    const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
-    const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
-    glm::ivec2 AA { transform.position };
-    glm::ivec2 BB { AA + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
-    return (
-        glm::all(glm::greaterThanEqual(mouse_position, AA))
-        & glm::all(glm::lessThan(mouse_position, BB))
-    );
-}
 }
 
 namespace MouseSystem {
@@ -42,7 +31,7 @@ void update(entt::registry& registry)
         };
 
         entt::entity spatialmap_cell_entity {
-            registry.ctx().get<Grid<SpatialMapProjection>>().at_world(mouse_world_position)
+            registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>().at_world(mouse_world_position)
         };
 
         const SpatialMapCellComponent* spatialmap_cell {
@@ -53,7 +42,7 @@ void update(entt::registry& registry)
             return;
 
         for (entt::entity entity : spatialmap_cell->entities) {
-            if (aabb(registry, entity, mouse_world_position)) {
+            if (Utility::AABB(registry, entity, mouse_world_position)) {
                 continue;
             }
         }

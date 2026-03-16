@@ -13,7 +13,7 @@ namespace {
 
 std::vector<entt::entity> scan(const entt::registry& registry, entt::entity origin, Direction::TDirection direction)
 {
-    const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
+    const Grid<entt::entity, TileMapProjection>& tilemap { registry.ctx().get<const Grid<entt::entity, TileMapProjection>>() };
     glm::ivec2 direction_vector { Direction::direction_vectors[direction] };
     Direction::TDirection reverse { Direction::reverse(direction) };
 
@@ -27,6 +27,7 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
         glm::ivec2 next_position { current_position + direction_vector };
         entt::entity next { tilemap[next_position] };
 
+        // TODO - again, shouldn't happen - should trigger assertion in Grid
         if (next == entt::null)
             return output;
 

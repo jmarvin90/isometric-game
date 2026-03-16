@@ -79,7 +79,7 @@ void update(entt::registry& registry)
     */
 
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    const Grid<SpatialMapProjection>& spatial_map { registry.ctx().get<const Grid<SpatialMapProjection>>() };
+    const Grid<entt::entity, SpatialMapProjection>& spatial_map { registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>() };
 
     auto spatialmap_cells { registry.view<SpatialMapCellComponent, TransformComponent>() };
     std::vector<Renderable>& renderables { registry.ctx().get<std::vector<Renderable>>() };
@@ -107,7 +107,7 @@ void update(entt::registry& registry)
                     const TransformComponent& transform { registry.get<const TransformComponent>(renderable_entity) };
                     renderables.emplace_back(
                         &transform,
-                        &registry.get<const SpriteComponent>(renderable_entity),
+                        registry.get<const SpriteComponent>(renderable_entity).sprite_definition,
                         registry.try_get<const HighlightComponent>(renderable_entity),
                         registry.all_of<MouseOverComponent>(renderable_entity),
                         Position::world_to_screen(transform.position, camera.position)
@@ -162,7 +162,7 @@ void render_imgui_ui(
     ImGui::NewFrame();
 
     const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
-    [[maybe_unused]] const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
+    [[maybe_unused]] const Grid<entt::entity, TileMapProjection>& tilemap { registry.ctx().get<const Grid<entt::entity, TileMapProjection>>() };
     [[maybe_unused]] const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
 
     // The mouse and world positions

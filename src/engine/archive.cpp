@@ -53,7 +53,8 @@ void OutputArchive::to_file(std::string path)
     file << root.dump();
 }
 
-InputArchive::InputArchive(std::string file_path)
+InputArchive::InputArchive(std::string file_path, const SpriteSheet& spritesheet)
+    : spritesheet { spritesheet }
 {
     std::ifstream ifs(file_path);
     root = nlohmann::json::parse(ifs);
@@ -112,4 +113,17 @@ void InputArchive::operator()(entt::entity& entity)
     active_component = current_component_array[component_index++];
     int int_entity { active_component["entity_id"] };
     entity = entt::entity(int_entity);
+}
+
+void InputArchive::operator()(SpriteComponent& component)
+{
+    std::string sprite_name { active_component["component"]["name"].get<std::string>() };
+    component.sprite_definition = &spritesheet.sprites.at(sprite_name);
+}
+
+void OutputArchive::operator()(const SpriteComponent& component)
+{
+    ComponentPair<SpriteRecord> my_pair { current_entity, SpriteRecord { component.sprite_definition->name } };
+    nlohmann::json component_json = my_pair;
+    current_component_array.push_back(component_json);
 }

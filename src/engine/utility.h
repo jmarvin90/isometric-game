@@ -21,12 +21,18 @@ struct SDLDestroyer {
     {
         SDL_DestroyTexture(texture);
     }
+    void operator()(SDL_Surface* surface) const
+    {
+        SDL_FreeSurface(surface);
+    }
 };
 
 enum class SpriteAnchor {
     SPRITE_ANCHOR = 1,
     ORIGIN = 2
 };
+
+bool AABB(const entt::registry& registry, entt::entity entity, const glm::ivec2 mouse_position);
 
 void align_sprite_to(
     entt::registry& registry,

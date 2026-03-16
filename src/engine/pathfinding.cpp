@@ -16,8 +16,8 @@ namespace {
 
 entt::entity get_segment(const entt::registry& registry, entt::entity tile)
 {
-    const Grid<SpatialMapProjection>& spatial_map {
-        registry.ctx().get<const Grid<SpatialMapProjection>>()
+    const Grid<entt::entity, SpatialMapProjection>& spatial_map {
+        registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
     };
 
     const TransformComponent& transform { registry.get<const TransformComponent>(tile) };

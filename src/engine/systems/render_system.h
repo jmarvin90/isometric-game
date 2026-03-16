@@ -6,17 +6,19 @@
 #include <components/highlight_component.h>
 #include <components/mouse_component.h>
 #include <components/mouseover_component.h>
+#include <components/transform_component.h>
 #include <entt/entt.hpp>
+#include <spritesheet.h>
 
 struct Renderable {
     const TransformComponent* transform;
-    const SpriteComponent* sprite;
+    const SpriteDefinition* sprite;
     const HighlightComponent* highlight;
     glm::ivec2 screen_position;
 
     Renderable(
         const TransformComponent* transform,
-        const SpriteComponent* sprite,
+        const SpriteDefinition* sprite,
         const HighlightComponent* highlight,
         bool mouseover,
         glm::ivec2 screen_position
