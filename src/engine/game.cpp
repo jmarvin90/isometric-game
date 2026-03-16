@@ -210,6 +210,7 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
 
 void Game::save_to(entt::registry& registry, const std::string output_path)
 {
+    registry.clear<MouseOverComponent>();
     OutputArchive my_archive;
     entt::basic_snapshot(registry)
         .get<entt::entity>(my_archive)
