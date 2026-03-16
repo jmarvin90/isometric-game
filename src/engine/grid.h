@@ -86,15 +86,20 @@ public:
         return cells.at(index_position);
     }
 
-    entt::entity operator[](const glm::ivec2 grid_position) const
+    StoredType operator[](const glm::ivec2 grid_position) const
     {
         assert(position_is_valid(grid_position));
         return cells.at(grid_position_to_index(grid_position, *this));
     }
 
-    entt::entity at_world(const glm::ivec2 world_position) const
+    StoredType at_world(const glm::ivec2 world_position) const
     {
         return (*this)[Projection::world_to_grid(world_position, *this)];
+    }
+
+    StoredType at_world(const glm::ivec2 world_position, const glm::ivec2 sprite_position) const
+    {
+        return (*this)[Projection::world_to_grid(world_position, sprite_position)];
     }
 };
 

@@ -40,7 +40,11 @@ void update(entt::registry& registry)
 
         for (entt::entity entity : spatialmap_cell->entities) {
             if (Utility::AABB(registry, entity, mouse_world_position)) {
-                registry.emplace<MouseOverComponent>(entity);
+                const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
+                const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
+                if (sprite.sprite_definition->spritemask.at_world(mouse_world_position, transform.position)) {
+                    registry.emplace<MouseOverComponent>(entity);
+                }
             }
         }
     }
