@@ -31,11 +31,13 @@ bool transform_comparison(
     const Renderable& lhs, const Renderable& rhs
 )
 {
-    return (
-        lhs.transform->z_index < rhs.transform->z_index
-        || (lhs.transform->z_index == rhs.transform->z_index
-            && lhs.transform->position.y < rhs.transform->position.y)
-    );
+    if (lhs.mouseover != rhs.mouseover)
+        return !lhs.mouseover && rhs.mouseover;
+
+    if (lhs.transform->z_index != rhs.transform->z_index)
+        return lhs.transform->z_index < rhs.transform->z_index;
+
+    return lhs.transform->position.y < rhs.transform->position.y;
 }
 
 void render_highlights(

@@ -1,5 +1,6 @@
 #include <components/grid_position_component.h>
 #include <components/mouseover_component.h>
+#include <components/render_offset_component.h>
 #include <components/spatialmapcell_component.h>
 #include <entt/entt.hpp>
 #include <grid.h>
@@ -20,8 +21,8 @@ void update(entt::registry& registry)
     mouse.moved_in_frame = (mouse.screen_previous_position != mouse.screen_current_position);
 
     if (mouse.moved_in_frame) {
-
-        registry.clear<MouseOverComponent>();
+        entt::entity best_entity { entt::null };
+        int best_depth { -1 };
 
         glm::ivec2 mouse_world_position {
             Position::screen_to_world(mouse.screen_current_position, camera.position)
@@ -39,28 +40,39 @@ void update(entt::registry& registry)
             return;
 
         for (entt::entity entity : spatialmap_cell->entities) {
-            if (Utility::AABB(registry, entity, mouse_world_position)) {
-                const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
-                const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
-                if (sprite.sprite_definition->spritemask.at_world(mouse_world_position, transform.position)) {
-                    registry.emplace<MouseOverComponent>(entity);
-                }
+            if (!Utility::AABB(registry, entity, mouse_world_position))
+                continue;
+
+            const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
+            const RenderOffsetComponent* offset { registry.try_get<const RenderOffsetComponent>(entity) };
+            const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
+
+            glm::vec2 position { offset ? transform.position + glm::vec2(offset->offset) : transform.position };
+
+            if (!sprite.sprite_definition->spritemask.at_world(mouse_world_position, position))
+                continue;
+
+            if (transform.z_index > best_depth) {
+                best_entity = entity;
+                best_depth = transform.z_index;
             }
         }
+
+        for (entt::entity entity : registry.view<const MouseOverComponent>()) {
+            if (entity != best_entity)
+                registry.remove<MouseOverComponent>(entity);
+        }
+
+        if (best_entity != entt::null && !registry.all_of<MouseOverComponent>(best_entity))
+            registry.emplace<MouseOverComponent>(best_entity);
     }
 }
 
-void highlight(entt::registry& registry, entt::entity entity)
+void highlight([[maybe_unused]] entt::registry& registry, [[maybe_unused]] entt::entity entity)
 {
-    TransformComponent& transform { registry.get<TransformComponent>(entity) };
-    transform.position.y -= 30;
-    transform.z_index += 1;
 }
 
-void remove_highlight(entt::registry& registry, entt::entity entity)
+void remove_highlight([[maybe_unused]] entt::registry& registry, [[maybe_unused]] entt::entity entity)
 {
-    TransformComponent& transform { registry.get<TransformComponent>(entity) };
-    transform.position.y += 30;
-    transform.z_index -= 1;
 }
 }

@@ -14,6 +14,7 @@ struct Renderable {
     const TransformComponent* transform;
     const SpriteDefinition* sprite;
     const HighlightComponent* highlight;
+    bool mouseover;
     glm::ivec2 screen_position;
 
     Renderable(
@@ -26,6 +27,7 @@ struct Renderable {
         : transform { transform }
         , sprite { sprite }
         , highlight { highlight }
+        , mouseover { mouseover }
         , screen_position { screen_position }
     {
     }
