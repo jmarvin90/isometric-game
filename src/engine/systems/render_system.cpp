@@ -37,7 +37,9 @@ bool transform_comparison(
     if (lhs.transform->z_index != rhs.transform->z_index)
         return lhs.transform->z_index < rhs.transform->z_index;
 
-    return lhs.transform->position.y < rhs.transform->position.y;
+    int lhs_bottom { int(lhs.transform->position.y) + lhs.sprite->source_rect.h };
+    int rhs_bottom { int(rhs.transform->position.y) + rhs.sprite->source_rect.h };
+    return lhs_bottom < rhs_bottom;
 }
 
 void render_highlights(
