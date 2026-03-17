@@ -12,7 +12,7 @@ namespace {
 std::vector<bool> get_mask(
     const SDL_Surface* surface,
     const SDL_Rect rect,
-    [[maybe_unused]] std::string name
+    [[maybe_unused]] std::string name // helpful in debug, remove later
 )
 {
     std::vector<bool> output;
