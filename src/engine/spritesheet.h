@@ -29,7 +29,6 @@ struct SpriteDefinition {
 };
 
 struct SpriteSheet {
-public:
     std::unique_ptr<SDL_Texture, Utility::SDLDestroyer> texture;
     std::unordered_map<std::string, SpriteDefinition> sprites;
 

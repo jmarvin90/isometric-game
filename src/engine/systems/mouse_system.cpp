@@ -23,6 +23,7 @@ void update(entt::registry& registry)
     if (mouse.moved_in_frame) {
         entt::entity best_entity { entt::null };
         int best_depth { -1 };
+        int best_y { -1 };
 
         glm::ivec2 mouse_world_position {
             Position::screen_to_world(mouse.screen_current_position, camera.position)
@@ -52,9 +53,13 @@ void update(entt::registry& registry)
             if (!sprite.sprite_definition->spritemask.at_world(mouse_world_position, position))
                 continue;
 
-            if (transform.z_index > best_depth) {
+            if (
+                transform.z_index > best_depth
+                || (transform.z_index == best_depth && transform.position.y > best_y)
+            ) {
                 best_entity = entity;
                 best_depth = transform.z_index;
+                best_y = transform.position.y;
             }
         }
 

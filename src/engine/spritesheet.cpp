@@ -9,7 +9,11 @@
 #include <spritesheet.h>
 
 namespace {
-std::vector<bool> get_mask(const SDL_Surface* surface, const SDL_Rect rect)
+std::vector<bool> get_mask(
+    const SDL_Surface* surface,
+    const SDL_Rect rect,
+    [[maybe_unused]] std::string name
+)
 {
     std::vector<bool> output;
     int n_pixels { rect.w * rect.h };
@@ -20,7 +24,7 @@ std::vector<bool> get_mask(const SDL_Surface* surface, const SDL_Rect rect)
     for (int y = 0; y < rect.h; y++) {
         for (int x = 0; x < rect.w; x++) {
             int current_pixel { start_pixel + (surface->w * y) + x };
-            uint32_t pixel { pixels[start_pixel + current_pixel] };
+            uint32_t pixel { pixels[current_pixel] };
             SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
             output.push_back((r + g + b) != 0 && a != 0);
         }
@@ -38,7 +42,7 @@ SpriteDefinition::SpriteDefinition(nlohmann::json input, SDL_Surface* surface)
             ? Direction::TDirection(input["directions"].get<uint8_t>())
             : Direction::TDirection::NO_DIRECTION
     }
-    , spritemask { get_mask(surface, source_rect), //
+    , spritemask { get_mask(surface, source_rect, name), //
                    glm::ivec2 { 1, 1 }, //
                    glm::ivec2 { source_rect.w, source_rect.h } }
 {
