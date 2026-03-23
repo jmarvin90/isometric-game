@@ -135,12 +135,9 @@ void Game::update([[maybe_unused]] const float delta_time)
 void Game::render()
 {
     // SDL_RenderSetClipRect(renderer, &camera.camera_rect);
-    [[maybe_unused]] const Grid<entt::entity, TileMapProjection>& tilemap { registry.ctx().get<const Grid<entt::entity, TileMapProjection>>() };
-    glm::ivec2 start_pos { 2, 1 };
-    glm::ivec2 end_pos { 2, 6 };
-
-    // [[maybe_unused]] entt::entity start_entity { tilemap[start_pos] };
-    // [[maybe_unused]] entt::entity end_entity { tilemap[end_pos] };
+    const Grid<entt::entity, TileMapProjection>& tilemap {
+        registry.ctx().get<const Grid<entt::entity, TileMapProjection>>()
+    };
 
     SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
     SDL_RenderClear(renderer.get());
