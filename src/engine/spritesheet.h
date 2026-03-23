@@ -4,17 +4,33 @@
 #include <SDL2/SDL.h>
 #include <components/navigation_component.h>
 #include <components/sprite_component.h>
+#include <grid.h>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <optional>
+#include <projection.h>
 #include <string>
 #include <unordered_map>
 #include <utility.h>
 
+// TODO - differentiate between a sprite definition and a component
+
+namespace {
+std::vector<bool> get_mask(const SDL_Surface* texture, const SDL_Rect rect);
+}
+
+struct SpriteDefinition {
+    std::string name;
+    SDL_Rect source_rect;
+    glm::ivec2 anchor;
+    Direction::TDirection directions;
+    Grid<bool, SpriteMaskProjection> spritemask;
+    SpriteDefinition(nlohmann::json input, SDL_Surface* surface);
+};
+
 struct SpriteSheet {
-public:
     std::unique_ptr<SDL_Texture, Utility::SDLDestroyer> texture;
-    std::unordered_map<std::string, SpriteComponent> sprites;
-    std::unordered_map<std::string, NavigationComponent> navigation;
+    std::unordered_map<std::string, SpriteDefinition> sprites;
 
     SpriteSheet(
         const std::string spritesheet_path,

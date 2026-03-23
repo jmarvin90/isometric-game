@@ -12,7 +12,7 @@ void update(entt::registry& registry)
 {
     CameraComponent& camera { registry.ctx().get<CameraComponent>() };
     const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
-    const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
+    const Grid<entt::entity, TileMapProjection>& tilemap { registry.ctx().get<const Grid<entt::entity, TileMapProjection>>() };
 
     camera.moved_in_frame = false;
     glm::ivec2 map_extent { tilemap.area + (constants::SCENE_BORDER_PX * 2) };
@@ -20,20 +20,20 @@ void update(entt::registry& registry)
 
     for (int i = 0; i < 2; i++) {
         if (
-            mouse.screen_current_position[i] < constants::SCENE_BORDER_PX[i]
+            mouse.screen_position[i] < constants::SCENE_BORDER_PX[i]
             && camera.position[i] > 0
         ) {
             delta[i] = std::max(
                 -constants::CAMERA_SCROLL_SPEED[i],
-                -mouse.screen_current_position[i]
+                -mouse.screen_position[i]
             );
         } else if (
-            mouse.screen_current_position[i] > (camera.size - constants::SCENE_BORDER_PX)[i]
+            mouse.screen_position[i] > (camera.size - constants::SCENE_BORDER_PX)[i]
             && (camera.position + camera.size)[i] < map_extent[i]
         ) {
             delta[i] = std::min(
                 constants::CAMERA_SCROLL_SPEED[i],
-                map_extent[i] - mouse.screen_current_position[i]
+                map_extent[i] - mouse.screen_position[i]
             );
         }
     }

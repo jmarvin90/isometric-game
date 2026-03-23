@@ -49,4 +49,17 @@ struct SpatialMapProjection {
     }
 };
 
+struct SpriteMaskProjection {
+    template <typename Grid>
+    static glm::ivec2 grid_to_world(const glm::ivec2 grid_position, const glm::ivec2 sprite_position)
+    {
+        return sprite_position + grid_position;
+    }
+
+    static glm::ivec2 world_to_grid(const glm::ivec2 world_position, const glm::ivec2 sprite_position)
+    {
+        return world_position - sprite_position;
+    }
+};
+
 #endif

@@ -41,16 +41,14 @@ void from_json(const nlohmann::json& j, SDL_Rect& P)
     P.w = j.at("w").get<int>();
 }
 
-void from_json(const nlohmann::json& json, SpriteComponent& sprite)
-{
-    // json.get_to(sprite);
-    json["source_rect"].get_to(sprite.source_rect);
-    // // json.at("x").get_to(sprite.source_rect.x);
-    // // json.at("y").get_to(sprite.source_rect.y);
-    // // json.at("w").get_to(sprite.source_rect.w);
-    // // json.at("h").get_to(sprite.source_rect.h);
-    json["anchor"].get_to(sprite.anchor);
-    json["name"].get_to(sprite.name);
-    // // json.at("anchor_x").get_to(sprite.anchor.x);
-    // // json.at("anchor_y").get_to(sprite.anchor.y);
-}
+// void from_json(const nlohmann::json& json, SpriteComponent& sprite)
+// {
+//     // json.get_to(sprite);
+//     json["source_rect"].get_to(sprite.source_rect);
+//     json["anchor"].get_to(sprite.anchor);
+//     json["name"].get_to(sprite.name);
+// }
+
+// void from_json(const nlohmann::json& json, SpriteDefinition& sprite)
+// {
+// }

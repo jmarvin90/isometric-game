@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <json_parse.h>
 #include <nlohmann/json.hpp>
+#include <spritesheet.h>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,12 @@ struct ComponentPair {
     uint32_t entity_id;
     T component;
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(ComponentPair, entity_id, component)
+};
+
+// TODO - is this strictly necessary
+struct SpriteRecord {
+    std::string name;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteRecord, name)
 };
 
 class OutputArchive {
@@ -54,6 +61,8 @@ public:
         current_component_array.push_back(component_json);
     }
 
+    void operator()(const SpriteComponent& component);
+
     template <typename T>
     void save_context_element(const std::string document_key, const T& element)
     {
@@ -64,6 +73,8 @@ public:
 };
 
 class InputArchive {
+
+    const SpriteSheet& spritesheet;
 
     uint32_t component_document_index { 0 };
     uint32_t component_index { 0 };
@@ -80,7 +91,7 @@ class InputArchive {
     void load_next_component_document();
 
 public:
-    InputArchive(std::string file_path);
+    InputArchive(std::string file_path, const SpriteSheet& spritesheet);
 
     // ...to load entities
     void operator()(entt::entity&);
@@ -95,6 +106,9 @@ public:
         component = active_component["component"].get<T>();
     }
 
+    void operator()(SpriteComponent& component);
+
+    // TODO - is this a const method? Or the method above?
     template <typename T>
     void load_context_element(const std::string document_key, T& element)
     {

@@ -3,6 +3,7 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <components/junction_component.h>
+#include <components/mouseover_component.h>
 #include <components/navigation_component.h>
 #include <components/segment_component.h>
 #include <components/segment_manager_component.h>
@@ -54,16 +55,31 @@ void Game::initialise()
 
     registry = entt::registry();
 
-    Grid<TileMapProjection>& tilemap {
-        registry.ctx().emplace<Grid<TileMapProjection>>()
+    Grid<entt::entity, TileMapProjection>& tilemap {
+        registry.ctx().emplace<Grid<entt::entity, TileMapProjection>>()
     };
 
-    Grid<SpatialMapProjection>& spatial_map {
-        registry.ctx().emplace<Grid<SpatialMapProjection>>()
+    Grid<entt::entity, SpatialMapProjection>& spatial_map {
+        registry.ctx().emplace<Grid<entt::entity, SpatialMapProjection>>()
     };
+
+    // TODO: move this somewhere smart under some smart condition
+    // Needs to happen before spritesheet
+    renderer = std::unique_ptr<SDL_Renderer, Utility::SDLDestroyer>(
+        SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)
+    );
+
+    // Needs to happen before load
+    registry.ctx().emplace<SpriteSheet>(
+        std::string { "assets/spritesheet_scaled.png" },
+        std::string { "assets/spritesheet.json" },
+        renderer
+    );
 
     load_from(registry, constants::SAVE_FILE_PATH);
 
+    registry.on_construct<MouseOverComponent>().connect<&MouseSystem::highlight>();
+    registry.on_destroy<MouseOverComponent>().connect<&MouseSystem::remove_highlight>();
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
@@ -71,27 +87,9 @@ void Game::initialise()
     registry.on_destroy<SegmentComponent>().connect<&SegmentSystem::disconnect>();
     registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
 
-    // TODO: move this somewhere smart under some smart condition
-    renderer = std::unique_ptr<SDL_Renderer, Utility::SDLDestroyer>(
-        SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)
-    );
-
     [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(glm::ivec2 { 256, 128 }, 68) };
 
     registry.ctx().emplace<MouseComponent>();
-    registry.ctx().emplace<SpriteSheet>(
-        std::string { "assets/spritesheet_scaled.png" },
-        std::string { "assets/spritesheet.json" },
-        renderer
-    );
-
-    // [[maybe_unused]] const Grid<TileMapProjection>& tilemap {
-    //     registry.ctx().emplace<Grid<TileMapProjection>>(registry, glm::ivec2 { 256, 128 }, glm::ivec2 { 32, 32 })
-    // };
-
-    // const Grid<SpatialMapProjection>& spatial_map {
-    //     registry.ctx().emplace<Grid<SpatialMapProjection>>(registry, tilemap.cell_size * 2, tilemap.grid_dimensions / 2)
-    // };
 
     registry.ctx().emplace<std::vector<Renderable>>();
     assert(tilemap.area == spatial_map.area);
@@ -131,13 +129,13 @@ void Game::update([[maybe_unused]] const float delta_time)
     MouseSystem::update(registry);
     CameraSystem::update(registry);
     SegmentSystem::update(registry);
-    RenderSystem::update(registry);
+    RenderSystem::update(registry, debug_mode);
 }
 
 void Game::render()
 {
     // SDL_RenderSetClipRect(renderer, &camera.camera_rect);
-    [[maybe_unused]] const Grid<TileMapProjection>& tilemap { registry.ctx().get<const Grid<TileMapProjection>>() };
+    [[maybe_unused]] const Grid<entt::entity, TileMapProjection>& tilemap { registry.ctx().get<const Grid<entt::entity, TileMapProjection>>() };
     glm::ivec2 start_pos { 2, 1 };
     glm::ivec2 end_pos { 2, 6 };
 
@@ -149,8 +147,6 @@ void Game::render()
     RenderSystem::render(registry, renderer.get(), debug_mode);
     if (debug_mode) {
         RenderSystem::render_imgui_ui(registry, renderer.get());
-        // RenderSystem::render_junction_gates(registry, renderer.get());
-        // RenderSystem::render_path(registry, renderer.get(), start_entity, end_entity);
     }
     SDL_RenderPresent(renderer.get());
 }
@@ -193,7 +189,7 @@ void Game::destroy()
 
 void Game::load_from(entt::registry& registry, const std::string input_path)
 {
-    InputArchive my_archive(input_path);
+    InputArchive my_archive(input_path, registry.ctx().get<const SpriteSheet>());
     entt::snapshot_loader { registry }
         .get<entt::entity>(my_archive)
         .get<TransformComponent>(my_archive)
@@ -206,12 +202,13 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
         .get<SpatialMapCellSpanComponent>(my_archive)
         .orphans();
 
-    my_archive.load_context_element("tilemap", registry.ctx().get<Grid<TileMapProjection>>());
-    my_archive.load_context_element("spatialmap", registry.ctx().get<Grid<SpatialMapProjection>>());
+    my_archive.load_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
+    my_archive.load_context_element("spatialmap", registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>());
 }
 
 void Game::save_to(entt::registry& registry, const std::string output_path)
 {
+    registry.clear<MouseOverComponent>();
     OutputArchive my_archive;
     entt::basic_snapshot(registry)
         .get<entt::entity>(my_archive)
@@ -224,7 +221,7 @@ void Game::save_to(entt::registry& registry, const std::string output_path)
         .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive);
 
-    my_archive.save_context_element("tilemap", registry.ctx().get<Grid<TileMapProjection>>());
-    my_archive.save_context_element("spatialmap", registry.ctx().get<Grid<SpatialMapProjection>>());
+    my_archive.save_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
+    my_archive.save_context_element("spatialmap", registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>());
     my_archive.to_file(output_path);
 }

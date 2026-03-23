@@ -20,7 +20,7 @@ namespace {
 // TODO - be aware of pointer invalidation; perhaps return the entity ID instead
 SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, const glm::ivec2 grid_position)
 {
-    Grid<SpatialMapProjection>& spatial_map { registry.ctx().get<Grid<SpatialMapProjection>>() };
+    Grid<entt::entity, SpatialMapProjection>& spatial_map { registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>() };
     entt::entity cell { spatial_map[grid_position] };
 
     // TODO: Shouldn't happen;
@@ -48,7 +48,7 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
     const SegmentComponent& segment
 )
 {
-    Grid<SpatialMapProjection>& spatial_map { registry.ctx().get<Grid<SpatialMapProjection>>() };
+    Grid<entt::entity, SpatialMapProjection>& spatial_map { registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>() };
     const TransformComponent& segment_start { registry.get<const TransformComponent>(segment.origin) };
     const TransformComponent& segment_end { registry.get<const TransformComponent>(segment.termination) };
 
@@ -93,10 +93,10 @@ SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity
     // TODO: will return invalid cells if an entity spans the edge of the map
     const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
     const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
-    const Grid<SpatialMapProjection>& spatial_map { registry.ctx().get<Grid<SpatialMapProjection>>() };
+    const Grid<entt::entity, SpatialMapProjection>& spatial_map { registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>() };
 
     glm::ivec2 AA { transform.position };
-    glm::ivec2 BB { AA + glm::ivec2 { sprite.source_rect.w, sprite.source_rect.h } };
+    glm::ivec2 BB { AA + glm::ivec2 { sprite.sprite_definition->source_rect.w, sprite.sprite_definition->source_rect.h } };
 
     return {
         SpatialMapProjection::world_to_grid(AA, spatial_map),
