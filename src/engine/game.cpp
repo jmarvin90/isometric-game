@@ -129,7 +129,7 @@ void Game::update([[maybe_unused]] const float delta_time)
     MouseSystem::update(registry);
     CameraSystem::update(registry);
     SegmentSystem::update(registry);
-    RenderSystem::update(registry);
+    RenderSystem::update(registry, debug_mode);
 }
 
 void Game::render()
@@ -147,8 +147,6 @@ void Game::render()
     RenderSystem::render(registry, renderer.get(), debug_mode);
     if (debug_mode) {
         RenderSystem::render_imgui_ui(registry, renderer.get());
-        // RenderSystem::render_junction_gates(registry, renderer.get());
-        // RenderSystem::render_path(registry, renderer.get(), start_entity, end_entity);
     }
     SDL_RenderPresent(renderer.get());
 }

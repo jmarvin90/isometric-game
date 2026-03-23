@@ -28,10 +28,10 @@
 namespace {
 
 bool transform_comparison(
-    const Renderable& lhs, const Renderable& rhs
+    const Renderable& lhs, const Renderable& rhs, const bool debug_mode
 )
 {
-    if (lhs.mouseover != rhs.mouseover)
+    if (debug_mode && (lhs.mouseover != rhs.mouseover))
         return !lhs.mouseover && rhs.mouseover;
 
     if (lhs.transform->z_index != rhs.transform->z_index)
@@ -41,39 +41,11 @@ bool transform_comparison(
     int rhs_bottom { int(rhs.transform->position.y) + rhs.sprite->source_rect.h };
     return lhs_bottom < rhs_bottom;
 }
-
-void render_highlights(
-    const glm::ivec2 screen_position,
-    const HighlightComponent* highlight_component,
-    SDL_Renderer* renderer
-)
-{
-    std::vector<SDL_Point> absolute_points;
-    absolute_points.reserve(highlight_component->points.size());
-
-    for (auto point : highlight_component->points) {
-        absolute_points.emplace_back(
-            SDL_Point {
-                screen_position.x + point.x,
-                screen_position.y + point.y }
-        );
-    }
-
-    SDL_SetRenderDrawColor(
-        renderer,
-        highlight_component->colour.r,
-        highlight_component->colour.g,
-        highlight_component->colour.b,
-        highlight_component->colour.a
-    );
-
-    SDL_RenderDrawLines(renderer, absolute_points.data(), absolute_points.size());
-}
 } // namespace
 
 namespace RenderSystem {
 
-void update(entt::registry& registry)
+void update(entt::registry& registry, const bool debug_mode)
 {
     /*
         TODO: possibility to early out if nothing has changed - incl.
@@ -107,26 +79,34 @@ void update(entt::registry& registry)
 
         if (SDL_HasIntersection(&comparator, &camera_rect)) {
             for (entt::entity renderable_entity : cell.entities) {
-                if (registry.all_of<TransformComponent, SpriteComponent>(renderable_entity)) {
-                    const TransformComponent& transform { registry.get<const TransformComponent>(renderable_entity) };
-                    renderables.emplace_back(
-                        &transform,
-                        registry.get<const SpriteComponent>(renderable_entity).sprite_definition,
-                        registry.try_get<const HighlightComponent>(renderable_entity),
-                        registry.all_of<MouseOverComponent>(renderable_entity),
-                        Position::world_to_screen(transform.position, camera.position)
-                    );
-                }
+                if (!registry.all_of<TransformComponent, SpriteComponent>(renderable_entity))
+                    continue;
+
+                const TransformComponent& transform { registry.get<const TransformComponent>(renderable_entity) };
+
+                renderables.emplace_back(
+                    &transform,
+                    registry.get<const SpriteComponent>(renderable_entity).sprite_definition,
+                    registry.try_get<const HighlightComponent>(renderable_entity),
+                    registry.all_of<MouseOverComponent>(renderable_entity),
+                    Position::world_to_screen(transform.position, camera.position)
+                );
             }
 
             // TODO - can I add segments to the renderables pile?
         }
     }
 
-    std::sort(renderables.begin(), renderables.end(), transform_comparison);
+    std::sort(
+        renderables.begin(),
+        renderables.end(),
+        [debug_mode](const Renderable& lhs, const Renderable& rhs) {
+            return transform_comparison(lhs, rhs, debug_mode);
+        }
+    );
 }
 
-void render(const entt::registry& registry, SDL_Renderer* renderer, const bool debug_mode)
+void render(const entt::registry& registry, SDL_Renderer* renderer, [[maybe_unused]] const bool debug_mode)
 {
     const SpriteSheet& spritesheet { registry.ctx().get<SpriteSheet>() };
     const std::vector<Renderable>& renderables { registry.ctx().get<const std::vector<Renderable>>() };
@@ -149,10 +129,6 @@ void render(const entt::registry& registry, SDL_Renderer* renderer, const bool d
             NULL,
             SDL_FLIP_NONE
         );
-
-        if (debug_mode && renderable.highlight) {
-            render_highlights(renderable.screen_position, renderable.highlight, renderer);
-        }
     }
 }
 
@@ -166,31 +142,28 @@ void render_imgui_ui(
     ImGui::NewFrame();
 
     const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
-    [[maybe_unused]] const Grid<entt::entity, TileMapProjection>& tilemap { registry.ctx().get<const Grid<entt::entity, TileMapProjection>>() };
-    [[maybe_unused]] const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
+    const Grid<entt::entity, TileMapProjection>& tilemap {
+        registry.ctx().get<const Grid<entt::entity, TileMapProjection>>()
+    };
 
     // The mouse and world positions
 
-    const glm::ivec2 world_position {
-        Position::screen_to_world(mouse.screen_current_position, camera.position)
-    };
-
     const glm::ivec2 grid_position {
-        TileMapProjection::world_to_grid(world_position, tilemap)
+        TileMapProjection::world_to_grid(mouse.world_position, tilemap)
     };
 
     ImGui::SeparatorText("Mouse Position");
 
     ImGui::Text(
         "Mouse Screen position: (%d) (%d)",
-        mouse.screen_current_position.x,
-        mouse.screen_current_position.y
+        mouse.screen_position.x,
+        mouse.screen_position.y
     );
 
     ImGui::Text(
         "Mouse World position: (%d) (%d)",
-        world_position.x,
-        world_position.y
+        mouse.world_position.x,
+        mouse.world_position.y
     );
 
     ImGui::Text(
@@ -199,119 +172,7 @@ void render_imgui_ui(
         grid_position.y
     );
 
-    // if (tilemap.highlighted_tile != entt::null) {
-    //     const NavigationComponent* nav {
-    //         registry.try_get<const NavigationComponent>(tilemap.highlighted_tile)
-    //     };
-
-    //     if (nav) {
-    //         ImGui::Text(
-    //             "Tile Connection Direction(s): (%d)",
-    //             Direction::to_underlying(nav->directions)
-    //         );
-    //     }
-    // }
-
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
-}
-
-void render_junction_gates(const entt::registry& registry, SDL_Renderer* renderer)
-{
-    const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
-    auto junctions { registry.view<TransformComponent, JunctionComponent>() };
-    for (auto [entity, transform, junction] : junctions.each()) {
-        for (auto gate : tilespec.road_gates) {
-            glm::ivec2 screen_position { Position::world_to_screen(transform.position, camera.position) };
-            glm::ivec2 entry { screen_position + gate.entry };
-            glm::ivec2 exit { screen_position + gate.exit };
-            SDL_Rect entry_rect { entry.x - 2, entry.y - 2, 4, 4 };
-            SDL_Rect exit_rect { exit.x - 2, exit.y - 2, 4, 4 };
-            SDL_SetRenderDrawColor(renderer, 255, 155, 155, 255);
-            SDL_RenderFillRect(renderer, &entry_rect);
-            SDL_RenderFillRect(renderer, &exit_rect);
-        }
-    }
-}
-
-void render_path(
-    const entt::registry& registry,
-    [[maybe_unused]] SDL_Renderer* renderer,
-    entt::entity from_tile,
-    entt::entity to_tile
-)
-{
-    const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
-    const CameraComponent& camera_component { registry.ctx().get<const CameraComponent>() };
-
-    std::vector<entt::entity> path;
-    Pathfinding::path_between(registry, from_tile, to_tile, path);
-
-    const GridPositionComponent* current_grid_position { nullptr };
-    const TransformComponent* current_world_position { nullptr };
-    [[maybe_unused]] Direction::TDirection last_direction { Direction::TDirection::NO_DIRECTION };
-
-    for (size_t i = 0; i < path.size() - 1; i++) {
-        entt::entity current = path[i];
-        entt::entity next = path[i + 1];
-
-        if (!current_grid_position) {
-            current_grid_position = &registry.get<const GridPositionComponent>(current);
-        }
-
-        if (!current_world_position) {
-            current_world_position = &registry.get<const TransformComponent>(current);
-        }
-
-        const GridPositionComponent* next_grid_position {
-            &registry.get<const GridPositionComponent>(next)
-        };
-
-        [[maybe_unused]] const TransformComponent* next_world_position {
-            &registry.get<const TransformComponent>(next)
-        };
-
-        glm::ivec2 delta { next_grid_position->position - current_grid_position->position };
-        glm::ivec2 delta_vec { Direction::to_direction_vector(delta) };
-        Direction::TDirection direction { Direction::vector_directions[delta_vec] };
-
-        glm::ivec2 tile_entry_offset {
-            tilespec.road_gates[Direction::index_position(Direction::reverse(direction))].entry
-        };
-
-        glm::ivec2 tile_exit_offset {
-            tilespec.road_gates[Direction::index_position(direction)].exit
-        };
-
-        [[maybe_unused]] glm::ivec2 start_screen_position {
-            Position::world_to_screen(
-                glm::ivec2 { glm::ivec2 { current_world_position->position } },
-                camera_component.position
-            )
-            + tile_exit_offset
-        };
-
-        [[maybe_unused]] glm::ivec2 end_screen_position {
-            Position::world_to_screen(
-                glm::ivec2 { glm::ivec2 { next_world_position->position } },
-                camera_component.position
-            )
-            + tile_entry_offset
-        };
-
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-
-        SDL_RenderDrawLine(
-            renderer,
-            start_screen_position.x,
-            start_screen_position.y,
-            end_screen_position.x,
-            end_screen_position.y
-        );
-
-        current_grid_position = next_grid_position;
-        current_world_position = next_world_position;
-    }
 }
 }

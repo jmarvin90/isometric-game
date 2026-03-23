@@ -34,7 +34,7 @@ struct Renderable {
 };
 
 namespace RenderSystem {
-void update(entt::registry& registry);
+void update(entt::registry& registry, const bool debug_mode);
 void render(const entt::registry& registry, SDL_Renderer* renderer, const bool debug_mode);
 void render_imgui_ui(const entt::registry& registry, SDL_Renderer* renderer);
 void render_junction_gates(const entt::registry& registry, SDL_Renderer* renderer);
