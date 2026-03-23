@@ -97,6 +97,8 @@ void update(entt::registry& registry, const bool debug_mode)
         }
     }
 
+    // TODO - it would be preferable to have some more explicit logic in the
+    // render function
     std::sort(
         renderables.begin(),
         renderables.end(),
