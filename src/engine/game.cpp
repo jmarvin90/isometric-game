@@ -135,10 +135,6 @@ void Game::update([[maybe_unused]] const float delta_time)
 void Game::render()
 {
     // SDL_RenderSetClipRect(renderer, &camera.camera_rect);
-    const Grid<entt::entity, TileMapProjection>& tilemap {
-        registry.ctx().get<const Grid<entt::entity, TileMapProjection>>()
-    };
-
     SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
     SDL_RenderClear(renderer.get());
     RenderSystem::render(registry, renderer.get(), debug_mode);
