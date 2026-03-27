@@ -131,6 +131,18 @@ void render(const entt::registry& registry, SDL_Renderer* renderer, [[maybe_unus
             NULL,
             SDL_FLIP_NONE
         );
+
+        if (debug_mode && renderable.mouseover) {
+            SDL_RenderCopyEx(
+                renderer,
+                spritesheet.outline_texture.get(),
+                &renderable.sprite->source_rect,
+                &target_rect,
+                renderable.transform->rotation,
+                NULL,
+                SDL_FLIP_NONE
+            );
+        }
     }
 }
 
