@@ -169,24 +169,46 @@ void render_imgui_ui(
     ImGui::SeparatorText("Mouse Position");
 
     ImGui::Text(
-        "Mouse Screen position: (%d) (%d)",
+        "Mouse Screen position: (%d, %d)",
         mouse.screen_position.x,
         mouse.screen_position.y
     );
 
     ImGui::Text(
-        "Mouse World position: (%d) (%d)",
+        "Mouse World position: (%d, %d)",
         mouse.world_position.x,
         mouse.world_position.y
     );
 
     ImGui::Text(
-        "Mouse Grid position: (%d) (%d)",
+        "Mouse Grid position: (%d, %d)",
         grid_position.x,
         grid_position.y
     );
 
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
+}
+
+void render_segments(const entt::registry& registry, [[maybe_unused]] SDL_Renderer* renderer)
+{
+    const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
+    const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
+    auto segments { registry.view<const SegmentComponent>() };
+
+    for (auto [entity, segment] : segments.each()) {
+        [[maybe_unused]] const TransformComponent& start { registry.get<const TransformComponent>(segment.origin) };
+        [[maybe_unused]] const TransformComponent& end { registry.get<const TransformComponent>(segment.termination) };
+        glm::ivec2 start_screen { Position::world_to_screen(glm::ivec2 { start.position }, camera.position) + tilespec.centre };
+        glm::ivec2 end_screen { Position::world_to_screen(glm::ivec2 { end.position }, camera.position) + tilespec.centre };
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_RenderDrawLine(
+            renderer,
+            start_screen.x,
+            start_screen.y,
+            end_screen.x,
+            end_screen.y
+        );
+    }
 }
 }

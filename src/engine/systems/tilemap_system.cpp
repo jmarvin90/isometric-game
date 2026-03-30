@@ -13,7 +13,9 @@ namespace {
 
 std::vector<entt::entity> scan(const entt::registry& registry, entt::entity origin, Direction::TDirection direction)
 {
-    const Grid<entt::entity, TileMapProjection>& tilemap { registry.ctx().get<const Grid<entt::entity, TileMapProjection>>() };
+    const Grid<entt::entity, TileMapProjection>& tilemap {
+        registry.ctx().get<const Grid<entt::entity, TileMapProjection>>()
+    };
     glm::ivec2 direction_vector { Direction::direction_vectors[direction] };
     Direction::TDirection reverse { Direction::reverse(direction) };
 
@@ -63,8 +65,7 @@ void connect(entt::registry& registry, entt::entity entity)
     for (
         Direction::TDirection direction { Direction::TDirection::NORTH };
         direction != Direction::TDirection::NO_DIRECTION;
-        direction = direction >> 1
-    ) {
+        direction = direction >> 1) {
         connections[Direction::index_position(direction)] = scan(registry, entity, direction);
     }
 
@@ -72,8 +73,7 @@ void connect(entt::registry& registry, entt::entity entity)
         for (
             Direction::TDirection direction { Direction::TDirection::NORTH };
             direction != Direction::TDirection::NO_DIRECTION;
-            direction = direction >> 1
-        ) {
+            direction = direction >> 1) {
             if (connections[Direction::index_position(direction)].size() > 1) {
                 seg_manager.construct_queue.emplace_back(
                     connections[Direction::index_position(direction)],

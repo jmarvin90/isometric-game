@@ -101,7 +101,7 @@ public:
 
     // ...references to the types of component to restore
     template <typename T>
-    void operator()(T& component)
+    void operator()(T& component) const
     {
         component = active_component["component"].get<T>();
     }
@@ -110,7 +110,7 @@ public:
 
     // TODO - is this a const method? Or the method above?
     template <typename T>
-    void load_context_element(const std::string document_key, T& element)
+    void load_context_element(const std::string document_key, T& element) const
     {
         context.at(document_key).get_to(element);
     }

@@ -78,10 +78,9 @@ void Game::initialise()
 
     load_from(registry, constants::SAVE_FILE_PATH);
 
-    registry.on_construct<MouseOverComponent>().connect<&MouseSystem::highlight>();
-    registry.on_destroy<MouseOverComponent>().connect<&MouseSystem::remove_highlight>();
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
+    registry.on_destroy<SpriteComponent>().connect<&SpatialMapSystem::remove_entity>();
     registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
     registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
     registry.on_destroy<SegmentComponent>().connect<&SegmentSystem::disconnect>();
@@ -140,6 +139,7 @@ void Game::render()
     RenderSystem::render(registry, renderer.get(), debug_mode);
     if (debug_mode) {
         RenderSystem::render_imgui_ui(registry, renderer.get());
+        RenderSystem::render_segments(registry, renderer.get());
     }
     SDL_RenderPresent(renderer.get());
 }
