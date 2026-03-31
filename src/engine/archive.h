@@ -48,10 +48,11 @@ class OutputArchive {
 
     nlohmann::json root;
     uint32_t current_entity;
-    std::underlying_type_t<entt::entity> current_pool_size { 0 };
 
     nlohmann::json component_pools_array;
     nlohmann::json current_component_pool;
+    // must be default initialised to enable saving of first (empty) pool
+    std::underlying_type_t<entt::entity> current_pool_size { 0 };
     nlohmann::json components;
     nlohmann::json context;
 
@@ -104,12 +105,12 @@ class InputArchive {
 
     nlohmann::json component_pools_array;
     nlohmann::json current_component_pool;
+    std::underlying_type_t<entt::entity> current_pool_size;
     nlohmann::json components;
     nlohmann::json active_component;
     nlohmann::json context;
 
     void fetch_component_document();
-    void load_next_component_document();
 
 public:
     InputArchive(std::string file_path, const SpriteSheet& spritesheet);

@@ -25,6 +25,7 @@ void OutputArchive::commit_to_root()
 void OutputArchive::commit_component_pool()
 {
     current_component_pool["entity_component_pairs"] = components;
+    current_component_pool["size"] = current_pool_size;
     component_pools_array.push_back(current_component_pool);
     components = nlohmann::json::array();
     current_component_pool.clear();
@@ -35,14 +36,16 @@ void OutputArchive::operator()(entt::entity entity)
     current_entity = uint32_t(entity);
 }
 
-// Signals the start of a new component pool - commit the "old" one and start a new
+// Signals the start of a new component pool by providing the size of the new pool
+// - commit the "old" one and start a new
 void OutputArchive::operator()(std::underlying_type_t<entt::entity> size)
 {
-    if (!components.empty()) {
-        commit_component_pool();
-    }
+    // if (!components.empty()) {
+    //     commit_component_pool();
+    // }
 
-    current_component_pool["size"] = size;
+    commit_component_pool();
+    current_pool_size = size;
 }
 
 void OutputArchive::to_file(std::string path)
@@ -51,6 +54,15 @@ void OutputArchive::to_file(std::string path)
     std::ofstream file { path };
     file << root.dump();
 }
+
+/*
+
+
+
+
+
+
+*/
 
 InputArchive::InputArchive(std::string file_path, const SpriteSheet& spritesheet)
     : spritesheet { spritesheet }
@@ -61,8 +73,10 @@ InputArchive::InputArchive(std::string file_path, const SpriteSheet& spritesheet
     context = root["context"];
 }
 
-void InputArchive::fetch_component_document()
+void InputArchive::fetch_component_pool()
 {
+    component_index = 0;
+
     if (component_document_index > component_pools_array.size())
         return;
 
@@ -73,31 +87,17 @@ void InputArchive::fetch_component_document()
     }
 }
 
-void InputArchive::load_next_component_document()
-{
-    component_index = 0;
-    fetch_component_document();
-
-    // while (
-    //     !current_component_pool.contains("entity_component_pairs")
-    //     || !current_component_pool.contains("size")
-    // ) {
-    //     if (!fetch_component_pool())
-    //         return;
-    // }
-}
-
 // Effectively signals the start of a new component pool -
 // meaning we should forget the "old" one and load a new
 // (via fetch_component_document)
 void InputArchive::operator()(std::underlying_type_t<entt::entity>& size)
 {
-    component_index = 0;
-    load_next_component_document();
+    fetch_component_pool();
+
     if (!current_component_pool.contains("size"))
         return;
-    int _size { current_component_pool.at("size").get<int>() };
-    size = (std::underlying_type_t<entt::entity>)_size;
+
+    size = current_component_pool.at("size").get<std::underlying_type_t<entt::entity>>();
 }
 
 void InputArchive::operator()(entt::entity& entity)
@@ -110,8 +110,7 @@ void InputArchive::operator()(entt::entity& entity)
     }
 
     active_component = components[component_index++];
-    int int_entity { active_component["entity_id"] };
-    entity = entt::entity(int_entity);
+    entity = active_component["entity_id"].get<entt::entity>();
 }
 
 void InputArchive::operator()(SpriteComponent& component)
@@ -122,7 +121,9 @@ void InputArchive::operator()(SpriteComponent& component)
 
 void OutputArchive::operator()(const SpriteComponent& component)
 {
-    ComponentPair<SpriteRecord> my_pair { current_entity, SpriteRecord { component.sprite_definition->name } };
-    nlohmann::json component_json = my_pair;
+
+    nlohmann::json component_json = ComponentPair<SpriteRecord> {
+        current_entity, SpriteRecord { component.sprite_definition->name }
+    };
     components.push_back(component_json);
 }
