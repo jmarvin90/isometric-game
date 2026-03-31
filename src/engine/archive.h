@@ -29,26 +29,6 @@ struct SpriteRecord {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteRecord, name)
 };
 
-/*
-
-{
-    "component_pools": [                    <-- component_pools_array
-        {                                   <-- current_component_pool (entity_component_pairs, size)
-            "entity_component_pairs": [     <-- components
-                {                           <-- ComponentPair (component, entity_id)
-                    "component": {          <-- component
-                        ...
-                    },
-                    "entity_id": 0          <-- current_entity
-                }
-                ...
-            ],
-            "size": 0                       <-- size
-        }
-    ]
-}
-*/
-
 class OutputArchive {
 
     nlohmann::json root;
