@@ -62,6 +62,9 @@ void connect(entt::registry& registry, entt::entity entity)
     const NavigationComponent& current_nav { registry.get<const NavigationComponent>(entity) };
     std::array<std::vector<entt::entity>, 4> connections;
 
+    if (current_nav.directions == Direction::TDirection::NO_DIRECTION)
+        return;
+
     for (
         Direction::TDirection direction { Direction::TDirection::NORTH };
         direction != Direction::TDirection::NO_DIRECTION;
@@ -100,7 +103,23 @@ void connect(entt::registry& registry, entt::entity entity)
 void disconnect(entt::registry& registry, entt::entity entity)
 {
     const NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
+
     if (nav.segment_id == entt::null)
         return;
+
+    const SegmentComponent& current_segment { registry.get<const SegmentComponent>(entity) };
+
+    if (entity == current_segment.origin) {
+        TileMapSystem::connect(registry, current_segment.termination);
+        return;
+    }
+
+    if (entity == current_segment.termination) {
+        TileMapSystem::connect(registry, current_segment.origin);
+        return;
+    }
+
+    TileMapSystem::connect(registry, current_segment.origin);
+    TileMapSystem::connect(registry, current_segment.termination);
 }
 }

@@ -1,6 +1,7 @@
 #include <components/grid_position_component.h>
-#include <components/mouseover_component.h>
+#include <components/highlighted_entity_component.h>
 #include <components/render_offset_component.h>
+#include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <entt/entt.hpp>
 #include <grid.h>
@@ -11,7 +12,7 @@
 #include <utility.h>
 
 namespace {
-entt::entity get_hovered_entity(const entt::registry& registry, const MouseComponent& mouse, const CameraComponent& camera)
+entt::entity get_hovered_entity(const entt::registry& registry, const MouseComponent& mouse)
 {
     entt::entity spatialmap_cell_entity {
         registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>().at_world(mouse.world_position)
@@ -22,7 +23,7 @@ entt::entity get_hovered_entity(const entt::registry& registry, const MouseCompo
     };
 
     if (spatialmap_cell_entity == entt::null || !spatialmap_cell)
-        return;
+        return entt::null;
 
     entt::entity best_entity { entt::null };
     int best_depth { -1 };
@@ -57,6 +58,7 @@ void update(entt::registry& registry)
 {
     MouseComponent& mouse { registry.ctx().get<MouseComponent>() };
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
+    HighlightedEntityComponent& highlight { registry.ctx().get<HighlightedEntityComponent>() };
 
     glm::ivec2 current_mouse_screen_pos {};
     SDL_GetMouseState(&current_mouse_screen_pos.x, &current_mouse_screen_pos.y);
@@ -69,15 +71,16 @@ void update(entt::registry& registry)
             mouse.screen_position, camera.position
         );
 
-        entt::entity hovered_entity { get_hovered_entity(registry, mouse, camera) };
-
-        for (entt::entity entity : registry.view<const MouseOverComponent>()) {
-            if (entity != hovered_entity)
-                registry.remove<MouseOverComponent>(entity);
-        }
-
-        if (hovered_entity != entt::null)
-            registry.emplace_or_replace<MouseOverComponent>(hovered_entity);
+        entt::entity hovered_entity { get_hovered_entity(registry, mouse) };
+        highlight.entity = hovered_entity;
     }
+}
+
+void select_entity(entt::registry& registry)
+{
+    SelectedEntityComponent& selected_entity { registry.ctx().get<SelectedEntityComponent>() };
+    const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
+    entt::entity selection { get_hovered_entity(registry, mouse) };
+    selected_entity.entity = selection;
 }
 }

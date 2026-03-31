@@ -3,11 +3,12 @@
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <camera_component.h>
 #include <components/grid_position_component.h>
-#include <components/highlight_component.h>
+#include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
 #include <components/navigation_component.h>
 #include <components/segment_component.h>
+#include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
 #include <components/tilespec_component.h>
@@ -78,6 +79,9 @@ void update(entt::registry& registry, const bool debug_mode)
         };
 
         if (SDL_HasIntersection(&comparator, &camera_rect)) {
+            entt::entity highlighted_entity { registry.ctx().get<const HighlightedEntityComponent>().entity };
+            entt::entity selected_entity { registry.ctx().get<const SelectedEntityComponent>().entity };
+
             for (entt::entity renderable_entity : cell.entities) {
                 if (!registry.all_of<TransformComponent, SpriteComponent>(renderable_entity))
                     continue;
@@ -87,8 +91,8 @@ void update(entt::registry& registry, const bool debug_mode)
                 renderables.emplace_back(
                     &transform,
                     registry.get<const SpriteComponent>(renderable_entity).sprite_definition,
-                    registry.try_get<const HighlightComponent>(renderable_entity),
-                    registry.all_of<MouseOverComponent>(renderable_entity),
+                    renderable_entity == highlighted_entity,
+                    renderable_entity == selected_entity,
                     Position::world_to_screen(transform.position, camera.position)
                 );
             }
@@ -132,7 +136,7 @@ void render(const entt::registry& registry, SDL_Renderer* renderer, [[maybe_unus
             SDL_FLIP_NONE
         );
 
-        if (debug_mode && renderable.mouseover) {
+        if (debug_mode && (renderable.mouseover || renderable.selected)) {
             SDL_RenderCopyEx(
                 renderer,
                 spritesheet.outline_texture.get(),
@@ -147,7 +151,7 @@ void render(const entt::registry& registry, SDL_Renderer* renderer, [[maybe_unus
 }
 
 void render_imgui_ui(
-    const entt::registry& registry,
+    entt::registry& registry,
     SDL_Renderer* renderer
 )
 {
@@ -159,6 +163,8 @@ void render_imgui_ui(
     const Grid<entt::entity, TileMapProjection>& tilemap {
         registry.ctx().get<const Grid<entt::entity, TileMapProjection>>()
     };
+    const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet>() };
+    entt::entity selected_entity { registry.ctx().get<const SelectedEntityComponent>().entity };
 
     // The mouse and world positions
 
@@ -186,6 +192,57 @@ void render_imgui_ui(
         grid_position.y
     );
 
+    if (selected_entity != entt::null) {
+        SpriteComponent& sprite { registry.get<SpriteComponent>(selected_entity) };
+        const TransformComponent& transform { registry.get<const TransformComponent>(selected_entity) };
+        const NavigationComponent* navigation { registry.try_get<const NavigationComponent>(selected_entity) };
+
+        ImGui::SeparatorText("Selected Entity");
+
+        glm::ivec2 grid_position {
+            TileMapProjection::world_to_grid(
+                glm::ivec2(transform.position) + sprite.sprite_definition->anchor,
+                tilemap
+            )
+        };
+
+        ImGui::Text(
+            "Selected entity position: (%d, %d)",
+            grid_position.x,
+            grid_position.y
+        );
+
+        ImGui::Text(
+            "Selected entity sprite name: %s",
+            sprite.sprite_definition->name.c_str()
+        );
+
+        if (navigation) {
+            ImGui::Text(
+                "Selected entity segment: %d",
+                static_cast<int>(navigation->segment_id)
+            );
+        }
+
+        if (ImGui::BeginCombo("Sprite", sprite.sprite_definition->name.c_str())) {
+            for (const auto& [name, sprite_definition] : spritesheet.sprites) {
+                bool is_selected = (name == sprite.sprite_definition->name);
+
+                if (ImGui::Selectable(name.c_str(), is_selected)) {
+                    registry.replace<SpriteComponent>(selected_entity, &sprite_definition);
+                    if (sprite_definition.directions != Direction::TDirection::NO_DIRECTION) {
+                        registry.emplace_or_replace<NavigationComponent>(selected_entity, sprite_definition.directions);
+                    }
+                }
+
+                if (is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+    }
+
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
 }
@@ -194,9 +251,8 @@ void render_segments(const entt::registry& registry, [[maybe_unused]] SDL_Render
 {
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
     const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
-    auto segments { registry.view<const SegmentComponent>() };
 
-    for (auto [entity, segment] : segments.each()) {
+    for (auto [entity, segment] : registry.view<const SegmentComponent>().each()) {
         [[maybe_unused]] const TransformComponent& start { registry.get<const TransformComponent>(segment.origin) };
         [[maybe_unused]] const TransformComponent& end { registry.get<const TransformComponent>(segment.termination) };
         glm::ivec2 start_screen { Position::world_to_screen(glm::ivec2 { start.position }, camera.position) + tilespec.centre };
