@@ -194,7 +194,7 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
 {
     InputArchive my_archive(input_path, registry.ctx().get<const SpriteSheet>());
     entt::snapshot_loader { registry }
-        .get<entt::entity>(my_archive)
+        // .get<entt::entity>(my_archive)
         .get<TransformComponent>(my_archive)
         .get<SpriteComponent>(my_archive)
         .get<GridPositionComponent>(my_archive)
