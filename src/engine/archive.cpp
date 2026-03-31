@@ -13,7 +13,7 @@
 // Commit the component pool array and the context document into the root JSON
 void OutputArchive::commit_to_root()
 {
-    commit_component_document();
+    commit_component_pool();
     root["component_pools"] = component_pools_array;
     root["context"] = context;
 }
@@ -22,7 +22,7 @@ void OutputArchive::commit_to_root()
     Place the current set of entity:component pairs into its own component pool
     (also containing size); push that pool into the component pool array
 */
-void OutputArchive::commit_component_document()
+void OutputArchive::commit_component_pool()
 {
     current_component_pool["entity_component_pairs"] = components;
     component_pools_array.push_back(current_component_pool);
@@ -39,7 +39,7 @@ void OutputArchive::operator()(entt::entity entity)
 void OutputArchive::operator()(std::underlying_type_t<entt::entity> size)
 {
     if (!components.empty()) {
-        commit_component_document();
+        commit_component_pool();
     }
 
     current_component_pool["size"] = size;

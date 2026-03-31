@@ -55,7 +55,7 @@ class OutputArchive {
     nlohmann::json components;
     nlohmann::json context;
 
-    void commit_component_document();
+    void commit_component_pool();
     void commit_to_root();
 
 public:
