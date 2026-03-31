@@ -24,14 +24,35 @@ struct SpriteRecord {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteRecord, name)
 };
 
+/*
+
+{
+    "component_pools": [                    <-- component_pools_array
+        {                                   <-- current_component_pool (entity_component_pairs, size)
+            "entity_component_pairs": [     <-- components
+                {                           <-- ComponentPair (component, entity_id)
+                    "component": {          <-- component
+                        ...
+                    },
+                    "entity_id": 0          <-- current_entity
+                }
+                ...
+            ],
+            "size": 0                       <-- size
+        }
+    ]
+}
+*/
+
 class OutputArchive {
 
     nlohmann::json root;
     uint32_t current_entity;
+    std::underlying_type_t<entt::entity> current_pool_size;
 
-    nlohmann::json component_document_array;
-    nlohmann::json current_component_document;
-    nlohmann::json current_component_array;
+    nlohmann::json component_pools_array;
+    nlohmann::json current_component_pool;
+    nlohmann::json components;
     nlohmann::json context;
 
     void commit_component_document();
@@ -39,8 +60,8 @@ class OutputArchive {
 
 public:
     OutputArchive()
-        : component_document_array { nlohmann::json::array() }
-        , current_component_array { nlohmann::json::array() }
+        : component_pools_array { nlohmann::json::array() }
+        , components { nlohmann::json::array() }
     {
     }
 
@@ -56,11 +77,11 @@ public:
     template <typename T>
     void operator()(const T& component)
     {
-        ComponentPair<T> my_pair { current_entity, component };
-        nlohmann::json component_json = my_pair;
-        current_component_array.push_back(component_json);
+        nlohmann::json component_json = ComponentPair<T> { current_entity, component };
+        components.push_back(component_json);
     }
 
+    // Special overload to ensure we save just the sprite ID
     void operator()(const SpriteComponent& component);
 
     template <typename T>
@@ -81,9 +102,9 @@ class InputArchive {
 
     nlohmann::json root;
 
-    nlohmann::json component_document_array;
-    nlohmann::json current_component_document;
-    nlohmann::json current_component_array;
+    nlohmann::json component_pools_array;
+    nlohmann::json current_component_pool;
+    nlohmann::json components;
     nlohmann::json active_component;
     nlohmann::json context;
 
@@ -96,7 +117,7 @@ public:
     // ...to load entities
     void operator()(entt::entity&);
 
-    // ...to read the size of the set they are going to load
+    // ...to read the size of the component pool they are going to load
     void operator()(std::underlying_type_t<entt::entity>&);
 
     // ...references to the types of component to restore
@@ -108,7 +129,6 @@ public:
 
     void operator()(SpriteComponent& component);
 
-    // TODO - is this a const method? Or the method above?
     template <typename T>
     void load_context_element(const std::string document_key, T& element) const
     {
