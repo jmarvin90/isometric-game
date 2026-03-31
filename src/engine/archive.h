@@ -2,6 +2,7 @@
 #define ARCHIVE_H
 
 #include <SDL2/SDL.h>
+#include <algorithm>
 #include <entt/entt.hpp>
 #include <fstream>
 #include <glm/glm.hpp>
@@ -9,7 +10,11 @@
 #include <nlohmann/json.hpp>
 #include <spritesheet.h>
 #include <string>
+#include <typeindex>
+#include <utility>
 #include <vector>
+
+#include <spdlog/spdlog.h>
 
 template <typename T>
 struct ComponentPair {
@@ -49,24 +54,13 @@ class OutputArchive {
     nlohmann::json root;
     uint32_t current_entity;
 
-    nlohmann::json component_pools_array;
-    nlohmann::json current_component_pool;
-    // must be default initialised to enable saving of first (empty) pool
-    std::underlying_type_t<entt::entity> current_pool_size { 0 };
-    nlohmann::json components;
+    std::vector<std::pair<std::type_index, nlohmann::json>> component_pools;
     nlohmann::json context;
 
-    void commit_component_pool();
-    void commit_to_root();
-
 public:
-    OutputArchive()
-        : component_pools_array { nlohmann::json::array() }
-        , components { nlohmann::json::array() }
-    {
-    }
-
     ~OutputArchive() { }
+
+    void commit_to_root();
 
     // ...to store entities
     void operator()(entt::entity);
@@ -78,8 +72,17 @@ public:
     template <typename T>
     void operator()(const T& component)
     {
+        auto it = std::find_if(
+            component_pools.begin(), component_pools.end(),
+            [&](const auto& pair) { return pair.first == std::type_index(typeid(T)); }
+        );
+
+        if (it == component_pools.end()) {
+            component_pools.emplace_back(std::type_index(typeid(T)), nlohmann::json::array());
+        }
+
         nlohmann::json component_json = ComponentPair<T> { current_entity, component };
-        components.push_back(component_json);
+        component_pools.back().second.push_back(component_json);
     }
 
     // Special overload to ensure we save just the sprite ID
@@ -97,20 +100,15 @@ public:
 class InputArchive {
 
     const SpriteSheet& spritesheet;
-
-    uint32_t component_document_index { 0 };
-    uint32_t component_index { 0 };
-
     nlohmann::json root;
-
-    nlohmann::json component_pools_array;
-    nlohmann::json current_component_pool;
-    std::underlying_type_t<entt::entity> current_pool_size;
-    nlohmann::json components;
-    nlohmann::json active_component;
+    nlohmann::json component_pools;
     nlohmann::json context;
+    nlohmann::json current_component;
 
-    void fetch_component_document();
+    int current_component_pool_n { 0 };
+    int current_component_n { 0 };
+
+    void next_component();
 
 public:
     InputArchive(std::string file_path, const SpriteSheet& spritesheet);
@@ -123,9 +121,10 @@ public:
 
     // ...references to the types of component to restore
     template <typename T>
-    void operator()(T& component) const
+    void operator()(T& component)
     {
-        component = active_component["component"].get<T>();
+        spdlog::info(current_component.dump());
+        component = current_component.get<T>();
     }
 
     void operator()(SpriteComponent& component);
