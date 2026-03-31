@@ -48,7 +48,7 @@ class OutputArchive {
 
     nlohmann::json root;
     uint32_t current_entity;
-    std::underlying_type_t<entt::entity> current_pool_size;
+    std::underlying_type_t<entt::entity> current_pool_size { 0 };
 
     nlohmann::json component_pools_array;
     nlohmann::json current_component_pool;
