@@ -194,7 +194,7 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
 {
     InputArchive my_archive(input_path, registry.ctx().get<const SpriteSheet>());
     entt::snapshot_loader { registry }
-        // .get<entt::entity>(my_archive)
+        .get<entt::entity>(my_archive)
         .get<TransformComponent>(my_archive)
         .get<SpriteComponent>(my_archive)
         .get<GridPositionComponent>(my_archive)
@@ -211,10 +211,6 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
 
 void Game::save_to(entt::registry& registry, const std::string output_path)
 {
-    // registry.clear<NavigationComponent>();
-    // registry.clear<SegmentComponent>();
-    // registry.clear<JunctionComponent>();
-
     OutputArchive my_archive;
     entt::basic_snapshot(registry)
         .get<entt::entity>(my_archive)
