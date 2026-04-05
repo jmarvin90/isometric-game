@@ -43,8 +43,8 @@ struct ComponentPoolDocument {
     nlohmann::json components;
     ComponentPoolDocument(std::underlying_type_t<entt::entity> size)
         : size { size }
-        , entities { nlohmann::json::array() }
-        , components { nlohmann::json::array() }
+        , entities(nlohmann::json::array())
+        , components(nlohmann::json::array())
     {
     }
     ComponentPoolDocument()
@@ -116,7 +116,6 @@ public:
     template <typename T>
     void operator()(T& component)
     {
-        spdlog::info(current_pool.value().components.front().dump());
         T _component { current_pool.value().components.front().get<T>() };
         current_pool.value().components.pop();
         component = _component;
