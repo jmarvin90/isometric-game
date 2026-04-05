@@ -8,19 +8,51 @@
 #include <glm/glm.hpp>
 #include <json_parse.h>
 #include <nlohmann/json.hpp>
+#include <optional>
+#include <queue>
 #include <spritesheet.h>
 #include <string>
-#include <typeindex>
 #include <utility>
-#include <vector>
 
 #include <spdlog/spdlog.h>
 
-template <typename T>
-struct ComponentPair {
-    uint32_t entity_id;
-    T component;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(ComponentPair, entity_id, component)
+struct ComponentPoolDocumentQueue {
+    std::underlying_type_t<entt::entity> size;
+    std::queue<entt::entity> entities;
+    std::queue<nlohmann::json> components;
+    ComponentPoolDocumentQueue(nlohmann::json pool_json)
+        : size { pool_json["size"].get<std::underlying_type_t<entt::entity>>() }
+    {
+        for (auto entity : pool_json["entities"]) {
+            if (entity.is_array() && entity.empty())
+                break;
+            entities.emplace(entity.get<entt::entity>());
+        }
+
+        for (auto component : pool_json["components"]) {
+            if (component.is_array() && component.empty())
+                break;
+            components.emplace(component);
+        }
+    }
+};
+
+struct ComponentPoolDocument {
+    std::underlying_type_t<entt::entity> size;
+    nlohmann::json entities;
+    nlohmann::json components;
+    ComponentPoolDocument(std::underlying_type_t<entt::entity> size)
+        : size { size }
+        , entities { nlohmann::json::array() }
+        , components { nlohmann::json::array() }
+    {
+    }
+    ComponentPoolDocument()
+    // : entities { nlohmann::json::array() }
+    // , components { nlohmann::json::array() }
+    {
+    }
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(ComponentPoolDocument, size, entities, components)
 };
 
 // TODO - is this strictly necessary
@@ -30,42 +62,22 @@ struct SpriteRecord {
 };
 
 class OutputArchive {
-
     nlohmann::json root;
-    uint32_t current_entity;
-
-    std::vector<std::pair<std::type_index, nlohmann::json>> component_pools;
+    std::optional<ComponentPoolDocument> current_pool;
     nlohmann::json context;
 
 public:
-    ~OutputArchive() { }
-
+    void commit_pool();
     void commit_to_root();
-
-    // ...to store entities
     void operator()(entt::entity);
-
-    // ...to store aside the size of the set they are going to store
     void operator()(std::underlying_type_t<entt::entity>);
 
-    // ...the types of component to serialize
     template <typename T>
     void operator()(const T& component)
     {
-        auto it = std::find_if(
-            component_pools.begin(), component_pools.end(),
-            [&](const auto& pair) { return pair.first == std::type_index(typeid(T)); }
-        );
-
-        if (it == component_pools.end()) {
-            component_pools.emplace_back(std::type_index(typeid(T)), nlohmann::json::array());
-        }
-
-        nlohmann::json component_json = ComponentPair<T> { current_entity, component };
-        component_pools.back().second.push_back(component_json);
+        current_pool.value().components.push_back(component);
     }
 
-    // Special overload to ensure we save just the sprite ID
     void operator()(const SpriteComponent& component);
 
     template <typename T>
@@ -77,34 +89,37 @@ public:
     void to_file(std::string path);
 };
 
+/*
+
+
+
+
+
+
+*/
+
 class InputArchive {
 
     const SpriteSheet& spritesheet;
     nlohmann::json root;
-    nlohmann::json component_pools;
+    std::queue<ComponentPoolDocumentQueue> component_pools;
+    std::optional<ComponentPoolDocumentQueue> current_pool;
     nlohmann::json context;
-    nlohmann::json current_component;
 
-    int current_component_pool_n { 0 };
-    int current_component_n { 0 };
-
-    void next_component();
+    int count { 0 };
 
 public:
     InputArchive(std::string file_path, const SpriteSheet& spritesheet);
-
-    // ...to load entities
     void operator()(entt::entity&);
-
-    // ...to read the size of the component pool they are going to load
     void operator()(std::underlying_type_t<entt::entity>&);
 
-    // ...references to the types of component to restore
     template <typename T>
     void operator()(T& component)
     {
-        spdlog::info(current_component.dump());
-        component = current_component.get<T>();
+        spdlog::info(current_pool.value().components.front().dump());
+        T _component { current_pool.value().components.front().get<T>() };
+        current_pool.value().components.pop();
+        component = _component;
     }
 
     void operator()(SpriteComponent& component);
