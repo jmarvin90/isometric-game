@@ -16,44 +16,35 @@
 
 #include <spdlog/spdlog.h>
 
-struct ComponentPoolDocumentQueue {
-    std::underlying_type_t<entt::entity> size;
-    std::queue<entt::entity> entities;
-    std::queue<nlohmann::json> components;
-    ComponentPoolDocumentQueue(nlohmann::json pool_json)
-        : size { pool_json["size"].get<std::underlying_type_t<entt::entity>>() }
-    {
-        for (auto entity : pool_json["entities"]) {
-            if (entity.is_array() && entity.empty())
-                break;
-            entities.emplace(entity.get<entt::entity>());
-        }
-
-        for (auto component : pool_json["components"]) {
-            if (component.is_array() && component.empty())
-                break;
-            components.emplace(component);
-        }
-    }
-};
-
+template <typename EntityContainer, typename ComponentContainer>
 struct ComponentPoolDocument {
     std::underlying_type_t<entt::entity> size;
-    nlohmann::json entities;
-    nlohmann::json components;
+    EntityContainer entities;
+    ComponentContainer components;
     ComponentPoolDocument(std::underlying_type_t<entt::entity> size)
         : size { size }
         , entities(nlohmann::json::array())
         , components(nlohmann::json::array())
     {
     }
-    ComponentPoolDocument()
-    // : entities { nlohmann::json::array() }
-    // , components { nlohmann::json::array() }
+    ComponentPoolDocument(nlohmann::json pool_json)
+        : size { pool_json["size"].get<std::underlying_type_t<entt::entity>>() }
     {
+        for (auto entity : pool_json["entities"]) {
+            entities.emplace(entity.get<entt::entity>());
+        }
+
+        for (auto component : pool_json["components"]) {
+            components.emplace(component);
+        }
     }
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(ComponentPoolDocument, size, entities, components)
 };
+
+namespace {
+using ImportComponentDocument = ComponentPoolDocument<std::queue<entt::entity>, std::queue<nlohmann::json>>;
+using ExportComponentDocument = ComponentPoolDocument<nlohmann::json, nlohmann::json>;
+}
 
 // TODO - is this strictly necessary
 struct SpriteRecord {
@@ -63,7 +54,7 @@ struct SpriteRecord {
 
 class OutputArchive {
     nlohmann::json root;
-    std::optional<ComponentPoolDocument> current_pool;
+    std::optional<ExportComponentDocument> current_pool;
     nlohmann::json context;
 
 public:
@@ -102,8 +93,8 @@ class InputArchive {
 
     const SpriteSheet& spritesheet;
     nlohmann::json root;
-    std::queue<ComponentPoolDocumentQueue> component_pools;
-    std::optional<ComponentPoolDocumentQueue> current_pool;
+    std::queue<ImportComponentDocument> component_pools;
+    std::optional<ImportComponentDocument> current_pool;
     nlohmann::json context;
 
     int count { 0 };

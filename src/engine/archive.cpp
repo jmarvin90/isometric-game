@@ -33,7 +33,7 @@ void OutputArchive::operator()([[maybe_unused]] std::underlying_type_t<entt::ent
         commit_pool();
     }
 
-    current_pool.emplace(ComponentPoolDocument { size });
+    current_pool.emplace(ExportComponentDocument { size });
 }
 
 void OutputArchive::to_file(std::string path)
@@ -67,7 +67,7 @@ InputArchive::InputArchive(std::string file_path, const SpriteSheet& spritesheet
     root = nlohmann::json::parse(ifs);
 
     for (auto pool : root["component_pools"]) {
-        component_pools.emplace(ComponentPoolDocumentQueue(pool));
+        component_pools.emplace(ImportComponentDocument(pool));
     }
 
     context = root["context"];
@@ -75,9 +75,7 @@ InputArchive::InputArchive(std::string file_path, const SpriteSheet& spritesheet
 
 void InputArchive::operator()([[maybe_unused]] std::underlying_type_t<entt::entity>& size)
 {
-    if (current_pool)
-        current_pool.reset();
-
+    current_pool.reset();
     current_pool.emplace(component_pools.front());
     component_pools.pop();
     size = current_pool.value().size;
