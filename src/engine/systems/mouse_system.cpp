@@ -1,6 +1,7 @@
 #include <components/grid_position_component.h>
-#include <components/mouseover_component.h>
+#include <components/highlighted_entity_component.h>
 #include <components/render_offset_component.h>
+#include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <entt/entt.hpp>
 #include <grid.h>
@@ -10,11 +11,54 @@
 #include <systems/mouse_system.h>
 #include <utility.h>
 
+namespace {
+entt::entity get_hovered_entity(const entt::registry& registry, const MouseComponent& mouse)
+{
+    entt::entity spatialmap_cell_entity {
+        registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>().at_world(mouse.world_position)
+    };
+
+    const SpatialMapCellComponent* spatialmap_cell {
+        registry.try_get<const SpatialMapCellComponent>(spatialmap_cell_entity)
+    };
+
+    if (spatialmap_cell_entity == entt::null || !spatialmap_cell)
+        return entt::null;
+
+    entt::entity best_entity { entt::null };
+    int best_depth { -1 };
+    int best_y { -1 };
+
+    for (entt::entity entity : spatialmap_cell->entities) {
+        if (!Utility::AABB(registry, entity, mouse.world_position))
+            continue;
+
+        const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
+        const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
+
+        if (!sprite.sprite_definition->spritemask.at_world(mouse.world_position, transform.position))
+            continue;
+
+        if (
+            transform.z_index > best_depth
+            || (transform.z_index == best_depth && transform.position.y > best_y)
+        ) {
+            best_entity = entity;
+            best_depth = transform.z_index;
+            best_y = transform.position.y;
+        }
+    }
+
+    return best_entity;
+}
+}
+
 namespace MouseSystem {
 void update(entt::registry& registry)
 {
     MouseComponent& mouse { registry.ctx().get<MouseComponent>() };
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
+    HighlightedEntityComponent& highlight { registry.ctx().get<HighlightedEntityComponent>() };
 
     glm::ivec2 current_mouse_screen_pos {};
     SDL_GetMouseState(&current_mouse_screen_pos.x, &current_mouse_screen_pos.y);
@@ -27,56 +71,16 @@ void update(entt::registry& registry)
             mouse.screen_position, camera.position
         );
 
-        entt::entity spatialmap_cell_entity {
-            registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>().at_world(mouse.world_position)
-        };
-
-        const SpatialMapCellComponent* spatialmap_cell {
-            registry.try_get<const SpatialMapCellComponent>(spatialmap_cell_entity)
-        };
-
-        if (spatialmap_cell_entity == entt::null || !spatialmap_cell)
-            return;
-
-        entt::entity best_entity { entt::null };
-        int best_depth { -1 };
-        int best_y { -1 };
-
-        for (entt::entity entity : spatialmap_cell->entities) {
-            if (!Utility::AABB(registry, entity, mouse.world_position))
-                continue;
-
-            const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
-            const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
-
-            if (!sprite.sprite_definition->spritemask.at_world(mouse.world_position, transform.position))
-                continue;
-
-            if (
-                transform.z_index > best_depth
-                || (transform.z_index == best_depth && transform.position.y > best_y)
-            ) {
-                best_entity = entity;
-                best_depth = transform.z_index;
-                best_y = transform.position.y;
-            }
-        }
-
-        for (entt::entity entity : registry.view<const MouseOverComponent>()) {
-            if (entity != best_entity)
-                registry.remove<MouseOverComponent>(entity);
-        }
-
-        if (best_entity != entt::null)
-            registry.emplace_or_replace<MouseOverComponent>(best_entity);
+        entt::entity hovered_entity { get_hovered_entity(registry, mouse) };
+        highlight.entity = hovered_entity;
     }
 }
 
-void highlight([[maybe_unused]] entt::registry& registry, [[maybe_unused]] entt::entity entity)
+void select_entity(entt::registry& registry)
 {
-}
-
-void remove_highlight([[maybe_unused]] entt::registry& registry, [[maybe_unused]] entt::entity entity)
-{
+    SelectedEntityComponent& selected_entity { registry.ctx().get<SelectedEntityComponent>() };
+    const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
+    entt::entity selection { get_hovered_entity(registry, mouse) };
+    selected_entity.entity = selection;
 }
 }

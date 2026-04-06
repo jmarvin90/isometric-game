@@ -2,11 +2,12 @@
 #include <archive.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
+#include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
-#include <components/mouseover_component.h>
 #include <components/navigation_component.h>
 #include <components/segment_component.h>
 #include <components/segment_manager_component.h>
+#include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/spatialmapcell_span_component.h>
 #include <components/tilespec_component.h>
@@ -76,12 +77,15 @@ void Game::initialise()
         renderer
     );
 
+    registry.ctx().emplace<SelectedEntityComponent>();
+    registry.ctx().emplace<HighlightedEntityComponent>();
+
     load_from(registry, constants::SAVE_FILE_PATH);
 
-    registry.on_construct<MouseOverComponent>().connect<&MouseSystem::highlight>();
-    registry.on_destroy<MouseOverComponent>().connect<&MouseSystem::remove_highlight>();
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
+    registry.on_update<NavigationComponent>().connect<&TileMapSystem::connect>();
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
+    registry.on_destroy<SpriteComponent>().connect<&SpatialMapSystem::remove_entity>();
     registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
     registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
     registry.on_destroy<SegmentComponent>().connect<&SegmentSystem::disconnect>();
@@ -106,6 +110,9 @@ void Game::process_input()
 {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
+        // Always let ImGui see the event first
+        ImGui_ImplSDL2_ProcessEvent(&event);
+        ImGuiIO& io = ImGui::GetIO();
         switch (event.type) {
         case SDL_KEYDOWN:
             if (event.key.keysym.sym == SDLK_ESCAPE) {
@@ -119,6 +126,8 @@ void Game::process_input()
             break;
 
         case SDL_MOUSEBUTTONDOWN:
+            if (!io.WantCaptureMouse)
+                MouseSystem::select_entity(registry);
             break;
         }
     }
@@ -140,6 +149,7 @@ void Game::render()
     RenderSystem::render(registry, renderer.get(), debug_mode);
     if (debug_mode) {
         RenderSystem::render_imgui_ui(registry, renderer.get());
+        RenderSystem::render_segments(registry, renderer.get());
     }
     SDL_RenderPresent(renderer.get());
 }
@@ -201,7 +211,6 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
 
 void Game::save_to(entt::registry& registry, const std::string output_path)
 {
-    registry.clear<MouseOverComponent>();
     OutputArchive my_archive;
     entt::basic_snapshot(registry)
         .get<entt::entity>(my_archive)

@@ -13,7 +13,9 @@ namespace {
 
 std::vector<entt::entity> scan(const entt::registry& registry, entt::entity origin, Direction::TDirection direction)
 {
-    const Grid<entt::entity, TileMapProjection>& tilemap { registry.ctx().get<const Grid<entt::entity, TileMapProjection>>() };
+    const Grid<entt::entity, TileMapProjection>& tilemap {
+        registry.ctx().get<const Grid<entt::entity, TileMapProjection>>()
+    };
     glm::ivec2 direction_vector { Direction::direction_vectors[direction] };
     Direction::TDirection reverse { Direction::reverse(direction) };
 
@@ -60,11 +62,13 @@ void connect(entt::registry& registry, entt::entity entity)
     const NavigationComponent& current_nav { registry.get<const NavigationComponent>(entity) };
     std::array<std::vector<entt::entity>, 4> connections;
 
+    if (current_nav.directions == Direction::TDirection::NO_DIRECTION)
+        return;
+
     for (
         Direction::TDirection direction { Direction::TDirection::NORTH };
         direction != Direction::TDirection::NO_DIRECTION;
-        direction = direction >> 1
-    ) {
+        direction = direction >> 1) {
         connections[Direction::index_position(direction)] = scan(registry, entity, direction);
     }
 
@@ -72,8 +76,7 @@ void connect(entt::registry& registry, entt::entity entity)
         for (
             Direction::TDirection direction { Direction::TDirection::NORTH };
             direction != Direction::TDirection::NO_DIRECTION;
-            direction = direction >> 1
-        ) {
+            direction = direction >> 1) {
             if (connections[Direction::index_position(direction)].size() > 1) {
                 seg_manager.construct_queue.emplace_back(
                     connections[Direction::index_position(direction)],
@@ -100,7 +103,23 @@ void connect(entt::registry& registry, entt::entity entity)
 void disconnect(entt::registry& registry, entt::entity entity)
 {
     const NavigationComponent& nav { registry.get<NavigationComponent>(entity) };
+
     if (nav.segment_id == entt::null)
         return;
+
+    const SegmentComponent& current_segment { registry.get<const SegmentComponent>(entity) };
+
+    if (entity == current_segment.origin) {
+        TileMapSystem::connect(registry, current_segment.termination);
+        return;
+    }
+
+    if (entity == current_segment.termination) {
+        TileMapSystem::connect(registry, current_segment.origin);
+        return;
+    }
+
+    TileMapSystem::connect(registry, current_segment.origin);
+    TileMapSystem::connect(registry, current_segment.termination);
 }
 }

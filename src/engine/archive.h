@@ -2,21 +2,49 @@
 #define ARCHIVE_H
 
 #include <SDL2/SDL.h>
+#include <algorithm>
 #include <entt/entt.hpp>
 #include <fstream>
 #include <glm/glm.hpp>
 #include <json_parse.h>
 #include <nlohmann/json.hpp>
+#include <optional>
+#include <queue>
 #include <spritesheet.h>
 #include <string>
-#include <vector>
+#include <utility>
 
-template <typename T>
-struct ComponentPair {
-    uint32_t entity_id;
-    T component;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(ComponentPair, entity_id, component)
+#include <spdlog/spdlog.h>
+
+template <typename EntityContainer, typename ComponentContainer>
+struct ComponentPoolDocument {
+    std::underlying_type_t<entt::entity> size;
+    EntityContainer entities;
+    ComponentContainer components;
+    ComponentPoolDocument(std::underlying_type_t<entt::entity> size)
+        : size { size }
+        , entities(nlohmann::json::array())
+        , components(nlohmann::json::array())
+    {
+    }
+    ComponentPoolDocument(nlohmann::json pool_json)
+        : size { pool_json["size"].get<std::underlying_type_t<entt::entity>>() }
+    {
+        for (auto entity : pool_json["entities"]) {
+            entities.emplace(entity.get<entt::entity>());
+        }
+
+        for (auto component : pool_json["components"]) {
+            components.emplace(component);
+        }
+    }
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(ComponentPoolDocument, size, entities, components)
 };
+
+namespace {
+using ImportComponentDocument = ComponentPoolDocument<std::queue<entt::entity>, std::queue<nlohmann::json>>;
+using ExportComponentDocument = ComponentPoolDocument<nlohmann::json, nlohmann::json>;
+}
 
 // TODO - is this strictly necessary
 struct SpriteRecord {
@@ -25,40 +53,20 @@ struct SpriteRecord {
 };
 
 class OutputArchive {
-
     nlohmann::json root;
-    uint32_t current_entity;
-
-    nlohmann::json component_document_array;
-    nlohmann::json current_component_document;
-    nlohmann::json current_component_array;
+    std::optional<ExportComponentDocument> current_pool;
     nlohmann::json context;
 
-    void commit_component_document();
-    void commit_to_root();
-
 public:
-    OutputArchive()
-        : component_document_array { nlohmann::json::array() }
-        , current_component_array { nlohmann::json::array() }
-    {
-    }
-
-    ~OutputArchive() { }
-
-    // ...to store entities
+    void commit_pool();
+    void commit_to_root();
     void operator()(entt::entity);
-
-    // ...to store aside the size of the set they are going to store
     void operator()(std::underlying_type_t<entt::entity>);
 
-    // ...the types of component to serialize
     template <typename T>
     void operator()(const T& component)
     {
-        ComponentPair<T> my_pair { current_entity, component };
-        nlohmann::json component_json = my_pair;
-        current_component_array.push_back(component_json);
+        current_pool.value().components.push_back(component);
     }
 
     void operator()(const SpriteComponent& component);
@@ -72,45 +80,42 @@ public:
     void to_file(std::string path);
 };
 
+/*
+
+
+
+
+
+
+*/
+
 class InputArchive {
 
     const SpriteSheet& spritesheet;
-
-    uint32_t component_document_index { 0 };
-    uint32_t component_index { 0 };
-
     nlohmann::json root;
-
-    nlohmann::json component_document_array;
-    nlohmann::json current_component_document;
-    nlohmann::json current_component_array;
-    nlohmann::json active_component;
+    std::queue<ImportComponentDocument> component_pools;
+    std::optional<ImportComponentDocument> current_pool;
     nlohmann::json context;
 
-    void fetch_component_document();
-    void load_next_component_document();
+    int count { 0 };
 
 public:
     InputArchive(std::string file_path, const SpriteSheet& spritesheet);
-
-    // ...to load entities
     void operator()(entt::entity&);
-
-    // ...to read the size of the set they are going to load
     void operator()(std::underlying_type_t<entt::entity>&);
 
-    // ...references to the types of component to restore
     template <typename T>
     void operator()(T& component)
     {
-        component = active_component["component"].get<T>();
+        T _component { current_pool.value().components.front().get<T>() };
+        current_pool.value().components.pop();
+        component = _component;
     }
 
     void operator()(SpriteComponent& component);
 
-    // TODO - is this a const method? Or the method above?
     template <typename T>
-    void load_context_element(const std::string document_key, T& element)
+    void load_context_element(const std::string document_key, T& element) const
     {
         context.at(document_key).get_to(element);
     }

@@ -10,8 +10,7 @@
 
 namespace MouseSystem {
 void update(entt::registry& registry);
-void highlight(entt::registry& registry, entt::entity entity);
-void remove_highlight(entt::registry& registry, entt::entity entity);
+void select_entity(entt::registry& registry);
 };
 
 #endif

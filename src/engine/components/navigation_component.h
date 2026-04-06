@@ -17,6 +17,13 @@ struct NavigationComponent {
     {
     }
 
+    NavigationComponent(Direction::TDirection directions)
+        : directions { directions }
+        , segment_id { entt::null }
+        , is_junction { Direction::is_junction(this->directions) }
+    {
+    }
+
     NavigationComponent(int directions)
         : directions { static_cast<uint8_t>(directions) }
         , segment_id { entt::null }
