@@ -16,6 +16,22 @@
 
 #include <spdlog/spdlog.h>
 
+/*
+    entt snapshots will call functions to provide/request:
+        - size of a pool;
+        - the next entity in the current pool,
+        - the next component in the pool
+
+    The size call comes at the start of a new pool; it can be inferred that
+    any previous/pending pools are concluded when a size call is made
+
+    The first pools contain entities only
+        (entt::snapshot_loader { registry }.get<entt::entity>(my_archive)
+
+    I'm not sure if entity/component calls are alternated (e.g.
+    ABAB) or one after another (AABB).
+*/
+
 template <typename EntityContainer, typename ComponentContainer>
 struct ComponentPoolDocument {
     std::underlying_type_t<entt::entity> size;
