@@ -84,12 +84,15 @@ void Game::initialise()
 
     registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
     registry.on_update<NavigationComponent>().connect<&TileMapSystem::connect>();
+
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_destroy<SpriteComponent>().connect<&SpatialMapSystem::remove_entity>();
-    registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
     registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
-    registry.on_destroy<SegmentComponent>().connect<&SegmentSystem::disconnect>();
     registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
+    registry.on_update<TransformComponent>().connect<&SpatialMapSystem::update_entity>();
+
+    registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
+    registry.on_destroy<SegmentComponent>().connect<&SegmentSystem::disconnect>();
 
     [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(glm::ivec2 { 256, 128 }, 68) };
 
