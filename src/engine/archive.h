@@ -28,8 +28,8 @@
     The first pools contain entities only
         (entt::snapshot_loader { registry }.get<entt::entity>(my_archive)
 
-    I'm not sure if entity/component calls are alternated (e.g.
-    ABAB) or one after another (AABB).
+    I'm not sure if entity/component calls are alternated (e.g. ABAB) or one
+    after another (AABB).
 */
 
 template <typename EntityContainer, typename ComponentContainer>
