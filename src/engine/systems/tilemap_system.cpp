@@ -39,10 +39,10 @@ std::vector<entt::entity> scan(const entt::registry& registry, entt::entity orig
             return output;
         }
 
-        bool current_can_connect_forward { Direction::any(current_nav->directions & direction) };
-        bool next_can_connect_back { Direction::any(next_nav->directions & reverse) };
-
-        if (!current_can_connect_forward || !next_can_connect_back) {
+        if (
+            !Direction::any(current_nav->directions & direction) // can't connect forward
+            || !Direction::any(next_nav->directions & reverse) // can't connect backwards
+        ) {
             return output;
         }
 
