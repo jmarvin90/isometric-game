@@ -2,12 +2,13 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <camera_component.h>
+#include <components/connectivity_component.h>
 #include <components/grid_position_component.h>
 #include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
-#include <components/navigation_component.h>
 #include <components/segment_component.h>
+#include <components/segment_member_component.h>
 #include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
@@ -195,7 +196,7 @@ void render_imgui_ui(
     if (selected_entity != entt::null) {
         SpriteComponent& sprite { registry.get<SpriteComponent>(selected_entity) };
         const TransformComponent& transform { registry.get<const TransformComponent>(selected_entity) };
-        const NavigationComponent* navigation { registry.try_get<const NavigationComponent>(selected_entity) };
+        const SegmentMemberComponent* segment_membership { registry.try_get<const SegmentMemberComponent>(selected_entity) };
 
         ImGui::SeparatorText("Selected Entity");
 
@@ -217,10 +218,10 @@ void render_imgui_ui(
             sprite.sprite_definition->name.c_str()
         );
 
-        if (navigation) {
+        if (segment_membership) {
             ImGui::Text(
                 "Selected entity segment: %d",
-                static_cast<int>(navigation->segment_id)
+                static_cast<int>(segment_membership->segment)
             );
         }
 
@@ -231,7 +232,7 @@ void render_imgui_ui(
                 if (ImGui::Selectable(name.c_str(), is_selected)) {
                     registry.replace<SpriteComponent>(selected_entity, &sprite_definition);
                     if (sprite_definition.directions != Direction::TDirection::NO_DIRECTION) {
-                        registry.emplace_or_replace<NavigationComponent>(selected_entity, sprite_definition.directions);
+                        registry.emplace_or_replace<ConnectivityComponent>(selected_entity, sprite_definition.directions);
                     }
                 }
 
