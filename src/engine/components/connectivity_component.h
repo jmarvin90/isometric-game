@@ -2,7 +2,6 @@
 #define CONNECTIVITYCOMPONENT_H
 
 #include <directions.h>
-#include <entt/entt.hpp>
 #include <nlohmann/json.hpp>
 
 struct ConnectivityComponent {

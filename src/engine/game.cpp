@@ -93,6 +93,7 @@ void Game::initialise()
     */
 
     registry.on_construct<ConnectivityComponent>().connect<GraphSystem::tile_update>();
+    registry.on_update<ConnectivityComponent>().connect<GraphSystem::tile_update>();
 
     /*
     registry.on_construct<ConnectivityComponent>().connect<&...>();

@@ -1,7 +1,6 @@
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include <cmath>
-#include <components/debug_component.h>
 #include <components/segment_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/spatialmapcell_span_component.h>
