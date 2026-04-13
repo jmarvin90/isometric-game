@@ -4,8 +4,9 @@
 #include <entt/entt.hpp>
 
 namespace GraphSystem {
-void tile_update(entt::registry& registry, entt::entity entity);
-void update(entt::registry& registry);
+void update(entt::registry& registry, [[maybe_unused]] entt::entity entity);
+void emplace_segment(entt::registry& registry, entt::entity entity);
+void remove_segment(entt::registry& registry, entt::entity entity);
 };
 
 #endif

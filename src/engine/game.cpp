@@ -6,10 +6,12 @@
 #include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
 #include <components/segment_component.h>
+#include <components/segment_member_component.h>
 #include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/spatialmapcell_span_component.h>
 #include <components/tilespec_component.h>
+#include <components/segment_component.h>
 #include <constants.h>
 #include <entt/entt.hpp>
 #include <game.h>
@@ -80,26 +82,24 @@ void Game::initialise()
 
     load_from(registry, constants::SAVE_FILE_PATH);
 
+    // TODO: a temporary until the save file is fixed
+    for (auto [entity, sprite]: registry.view<SpriteComponent>().each()) {
+        if (!registry.all_of<ConnectivityComponent>(entity)) {
+            registry.emplace<ConnectivityComponent>(entity, sprite.sprite_definition->directions);
+        }
+    }
+
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_destroy<SpriteComponent>().connect<&SpatialMapSystem::remove_entity>();
     registry.on_update<TransformComponent>().connect<&SpatialMapSystem::update_entity>();
 
     registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
     registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
+    registry.on_construct<SegmentComponent>().connect<&GraphSystem::emplace_segment>();
+    registry.on_destroy<SegmentComponent>().connect<&GraphSystem::remove_segment>();
 
-    /*
-    registry.on_construct<SegmentComponent>().connect<&GraphSystem::connect>();
-    registry.on_destroy<SegmentComponent>().connect<&GraphSystem::disconnect>();
-    */
-
-    registry.on_construct<ConnectivityComponent>().connect<GraphSystem::tile_update>();
-    registry.on_update<ConnectivityComponent>().connect<GraphSystem::tile_update>();
-
-    /*
-    registry.on_construct<ConnectivityComponent>().connect<&...>();
-    registry.on_update<ConnectivityComponent>().connect<&...>();
-    registry.on_destroy<ConnectivityComponent>().connect<&...>();
-    */
+    registry.on_construct<ConnectivityComponent>().connect<GraphSystem::update>();
+    registry.on_update<ConnectivityComponent>().connect<GraphSystem::update>();
 
     [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(glm::ivec2 { 256, 128 }, 68) };
 
@@ -146,7 +146,6 @@ void Game::update([[maybe_unused]] const float delta_time)
 {
     MouseSystem::update(registry);
     CameraSystem::update(registry);
-    GraphSystem::update(registry);
     RenderSystem::update(registry, debug_mode);
 }
 
