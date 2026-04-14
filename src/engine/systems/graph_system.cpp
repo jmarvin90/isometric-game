@@ -117,20 +117,13 @@ std::vector<entt::entity> get_segment_from(
     return output;
 }
 
-void junction_populate(entt::registry& registry, entt::entity junction_tile)
+void junction_populate(
+    entt::registry& registry,
+    entt::entity junction_tile,
+    const ConnectivityComponent& connectivity,
+    const JunctionComponent& junction
+)
 {
-    const ConnectivityComponent& connectivity { 
-        registry.get<const ConnectivityComponent>(junction_tile)
-    };
-
-    const JunctionComponent* junction {
-        registry.try_get<const JunctionComponent>(junction_tile)
-    };
-
-    [[maybe_unused]] const GridPositionComponent& grid_position {
-        registry.get<const GridPositionComponent>(junction_tile)
-    };
-
     for (
         auto remaining { Direction::to_underlying(connectivity.directions)};
         remaining;
@@ -141,8 +134,7 @@ void junction_populate(entt::registry& registry, entt::entity junction_tile)
 
         // If the segment has already been created from another junction
         if (
-            junction 
-            && junction->connections[Direction::index_position(direction)] != entt::null
+            junction.connections[Direction::index_position(direction)] != entt::null
         )
             continue;
 
@@ -160,11 +152,11 @@ void junction_populate(entt::registry& registry, entt::entity junction_tile)
         };
 
         JunctionComponent& origin { 
-            registry.get_or_emplace<JunctionComponent>(segment_component.origin)
+            registry.get<JunctionComponent>(segment_component.origin)
         };
 
         JunctionComponent& termination {
-            registry.get_or_emplace<JunctionComponent>(segment_component.termination)
+            registry.get<JunctionComponent>(segment_component.termination)
         };
 
         origin.connections[Direction::index_position(direction)] = segment_entity;
@@ -189,9 +181,11 @@ void graph_release(entt::registry& registry) {
 }
 
 void graph_compute(entt::registry& registry) {
-    auto junctions_view { registry.view<JunctionComponent>() };
-    for (auto entity: junctions_view) {
-        junction_populate(registry, entity);
+    auto junctions_view { 
+        registry.view<JunctionComponent, ConnectivityComponent>() 
+    };
+    for (auto [entity, junction, connectivity]: junctions_view.each()) {
+        junction_populate(registry, entity, connectivity, junction);
     }
 }
 }
