@@ -85,6 +85,8 @@ TDirection from_vector(const T& vector)
 bool is_junction(Direction::TDirection direction);
 
 uint8_t index_position(Direction::TDirection direction);
+
+bool opposed(Direction::TDirection direction);
 }; // namespace Direction
 
 #endif
