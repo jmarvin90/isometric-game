@@ -10,7 +10,6 @@ include_directories(
     SYSTEM libs/imgui
     SYSTEM /usr/include/SDL2
     SYSTEM libs/json/include
-    SYSTEM libs/rapidjson/include/rapidjson
     src/engine
     src/engine/components
     src/engine/systems
