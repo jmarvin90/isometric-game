@@ -82,13 +82,6 @@ void Game::initialise()
 
     load_from(registry, constants::SAVE_FILE_PATH);
 
-    // TODO: a temporary until the save file is fixed
-    for (auto [entity, sprite]: registry.view<SpriteComponent>().each()) {
-        if (!registry.all_of<ConnectivityComponent>(entity)) {
-            registry.emplace<ConnectivityComponent>(entity, sprite.sprite_definition->directions);
-        }
-    }
-
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_destroy<SpriteComponent>().connect<&SpatialMapSystem::remove_entity>();
     registry.on_update<TransformComponent>().connect<&SpatialMapSystem::update_entity>();
@@ -206,28 +199,40 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
         .get<TransformComponent>(my_archive)
         .get<SpriteComponent>(my_archive)
         .get<GridPositionComponent>(my_archive)
-        .get<ConnectivityComponent>(my_archive)
-        .get<SegmentComponent>(my_archive)
-        .get<JunctionComponent>(my_archive)
         .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive)
         .orphans();
 
     my_archive.load_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
     my_archive.load_context_element("spatialmap", registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>());
+
+    // TODO: a temporary until the save file is fixed
+    for (auto [entity, sprite]: registry.view<SpriteComponent>().each()) {
+        registry.emplace_or_replace<ConnectivityComponent>(entity, sprite.sprite_definition->directions);
+    }
+
+    GraphSystem::update(registry, entt::null);
+
+    for (auto entity: registry.view<SegmentComponent>()) {
+        SpatialMapSystem::emplace_segment(registry, entity);
+    }
 }
 
 void Game::save_to(entt::registry& registry, const std::string output_path)
 {
+    for (auto entity: registry.view<SegmentComponent>())
+        registry.destroy(entity);
+
+    registry.clear<ConnectivityComponent>();
+    registry.clear<JunctionComponent>();
+    registry.clear<SegmentMemberComponent>();
+
     OutputArchive my_archive;
     entt::basic_snapshot(registry)
         .get<entt::entity>(my_archive)
         .get<TransformComponent>(my_archive)
         .get<SpriteComponent>(my_archive)
         .get<GridPositionComponent>(my_archive)
-        .get<ConnectivityComponent>(my_archive)
-        .get<SegmentComponent>(my_archive)
-        .get<JunctionComponent>(my_archive)
         .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive);
 
