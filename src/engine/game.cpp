@@ -216,6 +216,7 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
 
     for (auto entity: registry.view<SegmentComponent>()) {
         SpatialMapSystem::emplace_segment(registry, entity);
+        GraphSystem::emplace_segment(registry, entity);
     }
 }
 
