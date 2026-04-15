@@ -66,15 +66,9 @@ void identify_junctions(entt::registry& registry)
 
     for (auto [entity, connectivity, grid_position]: connectivity_view.each()) {
         bool junction_in_theory { connectivity.is_junction };
-        bool junction_in_practice {
-            Direction::is_junction(
-                resolved_directions(
-                    registry, 
-                    connectivity.directions, 
-                    grid_position.position
-                )
-            )
-        };
+
+        auto resolved { resolved_directions(registry, connectivity.directions, grid_position.position) };
+        bool junction_in_practice { Direction::is_junction(resolved) };
         
         if (junction_in_theory || junction_in_practice ) {
             registry.emplace<JunctionComponent>(entity);
@@ -173,10 +167,8 @@ void graph_release(entt::registry& registry) {
         registry.destroy(entity);
         // registry.destroy(segments.begin(), segments.end());
 
-    // Delete all segment memberships
+    // Delete all segment memberships & junctions
     registry.clear<SegmentMemberComponent>();
-
-    // Delete all the junctions
     registry.clear<JunctionComponent>();
 }
 
