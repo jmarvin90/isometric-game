@@ -22,35 +22,6 @@ enum class TDirection : uint8_t { NO_DIRECTION = 0,
                                   SOUTH = 1 << 2,
                                   EAST = 1 << 3 };
 
-template <typename T>
-constexpr uint8_t to_underlying(T t) { return static_cast<std::underlying_type_t<T>>(t); }
-
-constexpr TDirection operator|(const TDirection lhs, const TDirection rhs)
-{
-    return static_cast<Direction::TDirection>(to_underlying(lhs) | to_underlying(rhs));
-}
-
-constexpr TDirection operator&(const TDirection lhs, const TDirection rhs)
-{
-    return static_cast<TDirection>(to_underlying(lhs) & to_underlying(rhs));
-}
-
-constexpr TDirection operator!(const TDirection op) { return static_cast<TDirection>((!to_underlying(op)) & 15); }
-
-constexpr TDirection operator>>(const TDirection lhs, const int places)
-{
-    uint8_t bits { Direction::to_underlying(lhs) };
-    return Direction::TDirection((bits << places) & 15);
-}
-
-constexpr TDirection operator<<(const TDirection lhs, const int places)
-{
-    uint8_t bits { Direction::to_underlying(lhs) };
-    return Direction::TDirection((bits >> places) & 15);
-}
-
-constexpr bool any(const TDirection d) { return to_underlying(d) & 15; }
-
 inline std::unordered_map<TDirection, glm::ivec2> direction_vectors {
     { TDirection::NORTH, { 0, -1 } },
     { TDirection::EAST, { 1, 0 } },
@@ -65,7 +36,10 @@ inline std::unordered_map<glm::ivec2, TDirection> vector_directions { {
     { { -1, 0 }, TDirection::WEST },
 } };
 
-TDirection reverse(const TDirection direction);
+template <typename T>
+constexpr uint8_t to_underlying(T t) { 
+    return static_cast<std::underlying_type_t<T>>(t); 
+}
 
 template <typename T>
 glm::ivec2 to_direction_vector(const T& vector)
@@ -82,9 +56,56 @@ TDirection from_vector(const T& vector)
     return Direction::vector_directions[to_direction_vector<T>(vector)];
 }
 
-bool is_junction(Direction::TDirection direction);
+constexpr TDirection operator|(
+    const TDirection lhs, const TDirection rhs
+)
+{
+    return static_cast<Direction::TDirection>(
+        to_underlying(lhs) | to_underlying(rhs)
+    ); 
+}
 
+constexpr TDirection operator&(
+    const TDirection lhs, const TDirection rhs
+)
+{
+    return Direction::TDirection {
+        uint8_t(to_underlying(lhs) & to_underlying(rhs))
+    };
+}
+
+constexpr TDirection operator!(const TDirection op) { 
+    return Direction::TDirection {
+        uint8_t((!to_underlying(op)) & 15)
+    };
+}
+
+
+constexpr TDirection operator>>(
+    const TDirection lhs, const int places
+)
+{
+    uint8_t bits { Direction::to_underlying(lhs) };
+    return Direction::TDirection((bits << places) & 15);
+}
+
+constexpr TDirection operator<<(
+    const TDirection lhs, const int places
+)
+{
+    uint8_t bits { Direction::to_underlying(lhs) };
+    return Direction::TDirection((bits >> places) & 15);
+}
+
+constexpr bool any(const TDirection d) { 
+    return to_underlying(d) & 15; 
+}
+
+TDirection reverse(const TDirection direction);
+bool is_junction(Direction::TDirection direction);
 uint8_t index_position(Direction::TDirection direction);
+bool opposed(Direction::TDirection direction);
+
 }; // namespace Direction
 
 #endif

@@ -2,12 +2,13 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <camera_component.h>
+#include <components/connectivity_component.h>
 #include <components/grid_position_component.h>
 #include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
-#include <components/navigation_component.h>
 #include <components/segment_component.h>
+#include <components/segment_member_component.h>
 #include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
@@ -28,6 +29,7 @@
 
 namespace {
 
+// TODO - get rid of debug mode
 bool transform_comparison(
     const Renderable& lhs, const Renderable& rhs, const bool debug_mode
 )
@@ -163,6 +165,9 @@ void render_imgui_ui(
     const Grid<entt::entity, TileMapProjection>& tilemap {
         registry.ctx().get<const Grid<entt::entity, TileMapProjection>>()
     };
+    const Grid<entt::entity, SpatialMapProjection>& spatial_map {
+        registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
+    };
     const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet>() };
     entt::entity selected_entity { registry.ctx().get<const SelectedEntityComponent>().entity };
 
@@ -170,6 +175,10 @@ void render_imgui_ui(
 
     const glm::ivec2 grid_position {
         TileMapProjection::world_to_grid(mouse.world_position, tilemap)
+    };
+
+    const glm::ivec2 spatial_map_position {
+        SpatialMapProjection::world_to_grid(mouse.world_position, spatial_map)
     };
 
     ImGui::SeparatorText("Mouse Position");
@@ -192,10 +201,22 @@ void render_imgui_ui(
         grid_position.y
     );
 
+    ImGui::Text(
+        "Spatial Map cell: (%d, %d)",
+        spatial_map_position.x,
+        spatial_map_position.y
+    );
+
+    ImGui::SeparatorText("Graph");
+    auto junctions_view { registry.view<JunctionComponent>() };
+    auto segments_view { registry.view<SegmentComponent>() };
+    ImGui::Text("Junctions: %d", static_cast<int>(junctions_view.size()));
+    ImGui::Text("Segments: %d", static_cast<int>(segments_view.size()));
+
     if (selected_entity != entt::null) {
         SpriteComponent& sprite { registry.get<SpriteComponent>(selected_entity) };
         const TransformComponent& transform { registry.get<const TransformComponent>(selected_entity) };
-        const NavigationComponent* navigation { registry.try_get<const NavigationComponent>(selected_entity) };
+        const SegmentMemberComponent* segment_membership { registry.try_get<const SegmentMemberComponent>(selected_entity) };
 
         ImGui::SeparatorText("Selected Entity");
 
@@ -217,10 +238,10 @@ void render_imgui_ui(
             sprite.sprite_definition->name.c_str()
         );
 
-        if (navigation) {
+        if (segment_membership) {
             ImGui::Text(
                 "Selected entity segment: %d",
-                static_cast<int>(navigation->segment_id)
+                static_cast<int>(segment_membership->segment)
             );
         }
 
@@ -229,9 +250,12 @@ void render_imgui_ui(
                 bool is_selected = (name == sprite.sprite_definition->name);
 
                 if (ImGui::Selectable(name.c_str(), is_selected)) {
+                    // TODO - move elsewhere
                     registry.replace<SpriteComponent>(selected_entity, &sprite_definition);
                     if (sprite_definition.directions != Direction::TDirection::NO_DIRECTION) {
-                        registry.emplace_or_replace<NavigationComponent>(selected_entity, sprite_definition.directions);
+                        registry.emplace_or_replace<ConnectivityComponent>(selected_entity, sprite_definition.directions);
+                    } else if (registry.all_of<ConnectivityComponent>(selected_entity)) {
+                        registry.emplace_or_replace<ConnectivityComponent>(selected_entity, Direction::TDirection::NO_DIRECTION);
                     }
                 }
 

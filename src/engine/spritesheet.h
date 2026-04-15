@@ -2,7 +2,7 @@
 #define SPRITESHEET_H
 
 #include <SDL2/SDL.h>
-#include <components/navigation_component.h>
+#include <components/connectivity_component.h>
 #include <components/sprite_component.h>
 #include <grid.h>
 #include <memory>

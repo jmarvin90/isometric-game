@@ -2,15 +2,16 @@
 #include <archive.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
+#include <components/connectivity_component.h>
 #include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
-#include <components/navigation_component.h>
 #include <components/segment_component.h>
-#include <components/segment_manager_component.h>
+#include <components/segment_member_component.h>
 #include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/spatialmapcell_span_component.h>
 #include <components/tilespec_component.h>
+#include <components/segment_component.h>
 #include <constants.h>
 #include <entt/entt.hpp>
 #include <game.h>
@@ -21,11 +22,10 @@
 #include <spritesheet.h>
 #include <string>
 #include <systems/camera_system.h>
+#include <systems/graph_system.h>
 #include <systems/mouse_system.h>
 #include <systems/render_system.h>
-#include <systems/segment_system.h>
 #include <systems/spatialmap_system.h>
-#include <systems/tilemap_system.h>
 #include <utility.h>
 
 Game::Game() { spdlog::info("Game constructor called."); }
@@ -82,26 +82,26 @@ void Game::initialise()
 
     load_from(registry, constants::SAVE_FILE_PATH);
 
-    registry.on_construct<NavigationComponent>().connect<&TileMapSystem::connect>();
-    registry.on_update<NavigationComponent>().connect<&TileMapSystem::connect>();
-
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_destroy<SpriteComponent>().connect<&SpatialMapSystem::remove_entity>();
-    registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
-    registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
     registry.on_update<TransformComponent>().connect<&SpatialMapSystem::update_entity>();
 
-    registry.on_construct<SegmentComponent>().connect<&SegmentSystem::connect>();
-    registry.on_destroy<SegmentComponent>().connect<&SegmentSystem::disconnect>();
+    registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
+    registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
+    registry.on_construct<SegmentComponent>().connect<&GraphSystem::emplace_segment>();
+    registry.on_destroy<SegmentComponent>().connect<&GraphSystem::remove_segment>();
+
+    registry.on_construct<ConnectivityComponent>().connect<GraphSystem::update>();
+    registry.on_update<ConnectivityComponent>().connect<GraphSystem::update>();
 
     [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(glm::ivec2 { 256, 128 }, 68) };
 
     registry.ctx().emplace<MouseComponent>();
 
     registry.ctx().emplace<std::vector<Renderable>>();
-    assert(tilemap.area == spatial_map.area);
-    registry.ctx().emplace<SegmentManagerComponent>();
     registry.ctx().emplace<CameraComponent>(display_mode);
+
+    assert(tilemap.area == spatial_map.area);
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -140,7 +140,6 @@ void Game::update([[maybe_unused]] const float delta_time)
 {
     MouseSystem::update(registry);
     CameraSystem::update(registry);
-    SegmentSystem::update(registry);
     RenderSystem::update(registry, debug_mode);
 }
 
@@ -201,28 +200,41 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
         .get<TransformComponent>(my_archive)
         .get<SpriteComponent>(my_archive)
         .get<GridPositionComponent>(my_archive)
-        .get<NavigationComponent>(my_archive)
-        .get<SegmentComponent>(my_archive)
-        .get<JunctionComponent>(my_archive)
         .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive)
         .orphans();
 
     my_archive.load_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
     my_archive.load_context_element("spatialmap", registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>());
+
+    // TODO: a temporary until the save file is fixed
+    for (auto [entity, sprite]: registry.view<SpriteComponent>().each()) {
+        registry.emplace_or_replace<ConnectivityComponent>(entity, sprite.sprite_definition->directions);
+    }
+
+    GraphSystem::update(registry, entt::null);
+
+    for (auto entity: registry.view<SegmentComponent>()) {
+        SpatialMapSystem::emplace_segment(registry, entity);
+        GraphSystem::emplace_segment(registry, entity);
+    }
 }
 
 void Game::save_to(entt::registry& registry, const std::string output_path)
 {
+    for (auto entity: registry.view<SegmentComponent>())
+        registry.destroy(entity);
+
+    registry.clear<ConnectivityComponent>();
+    registry.clear<JunctionComponent>();
+    registry.clear<SegmentMemberComponent>();
+
     OutputArchive my_archive;
     entt::basic_snapshot(registry)
         .get<entt::entity>(my_archive)
         .get<TransformComponent>(my_archive)
         .get<SpriteComponent>(my_archive)
         .get<GridPositionComponent>(my_archive)
-        .get<NavigationComponent>(my_archive)
-        .get<SegmentComponent>(my_archive)
-        .get<JunctionComponent>(my_archive)
         .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive);
 

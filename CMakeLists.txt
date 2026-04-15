@@ -10,7 +10,6 @@ include_directories(
     SYSTEM libs/imgui
     SYSTEM /usr/include/SDL2
     SYSTEM libs/json/include
-    SYSTEM libs/rapidjson/include/rapidjson
     src/engine
     src/engine/components
     src/engine/systems
@@ -46,10 +45,8 @@ add_executable(isometric-game
     src/engine/systems/render_system.cpp
     src/engine/systems/camera_system.cpp
     src/engine/systems/mouse_system.cpp
-    src/engine/systems/tilemap_system.cpp
-    src/engine/systems/tilemap_system.cpp
     src/engine/systems/spatialmap_system.cpp
-    src/engine/systems/segment_system.cpp
+    src/engine/systems/graph_system.cpp
     src/engine/archive.cpp
     src/engine/json_parse.cpp
 )
