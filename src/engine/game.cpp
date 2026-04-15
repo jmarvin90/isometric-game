@@ -99,8 +99,9 @@ void Game::initialise()
     registry.ctx().emplace<MouseComponent>();
 
     registry.ctx().emplace<std::vector<Renderable>>();
-    assert(tilemap.area == spatial_map.area);
     registry.ctx().emplace<CameraComponent>(display_mode);
+
+    assert(tilemap.area == spatial_map.area);
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
