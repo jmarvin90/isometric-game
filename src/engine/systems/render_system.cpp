@@ -165,6 +165,9 @@ void render_imgui_ui(
     const Grid<entt::entity, TileMapProjection>& tilemap {
         registry.ctx().get<const Grid<entt::entity, TileMapProjection>>()
     };
+    const Grid<entt::entity, SpatialMapProjection>& spatial_map {
+        registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
+    };
     const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet>() };
     entt::entity selected_entity { registry.ctx().get<const SelectedEntityComponent>().entity };
 
@@ -172,6 +175,10 @@ void render_imgui_ui(
 
     const glm::ivec2 grid_position {
         TileMapProjection::world_to_grid(mouse.world_position, tilemap)
+    };
+
+    const glm::ivec2 spatial_map_position {
+        SpatialMapProjection::world_to_grid(mouse.world_position, spatial_map)
     };
 
     ImGui::SeparatorText("Mouse Position");
@@ -192,6 +199,12 @@ void render_imgui_ui(
         "Mouse Grid position: (%d, %d)",
         grid_position.x,
         grid_position.y
+    );
+
+    ImGui::Text(
+        "Spatial Map cell: (%d, %d)",
+        spatial_map_position.x,
+        spatial_map_position.y
     );
 
     ImGui::SeparatorText("Graph");
