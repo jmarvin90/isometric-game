@@ -15,28 +15,6 @@
 #include <vector>
 
 namespace {
-// TODO - potentially a component member function;
-// TODO - be aware of pointer invalidation; perhaps return the entity ID instead
-SpatialMapCellComponent* get_or_create_cell(entt::registry& registry, const glm::ivec2 grid_position)
-{
-    Grid<entt::entity, SpatialMapProjection>& spatial_map { registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>() };
-    entt::entity cell { spatial_map[grid_position] };
-
-    // TODO: Shouldn't happen;
-    // will happen if called on result of spanned_cells which overlaps map edge
-    if (cell == entt::null)
-        return nullptr;
-
-    SpatialMapCellComponent* output { registry.try_get<SpatialMapCellComponent>(cell) };
-
-    if (output)
-        return output;
-
-    glm::ivec2 world_position { SpatialMapProjection::grid_to_world(grid_position, spatial_map) };
-
-    return &registry.emplace<SpatialMapCellComponent>(cell);
-}
-
 /*
     TODO: I need to come back to this because it doesn't consider any offsets for e.g.
     the centre of a tile
@@ -70,7 +48,9 @@ std::vector<SpatialMapCellComponent*> intersected_segments(
     std::vector<SpatialMapCellComponent*> output;
 
     while (true) {
-        output.push_back(get_or_create_cell(registry, chunk));
+        output.push_back(
+            &registry.get_or_emplace<SpatialMapCellComponent>(spatial_map[chunk])
+        );
 
         if (chunk == chunk_end)
             break;
@@ -121,27 +101,44 @@ void update_entity(entt::registry& registry, entt::entity entity)
 
 void emplace_entity(entt::registry& registry, entt::entity entity)
 {
+    const Grid<entt::entity, SpatialMapProjection>& spatial_map {
+        registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
+    };
+    
     const SpatialMapCellSpanComponent& cell_span {
         registry.emplace<SpatialMapCellSpanComponent>(entity, spanned_cells(registry, entity))
     };
+
     for (int x = cell_span.AA.x; x <= cell_span.BB.x; x++) {
         for (int y = cell_span.AA.y; y <= cell_span.BB.y; y++) {
-            SpatialMapCellComponent* cell { get_or_create_cell(registry, { x, y }) };
-            if (!cell)
-                continue;
-            cell->entities.emplace_back(entity);
+            SpatialMapCellComponent& cell { 
+                registry.get_or_emplace<SpatialMapCellComponent>(spatial_map[{x, y}])
+            };
+            cell.entities.emplace_back(entity);
         }
     }
 }
 
 void remove_entity(entt::registry& registry, entt::entity entity)
 {
-    SpatialMapCellSpanComponent& cell_span { registry.get<SpatialMapCellSpanComponent>(entity) };
+    const Grid<entt::entity, SpatialMapProjection>& spatial_map {
+        registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
+    };
+    
+    const SpatialMapCellSpanComponent& cell_span { 
+        registry.get<const SpatialMapCellSpanComponent>(entity) 
+    };
+
     for (int x = cell_span.AA.x; x <= cell_span.BB.x; x++) {
         for (int y = cell_span.AA.y; y <= cell_span.BB.y; y++) {
-            SpatialMapCellComponent* cell { get_or_create_cell(registry, { x, y }) };
+
+            SpatialMapCellComponent* cell {
+                registry.try_get<SpatialMapCellComponent>(spatial_map[{x, y}])
+            };
+
             if (!cell)
                 continue;
+
             std::remove_if(
                 cell->entities.begin(),
                 cell->entities.end(),
