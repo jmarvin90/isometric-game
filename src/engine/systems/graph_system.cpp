@@ -16,7 +16,7 @@
 namespace {
 bool reciprocate(
     const entt::registry& registry,
-    entt::entity lhs, 
+    entt::entity lhs,
     entt::entity rhs,
     Direction::TDirection direction
 )
@@ -34,7 +34,7 @@ bool reciprocate(
 }
 
 Direction::TDirection resolved_directions(
-    entt::registry& registry, 
+    entt::registry& registry,
     Direction::TDirection unresolved_directions,
     glm::ivec2 grid_position
 )
@@ -42,16 +42,11 @@ Direction::TDirection resolved_directions(
     const Grid<entt::entity, TileMapProjection>& tilemap {
         registry.ctx().get<const Grid<entt::entity, TileMapProjection>>()
     };
-        
+
     Direction::TDirection resolved_directions { Direction::TDirection::NO_DIRECTION };
 
     for (
-        auto remaining { Direction::to_underlying(unresolved_directions)};
-        remaining;
-    ) {
-        auto dir { remaining & -remaining };
-        remaining ^= dir;
-        auto direction { Direction::TDirection(dir) };
+        auto direction : Direction::EachDirectionIn { unresolved_directions }) {
         glm::ivec2 step { Direction::direction_vectors[direction] };
         entt::entity next { tilemap[grid_position + step] };
         if (next != entt::null && reciprocate(registry, tilemap[grid_position], next, direction))
@@ -64,13 +59,13 @@ void identify_junctions(entt::registry& registry)
 {
     auto connectivity_view { registry.view<ConnectivityComponent, GridPositionComponent>() };
 
-    for (auto [entity, connectivity, grid_position]: connectivity_view.each()) {
+    for (auto [entity, connectivity, grid_position] : connectivity_view.each()) {
         bool junction_in_theory { connectivity.is_junction };
 
         auto resolved { resolved_directions(registry, connectivity.directions, grid_position.position) };
         bool junction_in_practice { Direction::is_junction(resolved) };
-        
-        if (junction_in_theory || junction_in_practice ) {
+
+        if (junction_in_theory || junction_in_practice) {
             registry.emplace<JunctionComponent>(entity);
         }
     }
@@ -78,9 +73,10 @@ void identify_junctions(entt::registry& registry)
 
 std::vector<entt::entity> get_segment_from(
     const entt::registry& registry,
-    entt::entity tile, 
+    entt::entity tile,
     Direction::TDirection direction
-) {
+)
+{
     const Grid<entt::entity, TileMapProjection>& tilemap {
         registry.ctx().get<const Grid<entt::entity, TileMapProjection>>()
     };
@@ -119,12 +115,7 @@ void junction_populate(
 )
 {
     for (
-        auto remaining { Direction::to_underlying(connectivity.directions)};
-        remaining;
-    ) {
-        auto dir { remaining & -remaining };
-        remaining ^= dir;
-        auto direction { Direction::TDirection(dir) };
+        auto direction : Direction::EachDirectionIn { connectivity.directions }) {
 
         // If the segment has already been created from another junction
         if (
@@ -141,11 +132,11 @@ void junction_populate(
 
         entt::entity segment_entity { registry.create() };
 
-        SegmentComponent& segment_component { 
+        SegmentComponent& segment_component {
             registry.emplace<SegmentComponent>(segment_entity, segment, direction)
         };
 
-        JunctionComponent& origin { 
+        JunctionComponent& origin {
             registry.get<JunctionComponent>(segment_component.origin)
         };
 
@@ -158,25 +149,27 @@ void junction_populate(
     }
 }
 
-void graph_release(entt::registry& registry) {
+void graph_release(entt::registry& registry)
+{
     // Delete all the segments
     auto segments { registry.view<SegmentComponent>() };
 
     // TODO - investigate why commented alternative segfaults
-    for (auto entity: segments)
+    for (auto entity : segments)
         registry.destroy(entity);
-        // registry.destroy(segments.begin(), segments.end());
+    // registry.destroy(segments.begin(), segments.end());
 
     // Delete all segment memberships & junctions
     registry.clear<SegmentMemberComponent>();
     registry.clear<JunctionComponent>();
 }
 
-void graph_compute(entt::registry& registry) {
-    auto junctions_view { 
-        registry.view<JunctionComponent, ConnectivityComponent>() 
+void graph_compute(entt::registry& registry)
+{
+    auto junctions_view {
+        registry.view<JunctionComponent, ConnectivityComponent>()
     };
-    for (auto [entity, junction, connectivity]: junctions_view.each()) {
+    for (auto [entity, junction, connectivity] : junctions_view.each()) {
         junction_populate(registry, entity, connectivity, junction);
     }
 }
@@ -193,7 +186,7 @@ void update(entt::registry& registry, [[maybe_unused]] entt::entity entity)
 void emplace_segment(entt::registry& registry, entt::entity entity)
 {
     const SegmentComponent& segment { registry.get<const SegmentComponent>(entity) };
-    for (auto member: segment.entities) {
+    for (auto member : segment.entities) {
         registry.emplace_or_replace<SegmentMemberComponent>(member, entity);
     }
 }
@@ -201,7 +194,7 @@ void emplace_segment(entt::registry& registry, entt::entity entity)
 void remove_segment(entt::registry& registry, entt::entity entity)
 {
     const SegmentComponent& segment { registry.get<const SegmentComponent>(entity) };
-    for (auto member: segment.entities) {
+    for (auto member : segment.entities) {
         registry.remove<SegmentMemberComponent>(member);
     }
 }
