@@ -36,9 +36,27 @@ inline std::unordered_map<glm::ivec2, TDirection> vector_directions { {
     { { -1, 0 }, TDirection::WEST },
 } };
 
+struct DirectionIterator {
+    Direction::TDirection remaining_directions;
+    Direction::TDirection current_direction;
+    DirectionIterator(Direction::TDirection directions);
+    Direction::TDirection operator*() const;
+    DirectionIterator& operator++();
+    DirectionIterator operator++(int);
+    bool operator==(const DirectionIterator& comparator) const;
+    bool operator!=(const DirectionIterator& comparator) const;
+};
+
+struct EachDirectionIn {
+    Direction::TDirection directions;
+    DirectionIterator begin() const;
+    DirectionIterator end() const;
+};
+
 template <typename T>
-constexpr uint8_t to_underlying(T t) { 
-    return static_cast<std::underlying_type_t<T>>(t); 
+constexpr uint8_t to_underlying(T t)
+{
+    return static_cast<std::underlying_type_t<T>>(t);
 }
 
 template <typename T>
@@ -56,13 +74,20 @@ TDirection from_vector(const T& vector)
     return Direction::vector_directions[to_direction_vector<T>(vector)];
 }
 
+constexpr TDirection operator-(const TDirection op)
+{
+    return Direction::TDirection {
+        uint8_t((-to_underlying(op)) & 15)
+    };
+}
+
 constexpr TDirection operator|(
     const TDirection lhs, const TDirection rhs
 )
 {
     return static_cast<Direction::TDirection>(
         to_underlying(lhs) | to_underlying(rhs)
-    ); 
+    );
 }
 
 constexpr TDirection operator&(
@@ -74,12 +99,12 @@ constexpr TDirection operator&(
     };
 }
 
-constexpr TDirection operator!(const TDirection op) { 
+constexpr TDirection operator!(const TDirection op)
+{
     return Direction::TDirection {
         uint8_t((!to_underlying(op)) & 15)
     };
 }
-
 
 constexpr TDirection operator>>(
     const TDirection lhs, const int places
@@ -97,8 +122,9 @@ constexpr TDirection operator<<(
     return Direction::TDirection((bits >> places) & 15);
 }
 
-constexpr bool any(const TDirection d) { 
-    return to_underlying(d) & 15; 
+constexpr bool any(const TDirection d)
+{
+    return to_underlying(d) & 15;
 }
 
 TDirection reverse(const TDirection direction);

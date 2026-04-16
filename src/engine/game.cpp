@@ -11,7 +11,6 @@
 #include <components/spatialmapcell_component.h>
 #include <components/spatialmapcell_span_component.h>
 #include <components/tilespec_component.h>
-#include <components/segment_component.h>
 #include <constants.h>
 #include <entt/entt.hpp>
 #include <game.h>
@@ -28,7 +27,10 @@
 #include <systems/spatialmap_system.h>
 #include <utility.h>
 
-Game::Game() { spdlog::info("Game constructor called."); }
+Game::Game()
+{
+    spdlog::info("Game constructor called.");
+}
 
 Game::~Game() { spdlog::info("Game destructor called."); }
 
@@ -208,13 +210,13 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
     my_archive.load_context_element("spatialmap", registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>());
 
     // TODO: a temporary until the save file is fixed
-    for (auto [entity, sprite]: registry.view<SpriteComponent>().each()) {
+    for (auto [entity, sprite] : registry.view<SpriteComponent>().each()) {
         registry.emplace_or_replace<ConnectivityComponent>(entity, sprite.sprite_definition->directions);
     }
 
     GraphSystem::update(registry, entt::null);
 
-    for (auto entity: registry.view<SegmentComponent>()) {
+    for (auto entity : registry.view<SegmentComponent>()) {
         SpatialMapSystem::emplace_segment(registry, entity);
         GraphSystem::emplace_segment(registry, entity);
     }
@@ -222,7 +224,7 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
 
 void Game::save_to(entt::registry& registry, const std::string output_path)
 {
-    for (auto entity: registry.view<SegmentComponent>())
+    for (auto entity : registry.view<SegmentComponent>())
         registry.destroy(entity);
 
     registry.clear<ConnectivityComponent>();
