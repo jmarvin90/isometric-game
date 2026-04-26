@@ -186,7 +186,8 @@
         "anchor": {
             "x": 28,
             "y": 66
-        }
+        },
+        "directions": 12
     },
     {
         "name": "vehicle_e",
@@ -200,7 +201,8 @@
         "anchor": {
             "x": 54,
             "y": 68
-        }
+        },
+        "directions": 8
     },
     {
         "name": "vehicle_ne",
@@ -214,7 +216,8 @@
         "anchor": {
             "x": 49,
             "y": 57
-        }
+        },
+        "directions": 9
     },
     {
         "name": "vehicle_n",
@@ -228,7 +231,8 @@
         "anchor": {
             "x": 54,
             "y": 68
-        }
+        },
+        "directions": 1
     },
     {
         "name": "vehicle_nw",
@@ -242,7 +246,8 @@
         "anchor": {
             "x": 28,
             "y": 66
-        }
+        },
+        "directions": 3
     },
     {
         "name": "vehicle_w",
@@ -256,7 +261,8 @@
         "anchor": {
             "x": 54,
             "y": 68
-        }
+        },
+        "directions": 2
     },
     {
         "name": "vehicle_sw",
@@ -270,7 +276,8 @@
         "anchor": {
             "x": 49,
             "y": 57
-        }
+        },
+        "directions": 6
     },
     {
         "name": "vehicle_s",
@@ -284,7 +291,8 @@
         "anchor": {
             "x": 54,
             "y": 68
-        }
+        },
+        "directions": 4
     },
     {
         "name": "walker_se",
@@ -298,7 +306,8 @@
         "anchor": {
             "x": 11,
             "y": 63
-        }
+        },
+        "directions": 12
     },
     {
         "name": "walker_e",
@@ -312,7 +321,8 @@
         "anchor": {
             "x": 16,
             "y": 63
-        }
+        },
+        "directions": 8
     },
     {
         "name": "walker_ne",
@@ -326,7 +336,8 @@
         "anchor": {
             "x": 11,
             "y": 63
-        }
+        },
+        "directions": 9
     },
     {
         "name": "walker_n",
@@ -340,7 +351,8 @@
         "anchor": {
             "x": 16,
             "y": 63
-        }
+        },
+        "directions": 1
     },
     {
         "name": "walker_nw",
@@ -354,7 +366,8 @@
         "anchor": {
             "x": 11,
             "y": 63
-        }
+        },
+        "directions": 3
     },
     {
         "name": "walker_w",
@@ -368,7 +381,8 @@
         "anchor": {
             "x": 16,
             "y": 63
-        }
+        },
+        "directions": 2
     },
     {
         "name": "walker_sw",
@@ -382,7 +396,8 @@
         "anchor": {
             "x": 11,
             "y": 63
-        }
+        },
+        "directions": 6
     },
     {
         "name": "walker_s",
@@ -396,6 +411,7 @@
         "anchor": {
             "x": 16,
             "y": 63
-        }
+        },
+        "directions": 4
     }
 ]
