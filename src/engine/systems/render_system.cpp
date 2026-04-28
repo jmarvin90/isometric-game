@@ -12,7 +12,6 @@
 #include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
-#include <components/tilespec_component.h>
 #include <components/transform_component.h>
 #include <constants.h>
 #include <entt/entt.hpp>
@@ -23,7 +22,7 @@
 #include <projection.h>
 #include <spritesheet.h>
 #include <systems/render_system.h>
-#include <tilespec_component.h>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -265,30 +264,81 @@ void render_imgui_ui(
             }
             ImGui::EndCombo();
         }
+
+        if (sprite.sprite_definition->sprite_type == Utility::SpriteType::TILE) {
+            static std::string selected { "walker_w" };
+            ImGui::SeparatorText("Walker Spawn");
+            if (ImGui::BeginCombo("Spawn Sprite", selected.c_str())) {
+                for (const auto& [name, sprite_definition] : spritesheet.sprites) {
+                    if (sprite_definition.sprite_type == Utility::SpriteType::TILE)
+                        continue;
+
+                    if (ImGui::Selectable(name.c_str(), selected == name)) {
+                        selected = name;
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            if (ImGui::Button("Spawn")) {
+                entt::entity new_sprite { registry.create() };
+                registry.emplace<TransformComponent>(new_sprite, glm::ivec2 {}, 1, 0.0);
+                registry.emplace<SpriteComponent>(new_sprite, &spritesheet.sprites.at(selected));
+                Utility::align_sprite_to(
+                    registry,
+                    new_sprite,
+                    Utility::SpriteAnchor::SPRITE_ANCHOR,
+                    registry.get<const TransformComponent>(selected_entity).position
+                );
+            }
+        }
     }
 
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
 }
 
-void render_segments(const entt::registry& registry, [[maybe_unused]] SDL_Renderer* renderer)
+void render_segments(
+    [[maybe_unused]] const entt::registry& registry,
+    [[maybe_unused]] SDL_Renderer* renderer
+)
 {
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    const TileSpecComponent& tilespec { registry.ctx().get<const TileSpecComponent>() };
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    auto segments { registry.view<SegmentComponent>() };
+    [[maybe_unused]] const auto* road_gates { &constants::ROAD_GATES };
 
-    for (auto [entity, segment] : registry.view<const SegmentComponent>().each()) {
-        [[maybe_unused]] const TransformComponent& start { registry.get<const TransformComponent>(segment.origin) };
-        [[maybe_unused]] const TransformComponent& end { registry.get<const TransformComponent>(segment.termination) };
-        glm::ivec2 start_screen { Position::world_to_screen(glm::ivec2 { start.position }, camera.position) + tilespec.centre };
-        glm::ivec2 end_screen { Position::world_to_screen(glm::ivec2 { end.position }, camera.position) + tilespec.centre };
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        SDL_RenderDrawLine(
-            renderer,
-            start_screen.x,
-            start_screen.y,
-            end_screen.x,
-            end_screen.y
-        );
+    for (auto [entity, segment] : segments.each()) {
+        for (
+            auto [origin, termination, direction] //
+            : std::array<std::tuple<entt::entity, entt::entity, Direction::TDirection>, 2> {
+                std::tuple { segment.origin, segment.termination, segment.direction },
+                std::tuple { segment.termination, segment.origin, Direction::reverse(segment.direction) } //
+            } //
+        ) {
+            glm::ivec2 origin_position {
+                Position::world_to_screen(
+                    glm::ivec2 { registry.get<const TransformComponent>(origin).position }
+                        + constants::ROAD_GATES[Direction::index_position(direction)].exit,
+                    camera.position
+                )
+            };
+
+            glm::ivec2 termination_position {
+                Position::world_to_screen(
+                    glm::ivec2 { registry.get<const TransformComponent>(termination).position }
+                        + constants::ROAD_GATES[Direction::index_position(Direction::reverse(direction))].entry,
+                    camera.position
+                )
+            };
+
+            SDL_RenderDrawLine(
+                renderer,
+                origin_position.x,
+                origin_position.y,
+                termination_position.x,
+                termination_position.y
+            );
+        }
     }
 }
 }

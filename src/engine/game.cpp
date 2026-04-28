@@ -10,7 +10,6 @@
 #include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/spatialmapcell_span_component.h>
-#include <components/tilespec_component.h>
 #include <constants.h>
 #include <entt/entt.hpp>
 #include <game.h>
@@ -95,8 +94,6 @@ void Game::initialise()
 
     registry.on_construct<ConnectivityComponent>().connect<GraphSystem::update>();
     registry.on_update<ConnectivityComponent>().connect<GraphSystem::update>();
-
-    [[maybe_unused]] const TileSpecComponent& tilespec { registry.ctx().emplace<TileSpecComponent>(glm::ivec2 { 256, 128 }, 68) };
 
     registry.ctx().emplace<MouseComponent>();
 

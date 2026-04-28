@@ -22,6 +22,7 @@ std::vector<bool> get_mask(const SDL_Surface* texture, const SDL_Rect rect);
 struct SpriteDefinition {
     std::string name;
     SDL_Rect source_rect;
+    Utility::SpriteType sprite_type;
     glm::ivec2 anchor;
     Direction::TDirection directions;
     Grid<bool, SpriteMaskProjection> spritemask;

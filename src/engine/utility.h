@@ -27,6 +27,12 @@ struct SDLDestroyer {
     }
 };
 
+enum class SpriteType {
+    TILE = 0,
+    BUILDING = 1,
+    WALKER = 2
+};
+
 enum class SpriteAnchor {
     SPRITE_ANCHOR = 1,
     ORIGIN = 2

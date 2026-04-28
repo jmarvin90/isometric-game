@@ -16,11 +16,14 @@
 
 // TODO - investigate entt enum bitmask
 namespace Direction {
-enum class TDirection : uint8_t { NO_DIRECTION = 0,
-                                  NORTH = 1 << 0,
-                                  WEST = 1 << 1,
-                                  SOUTH = 1 << 2,
-                                  EAST = 1 << 3 };
+enum class TDirection : uint8_t {
+    NO_DIRECTION = 0, //
+    NORTH = 1 << 0, //
+    WEST = 1 << 1, //
+    SOUTH = 1 << 2, //
+    EAST = 1 << 3, //
+    ALL_DIRECTIONS = 15
+};
 
 inline std::unordered_map<TDirection, glm::ivec2> direction_vectors {
     { TDirection::NORTH, { 0, -1 } },

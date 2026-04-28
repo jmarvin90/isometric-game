@@ -81,6 +81,7 @@ void set_outline_texture(SDL_Texture* texture, SDL_Surface* surface)
 SpriteDefinition::SpriteDefinition(nlohmann::json input, SDL_Surface* surface)
     : name { input["name"].get<std::string>() }
     , source_rect { input["source_rect"].get<SDL_Rect>() }
+    , sprite_type { input["type"].get<Utility::SpriteType>() }
     , anchor { input["anchor"].get<glm::ivec2>() }
     , directions {
         input.contains("directions")
