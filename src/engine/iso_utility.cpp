@@ -13,17 +13,17 @@ void align_sprite_to(
     entt::entity entity,
     [[maybe_unused]] TransformComponent& transform,
     const SpriteComponent& sprite,
-    ISOUtility::SpriteAnchor alignment_anchor,
+    SpriteAnchor alignment_anchor,
     glm::ivec2 world_position
 )
 {
     glm::vec2 new_position {};
 
-    if (alignment_anchor == ISOUtility::SpriteAnchor::ORIGIN) {
+    if (alignment_anchor == SpriteAnchor::ORIGIN) {
         new_position = world_position;
     }
 
-    if (alignment_anchor == ISOUtility::SpriteAnchor::SPRITE_ANCHOR) {
+    if (alignment_anchor == SpriteAnchor::SPRITE_ANCHOR) {
         new_position = world_position - sprite.sprite_definition->anchor;
     }
 

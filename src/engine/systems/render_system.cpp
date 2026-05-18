@@ -268,12 +268,12 @@ void render_imgui_ui(
             ImGui::EndCombo();
         }
 
-        if (sprite.sprite_definition->sprite_type == ISOUtility::SpriteType::TILE) {
+        if (sprite.sprite_definition->sprite_type == SpriteType::TILE) {
             static std::string selected { "walker_w" };
             ImGui::SeparatorText("Walker Spawn");
             if (ImGui::BeginCombo("Spawn Sprite", selected.c_str())) {
                 for (const auto& [name, sprite_definition] : spritesheet.sprites) {
-                    if (sprite_definition.sprite_type == ISOUtility::SpriteType::TILE)
+                    if (sprite_definition.sprite_type == SpriteType::TILE)
                         continue;
 
                     if (ImGui::Selectable(name.c_str(), selected == name)) {
@@ -301,7 +301,7 @@ void render_imgui_ui(
                     new_sprite,
                     transform,
                     sprite,
-                    ISOUtility::SpriteAnchor::SPRITE_ANCHOR,
+                    SpriteAnchor::SPRITE_ANCHOR,
                     registry.get<const TransformComponent>(selected_entity).position
                 );
             }
