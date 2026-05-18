@@ -5,8 +5,10 @@
 #include <components/camera_component.h>
 #include <components/mouse_component.h>
 #include <components/transform_component.h>
+#include <sprite.h>
 #include <entt/entt.hpp>
 #include <spritesheet.h>
+#include <glm/glm.hpp>
 
 struct Renderable {
     const TransformComponent* transform;

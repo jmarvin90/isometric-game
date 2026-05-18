@@ -11,8 +11,11 @@
 #include <grid.h>
 #include <position.h>
 #include <projection.h>
+#include <sprite.h>
+#include <spritesheet.h>
 #include <systems/spatialmap_system.h>
 #include <vector>
+#include <glm/glm.hpp>
 
 namespace {
 
@@ -66,15 +69,20 @@ std::vector<entt::entity> intersected_segments(
     return output;
 }
 
-SpatialMapCellSpanComponent spanned_cells(entt::registry& registry, entt::entity entity)
+SpatialMapCellSpanComponent spanned_cells(
+    const TransformComponent& transform,
+    const SpriteComponent& sprite,
+    const Grid<entt::entity, SpatialMapProjection>& spatial_map
+)
 {
     // TODO: will return invalid cells if an entity spans the edge of the map
-    const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
-    const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
-    const Grid<entt::entity, SpatialMapProjection>& spatial_map { registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>() };
-
     glm::ivec2 AA { transform.position };
-    glm::ivec2 BB { AA + glm::ivec2 { sprite.sprite_definition->source_rect.w, sprite.sprite_definition->source_rect.h } };
+    glm::ivec2 BB {
+        AA
+        + glm::ivec2 {
+            sprite.sprite_definition->source_rect.w,
+            sprite.sprite_definition->source_rect.h }
+    };
 
     return {
         SpatialMapProjection::world_to_grid(AA, spatial_map),
@@ -88,8 +96,17 @@ namespace SpatialMapSystem {
 
 void update_entity(entt::registry& registry, entt::entity entity)
 {
-    SpatialMapCellSpanComponent& current_span { registry.get<SpatialMapCellSpanComponent>(entity) };
-    const SpatialMapCellSpanComponent new_span { spanned_cells(registry, entity) };
+    SpatialMapCellSpanComponent& current_span {
+        registry.get<SpatialMapCellSpanComponent>(entity)
+    };
+
+    const SpatialMapCellSpanComponent new_span {
+        spanned_cells(
+            registry.get<const TransformComponent>(entity),
+            registry.get<const SpriteComponent>(entity),
+            registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
+        )
+    };
 
     if (current_span != new_span) {
         remove_entity(registry, entity);
@@ -105,8 +122,10 @@ void emplace_entity(entt::registry& registry, entt::entity entity)
     };
 
     const SpatialMapCellSpanComponent& cell_span {
-        registry.emplace_or_replace<SpatialMapCellSpanComponent>(
-            entity, spanned_cells(registry, entity)
+        spanned_cells(
+            registry.get<const TransformComponent>(entity),
+            registry.get<const SpriteComponent>(entity),
+            registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
         )
     };
 

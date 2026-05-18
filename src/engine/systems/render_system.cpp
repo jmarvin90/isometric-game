@@ -15,15 +15,18 @@
 #include <components/transform_component.h>
 #include <constants.h>
 #include <entt/entt.hpp>
+#include <directions.h>
+#include <string>
 #include <grid.h>
 #include <imgui.h>
+#include <iso_utility.h>
 #include <pathfinding.h>
 #include <position.h>
 #include <projection.h>
+#include <sprite.h>
 #include <spritesheet.h>
 #include <systems/render_system.h>
 #include <tuple>
-#include <utility>
 #include <vector>
 
 namespace {
@@ -265,12 +268,12 @@ void render_imgui_ui(
             ImGui::EndCombo();
         }
 
-        if (sprite.sprite_definition->sprite_type == Utility::SpriteType::TILE) {
+        if (sprite.sprite_definition->sprite_type == SpriteType::TILE) {
             static std::string selected { "walker_w" };
             ImGui::SeparatorText("Walker Spawn");
             if (ImGui::BeginCombo("Spawn Sprite", selected.c_str())) {
                 for (const auto& [name, sprite_definition] : spritesheet.sprites) {
-                    if (sprite_definition.sprite_type == Utility::SpriteType::TILE)
+                    if (sprite_definition.sprite_type == SpriteType::TILE)
                         continue;
 
                     if (ImGui::Selectable(name.c_str(), selected == name)) {
@@ -281,12 +284,24 @@ void render_imgui_ui(
             }
             if (ImGui::Button("Spawn")) {
                 entt::entity new_sprite { registry.create() };
-                registry.emplace<TransformComponent>(new_sprite, glm::ivec2 {}, 1, 0.0);
-                registry.emplace<SpriteComponent>(new_sprite, &spritesheet.sprites.at(selected));
-                Utility::align_sprite_to(
+                TransformComponent& transform {
+                    registry.emplace<TransformComponent>(
+                        new_sprite, glm::ivec2 {}, 1, 0.0
+                    )
+                };
+
+                const SpriteComponent& sprite {
+                    registry.emplace<SpriteComponent>(
+                        new_sprite, &spritesheet.sprites.at(selected)
+                    )
+                };
+
+                ISOUtility::align_sprite_to(
                     registry,
                     new_sprite,
-                    Utility::SpriteAnchor::SPRITE_ANCHOR,
+                    transform,
+                    sprite,
+                    SpriteAnchor::SPRITE_ANCHOR,
                     registry.get<const TransformComponent>(selected_entity).position
                 );
             }

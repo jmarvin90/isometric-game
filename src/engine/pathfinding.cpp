@@ -4,6 +4,7 @@
 #include <components/junction_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/transform_component.h>
+#include <components/segment_component.h>
 #include <glm/glm.hpp>
 #include <grid.h>
 #include <pathfinding.h>
@@ -11,6 +12,7 @@
 #include <queue>
 #include <unordered_map>
 #include <vector>
+#include <entt/entt.hpp>
 
 namespace {
 

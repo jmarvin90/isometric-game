@@ -1,3 +1,4 @@
+#include <camera_component.h>
 #include <components/grid_position_component.h>
 #include <components/highlighted_entity_component.h>
 #include <components/render_offset_component.h>
@@ -5,14 +6,20 @@
 #include <components/spatialmapcell_component.h>
 #include <entt/entt.hpp>
 #include <grid.h>
+#include <iso_utility.h>
+#include <mouse_component.h>
 #include <position.h>
 #include <projection.h>
+#include <sprite.h>
 #include <sprite_component.h>
+#include <spritesheet.h>
 #include <systems/mouse_system.h>
-#include <utility.h>
+#include <transform_component.h>
 
 namespace {
-entt::entity get_hovered_entity(const entt::registry& registry, const MouseComponent& mouse)
+entt::entity get_hovered_entity(
+    const entt::registry& registry, const MouseComponent& mouse
+)
 {
     entt::entity spatialmap_cell_entity {
         registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>().at_world(mouse.world_position)
@@ -30,13 +37,22 @@ entt::entity get_hovered_entity(const entt::registry& registry, const MouseCompo
     int best_y { -1 };
 
     for (entt::entity entity : spatialmap_cell->entities) {
-        if (!Utility::AABB(registry, entity, mouse.world_position))
+        const TransformComponent& transform {
+            registry.get<const TransformComponent>(entity)
+        };
+
+        const SpriteComponent& sprite {
+            registry.get<const SpriteComponent>(entity)
+        };
+
+        if (!ISOUtility::AABB(transform, sprite, mouse.world_position))
             continue;
 
-        const TransformComponent& transform { registry.get<const TransformComponent>(entity) };
-        const SpriteComponent& sprite { registry.get<const SpriteComponent>(entity) };
-
-        if (!sprite.sprite_definition->spritemask.at_world(mouse.world_position, transform.position))
+        if (
+            !sprite.sprite_definition->spritemask.at_world(
+                mouse.world_position, transform.position
+            )
+        )
             continue;
 
         if (

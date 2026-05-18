@@ -2,9 +2,7 @@
 #define ARCHIVE_H
 
 #include <SDL2/SDL.h>
-#include <algorithm>
 #include <entt/entt.hpp>
-#include <fstream>
 #include <glm/glm.hpp>
 #include <json_parse.h>
 #include <nlohmann/json.hpp>
@@ -12,9 +10,10 @@
 #include <queue>
 #include <spritesheet.h>
 #include <string>
-#include <utility>
-
 #include <spdlog/spdlog.h>
+#include <type_traits>
+
+#include <components/sprite_component.h>
 
 /*
     entt snapshots will call functions to provide/request:

@@ -1,4 +1,3 @@
-#include <SDL2/SDL_image.h>
 #include <archive.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
@@ -8,15 +7,22 @@
 #include <components/segment_component.h>
 #include <components/segment_member_component.h>
 #include <components/selected_entity_component.h>
+#include <components/transform_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/spatialmapcell_span_component.h>
+#include <components/camera_component.h>
+#include <components/mouse_component.h>
+#include <components/sprite_component.h>
 #include <constants.h>
 #include <entt/entt.hpp>
 #include <game.h>
 #include <grid.h>
 #include <imgui.h>
+#include <iso_utility.h>
+#include <memory>
 #include <projection.h>
 #include <spdlog/spdlog.h>
+#include <sprite.h>
 #include <spritesheet.h>
 #include <string>
 #include <systems/camera_system.h>
@@ -24,7 +30,6 @@
 #include <systems/mouse_system.h>
 #include <systems/render_system.h>
 #include <systems/spatialmap_system.h>
-#include <utility.h>
 
 Game::Game()
 {
@@ -40,7 +45,7 @@ void Game::initialise()
     SDL_GetDesktopDisplayMode(0, &display_mode);
 
     // Create the SDL Window
-    window = std::unique_ptr<SDL_Window, Utility::SDLDestroyer>(
+    window = std::unique_ptr<SDL_Window, ISOUtility::SDLDestroyer>(
         SDL_CreateWindow(
             NULL, // title - leave blank for now
             SDL_WINDOWPOS_CENTERED, // Window xconstant position (centred)
@@ -67,7 +72,7 @@ void Game::initialise()
 
     // TODO: move this somewhere smart under some smart condition
     // Needs to happen before spritesheet
-    renderer = std::unique_ptr<SDL_Renderer, Utility::SDLDestroyer>(
+    renderer = std::unique_ptr<SDL_Renderer, ISOUtility::SDLDestroyer>(
         SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)
     );
 

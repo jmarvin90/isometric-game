@@ -8,7 +8,7 @@
 #include <nlohmann/json.hpp>
 #include <projection.h>
 #include <spdlog/spdlog.h>
-#include <sstream>
+#include <sprite.h>
 #include <string>
 
 void OutputArchive::commit_pool()
