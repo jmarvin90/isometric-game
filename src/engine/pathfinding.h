@@ -4,6 +4,7 @@
 #include <components/segment_component.h>
 #include <directions.h>
 #include <entt/entt.hpp>
+#include <vector>
 
 namespace Pathfinding {
 

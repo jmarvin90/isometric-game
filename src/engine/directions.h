@@ -1,10 +1,9 @@
 #ifndef DIRECTIONS_H
 #define DIRECTIONS_H
-
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
 
-#include <array>
+#include <type_traits>
+#include <glm/gtx/hash.hpp>
 #include <glm/glm.hpp>
 #include <unordered_map>
 

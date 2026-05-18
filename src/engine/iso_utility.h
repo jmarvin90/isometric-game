@@ -1,12 +1,15 @@
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef ISOUTILITY_H
+#define ISOUTILITY_H
 
 #include <SDL2/SDL.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <nlohmann/json.hpp>
 
-namespace Utility {
+#include <components/sprite_component.h>
+#include <components/transform_component.h>
+
+namespace ISOUtility {
 
 struct SDLDestroyer {
     void operator()(SDL_Window* window) const
@@ -38,13 +41,19 @@ enum class SpriteAnchor {
     ORIGIN = 2
 };
 
-bool AABB(const entt::registry& registry, entt::entity entity, const glm::ivec2 mouse_position);
+bool AABB(
+    const TransformComponent& transform,
+    const SpriteComponent& sprite,
+    const glm::ivec2 position
+);
 
 void align_sprite_to(
     entt::registry& registry,
     entt::entity entity,
+    TransformComponent& transform,
+    const SpriteComponent& sprite,
     SpriteAnchor alignment_anchor,
-    glm::ivec2 position
+    glm::ivec2 world_position
 );
 } // namespace
 

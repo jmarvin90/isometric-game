@@ -1,7 +1,7 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
-#include <spritesheet.h>
+struct SpriteDefinition;
 
 struct SpriteComponent {
     const SpriteDefinition* sprite_definition;

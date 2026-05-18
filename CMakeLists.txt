@@ -36,7 +36,9 @@ target_compile_options(imgui PRIVATE -w)  # disable all warnings for ImGui
 # =====================================================
 add_executable(isometric-game
     src/main.cpp
-    src/engine/utility.cpp
+    src/engine/sprite.cpp
+    src/engine/spritemask.cpp
+    src/engine/iso_utility.cpp
     src/engine/game.cpp
     src/engine/spritesheet.cpp
     src/engine/position.cpp
