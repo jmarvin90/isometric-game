@@ -49,6 +49,7 @@ add_executable(isometric-game
     src/engine/systems/mouse_system.cpp
     src/engine/systems/spatialmap_system.cpp
     src/engine/systems/graph_system.cpp
+    src/engine/systems/building_system.cpp
     src/engine/archive.cpp
     src/engine/json_parse.cpp
 )
