@@ -6,5 +6,9 @@ struct JunctionDeleteFlag { };
 struct ConnectivityUpdateFlag { };
 struct SegmentDeleteFlag { };
 struct DebugFlag { };
+struct SenderFlag { };
+struct ReceiverFlag { };
+struct UnpairedFlag { };
+struct PairedFlag { };
 
 #endif

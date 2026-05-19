@@ -30,6 +30,7 @@
 #include <systems/mouse_system.h>
 #include <systems/render_system.h>
 #include <systems/spatialmap_system.h>
+#include <systems/building_system.h>
 
 Game::Game()
 {
@@ -87,6 +88,10 @@ void Game::initialise()
     registry.ctx().emplace<HighlightedEntityComponent>();
 
     load_from(registry, constants::SAVE_FILE_PATH);
+
+    registry.on_construct<SpriteComponent>().connect<&BuildingSystem::tag>();
+    registry.on_update<SpriteComponent>().connect<&BuildingSystem::tag>();
+    registry.on_destroy<SpriteComponent>().connect<&BuildingSystem::untag>();
 
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_destroy<SpriteComponent>().connect<&SpatialMapSystem::remove_entity>();

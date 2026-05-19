@@ -24,9 +24,17 @@ std::vector<entt::entity> intersected_segments(
     const SegmentComponent& segment
 )
 {
-    Grid<entt::entity, SpatialMapProjection>& spatial_map { registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>() };
-    const TransformComponent& segment_start { registry.get<const TransformComponent>(segment.origin) };
-    const TransformComponent& segment_end { registry.get<const TransformComponent>(segment.termination) };
+    Grid<entt::entity, SpatialMapProjection>& spatial_map { 
+        registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>() 
+    };
+
+    const TransformComponent& segment_start { 
+        registry.get<const TransformComponent>(segment.origin)
+    };
+
+    const TransformComponent& segment_end { 
+        registry.get<const TransformComponent>(segment.termination)
+    };
 
     glm::vec2 start { segment_start.position / glm::vec2 { spatial_map.cell_size } };
     glm::vec2 end { segment_end.position / glm::vec2 { spatial_map.cell_size } };
@@ -41,7 +49,11 @@ std::vector<entt::entity> intersected_segments(
         (delta.y != 0) ? std::abs(1.0f / delta.y) : std::numeric_limits<float>::infinity()
     };
 
-    glm::vec2 next_boundary { step.x > 0 ? chunk.x + 1 : chunk.x, step.y > 0 ? chunk.y + 1 : chunk.y };
+    glm::vec2 next_boundary { 
+        step.x > 0 ? chunk.x + 1 : chunk.x, 
+        step.y > 0 ? chunk.y + 1 : chunk.y 
+    };
+    
     glm::vec2 tMax { (next_boundary - start) / delta };
 
     std::vector<entt::entity> output;
