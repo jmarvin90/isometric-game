@@ -117,15 +117,22 @@ void update_entity(entt::registry& registry, entt::entity entity)
 
 void emplace_entity(entt::registry& registry, entt::entity entity)
 {
+
+    if (!registry.all_of<SpriteComponent, TransformComponent>(entity))
+        return;
+
     const Grid<entt::entity, SpatialMapProjection>& spatial_map {
         registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
     };
 
     const SpatialMapCellSpanComponent& cell_span {
-        spanned_cells(
-            registry.get<const TransformComponent>(entity),
-            registry.get<const SpriteComponent>(entity),
-            registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
+        registry.emplace_or_replace<SpatialMapCellSpanComponent>(
+            entity,
+            spanned_cells(
+                registry.get<const TransformComponent>(entity),
+                registry.get<const SpriteComponent>(entity),
+                spatial_map
+            )
         )
     };
 

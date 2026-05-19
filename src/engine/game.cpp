@@ -90,10 +90,14 @@ void Game::initialise()
 
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_destroy<SpriteComponent>().connect<&SpatialMapSystem::remove_entity>();
+
+    registry.on_construct<TransformComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_update<TransformComponent>().connect<&SpatialMapSystem::update_entity>();
+    registry.on_destroy<TransformComponent>().connect<&SpatialMapSystem::remove_entity>();
 
     registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
     registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
+    
     registry.on_construct<SegmentComponent>().connect<&GraphSystem::emplace_segment>();
     registry.on_destroy<SegmentComponent>().connect<&GraphSystem::remove_segment>();
 
