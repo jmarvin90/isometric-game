@@ -11,8 +11,9 @@
 
 enum class SpriteType {
     TILE = 0,
-    BUILDING = 1,
-    WALKER = 2
+    BUILDING_SENDER = 1,
+    BUILDING_RECEIVER = 2,
+    WALKER = 3
 };
 
 enum class SpriteAnchor {
