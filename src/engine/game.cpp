@@ -1,18 +1,18 @@
 #include <archive.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
+#include <components/camera_component.h>
 #include <components/connectivity_component.h>
 #include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
+#include <components/mouse_component.h>
 #include <components/segment_component.h>
 #include <components/segment_member_component.h>
 #include <components/selected_entity_component.h>
-#include <components/transform_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/spatialmapcell_span_component.h>
-#include <components/camera_component.h>
-#include <components/mouse_component.h>
 #include <components/sprite_component.h>
+#include <components/transform_component.h>
 #include <constants.h>
 #include <entt/entt.hpp>
 #include <game.h>
@@ -25,12 +25,12 @@
 #include <sprite.h>
 #include <spritesheet.h>
 #include <string>
+#include <systems/building_system.h>
 #include <systems/camera_system.h>
 #include <systems/graph_system.h>
 #include <systems/mouse_system.h>
 #include <systems/render_system.h>
 #include <systems/spatialmap_system.h>
-#include <systems/building_system.h>
 
 Game::Game()
 {
@@ -102,7 +102,7 @@ void Game::initialise()
 
     registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
     registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
-    
+
     registry.on_construct<SegmentComponent>().connect<&GraphSystem::emplace_segment>();
     registry.on_destroy<SegmentComponent>().connect<&GraphSystem::remove_segment>();
 

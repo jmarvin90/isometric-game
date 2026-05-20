@@ -4,8 +4,7 @@
 #include <entt/entt.hpp>
 
 struct BuildingPairComponent {
-    entt::entity sender;
-    entt::entity receiver;
+    entt::entity paired_with;
 };
 
 #endif
