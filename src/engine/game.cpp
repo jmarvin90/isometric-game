@@ -154,6 +154,7 @@ void Game::update([[maybe_unused]] const float delta_time)
     MouseSystem::update(registry);
     CameraSystem::update(registry);
     RenderSystem::update(registry, debug_mode);
+    BuildingSystem::update(registry);
 }
 
 void Game::render()
