@@ -1,8 +1,10 @@
 #include <archive.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
+#include <components/building_pair_component.h>
 #include <components/camera_component.h>
 #include <components/connectivity_component.h>
+#include <components/flags.h>
 #include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
@@ -106,8 +108,8 @@ void Game::initialise()
     registry.on_construct<SegmentComponent>().connect<&GraphSystem::emplace_segment>();
     registry.on_destroy<SegmentComponent>().connect<&GraphSystem::remove_segment>();
 
-    registry.on_construct<ConnectivityComponent>().connect<GraphSystem::update>();
-    registry.on_update<ConnectivityComponent>().connect<GraphSystem::update>();
+    registry.on_construct<ConnectivityComponent>().connect<GraphSystem::flag_change>();
+    registry.on_update<ConnectivityComponent>().connect<GraphSystem::flag_change>();
 
     registry.ctx().emplace<MouseComponent>();
 
@@ -155,6 +157,7 @@ void Game::update([[maybe_unused]] const float delta_time)
     CameraSystem::update(registry);
     RenderSystem::update(registry, debug_mode);
     BuildingSystem::update(registry);
+    GraphSystem::update(registry);
 }
 
 void Game::render()
@@ -216,6 +219,9 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
         .get<GridPositionComponent>(my_archive)
         .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive)
+        // .get<SenderFlag>(my_archive)
+        // .get<ReceiverFlag>(my_archive)
+        // .get<BuildingPairComponent>(my_archive)
         .orphans();
 
     my_archive.load_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
@@ -226,12 +232,7 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
         registry.emplace_or_replace<ConnectivityComponent>(entity, sprite.sprite_definition->directions);
     }
 
-    GraphSystem::update(registry, entt::null);
-
-    for (auto entity : registry.view<SegmentComponent>()) {
-        SpatialMapSystem::emplace_segment(registry, entity);
-        GraphSystem::emplace_segment(registry, entity);
-    }
+    GraphSystem::update(registry);
 }
 
 void Game::save_to(entt::registry& registry, const std::string output_path)
@@ -250,7 +251,10 @@ void Game::save_to(entt::registry& registry, const std::string output_path)
         .get<SpriteComponent>(my_archive)
         .get<GridPositionComponent>(my_archive)
         .get<SpatialMapCellComponent>(my_archive)
-        .get<SpatialMapCellSpanComponent>(my_archive);
+        .get<SpatialMapCellSpanComponent>(my_archive)
+        .get<SenderFlag>(my_archive)
+        .get<ReceiverFlag>(my_archive)
+        .get<BuildingPairComponent>(my_archive);
 
     my_archive.save_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
     my_archive.save_context_element("spatialmap", registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>());

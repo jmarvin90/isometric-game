@@ -6,6 +6,7 @@
 #include <components/segment_member_component.h>
 #include <components/transform_component.h>
 #include <directions.h>
+#include <flags.h>
 #include <grid.h>
 #include <iterator>
 #include <projection.h>
@@ -21,8 +22,13 @@ bool reciprocate(
     Direction::TDirection direction
 )
 {
-    const ConnectivityComponent& lhs_component { registry.get<const ConnectivityComponent>(lhs) };
-    const ConnectivityComponent* rhs_component { registry.try_get<const ConnectivityComponent>(rhs) };
+    const ConnectivityComponent& lhs_component {
+        registry.get<const ConnectivityComponent>(lhs)
+    };
+
+    const ConnectivityComponent* rhs_component {
+        registry.try_get<const ConnectivityComponent>(rhs)
+    };
 
     if (!rhs_component)
         return false;
@@ -46,27 +52,33 @@ Direction::TDirection resolved_directions(
     Direction::TDirection resolved_directions { Direction::TDirection::NO_DIRECTION };
 
     for (
-        auto direction : Direction::EachDirectionIn { unresolved_directions }) {
+        auto direction : Direction::EachDirectionIn { unresolved_directions }
+    ) {
         glm::ivec2 step { Direction::direction_vectors[direction] };
         entt::entity next { tilemap[grid_position + step] };
-        if (next != entt::null && reciprocate(registry, tilemap[grid_position], next, direction))
+
+        if (
+            next != entt::null
+            && reciprocate(registry, tilemap[grid_position], next, direction)
+        )
             resolved_directions = resolved_directions | direction;
     }
     return resolved_directions;
 }
 
-void identify_junctions(entt::registry& registry)
+void tag_junctions(entt::registry& registry)
 {
     auto connectivity_view { registry.view<ConnectivityComponent, GridPositionComponent>() };
-
     for (auto [entity, connectivity, grid_position] : connectivity_view.each()) {
-        bool junction_in_theory { connectivity.is_junction };
-
-        auto resolved { resolved_directions(registry, connectivity.directions, grid_position.position) };
-        bool junction_in_practice { Direction::is_junction(resolved) };
-
-        if (junction_in_theory || junction_in_practice) {
-            registry.emplace<JunctionComponent>(entity);
+        if (
+            connectivity.is_junction
+            || Direction::is_junction(
+                resolved_directions(
+                    registry, connectivity.directions, grid_position.position
+                )
+            )
+        ) {
+            registry.emplace_or_replace<JunctionComponent>(entity);
         }
     }
 }
@@ -115,7 +127,8 @@ void junction_populate(
 )
 {
     for (
-        auto direction : Direction::EachDirectionIn { connectivity.directions }) {
+        auto direction : Direction::EachDirectionIn { connectivity.directions }
+    ) {
 
         // If the segment has already been created from another junction
         if (
@@ -153,15 +166,10 @@ void graph_release(entt::registry& registry)
 {
     // Delete all the segments
     auto segments { registry.view<SegmentComponent>() };
-
-    // TODO - investigate why commented alternative segfaults
-    for (auto entity : segments)
-        registry.destroy(entity);
-    // registry.destroy(segments.begin(), segments.end());
-
-    // Delete all segment memberships & junctions
-    registry.clear<SegmentMemberComponent>();
+    registry.destroy(segments.begin(), segments.end());
+    registry.clear<SegmentMemberComponent>(); // redundant because of remove_segment
     registry.clear<JunctionComponent>();
+    registry.clear<ConnectivityUpdateFlag>();
 }
 
 void graph_compute(entt::registry& registry)
@@ -176,10 +184,20 @@ void graph_compute(entt::registry& registry)
 }
 
 namespace GraphSystem {
-void update(entt::registry& registry, [[maybe_unused]] entt::entity entity)
+
+void flag_change(entt::registry& registry, entt::entity entity)
 {
+    registry.emplace_or_replace<ConnectivityUpdateFlag>(entity);
+}
+
+void update(entt::registry& registry)
+{
+    auto change_view { registry.view<ConnectivityUpdateFlag>() };
+    if (change_view.begin() == change_view.end())
+        return;
+
     graph_release(registry);
-    identify_junctions(registry);
+    tag_junctions(registry);
     graph_compute(registry);
 }
 
