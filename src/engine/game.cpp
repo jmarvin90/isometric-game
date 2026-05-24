@@ -89,7 +89,7 @@ void Game::initialise()
     registry.ctx().emplace<SelectedEntityComponent>();
     registry.ctx().emplace<HighlightedEntityComponent>();
 
-    load_from(registry, constants::SAVE_FILE_PATH);
+    load_from(registry, Constants::SAVE_FILE_PATH);
 
     registry.on_construct<SpriteComponent>().connect<&BuildingSystem::tag>();
     registry.on_update<SpriteComponent>().connect<&BuildingSystem::tag>();
@@ -99,7 +99,7 @@ void Game::initialise()
     registry.on_destroy<SpriteComponent>().connect<&SpatialMapSystem::remove_entity>();
 
     registry.on_construct<TransformComponent>().connect<&SpatialMapSystem::emplace_entity>();
-    registry.on_update<TransformComponent>().connect<&SpatialMapSystem::update_entity>();
+    registry.on_update<TransformComponent>().connect<&SpatialMapSystem::flag_change>();
     registry.on_destroy<TransformComponent>().connect<&SpatialMapSystem::remove_entity>();
 
     registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
@@ -155,9 +155,10 @@ void Game::update([[maybe_unused]] const float delta_time)
 {
     MouseSystem::update(registry);
     CameraSystem::update(registry);
-    RenderSystem::update(registry, debug_mode);
     BuildingSystem::update(registry);
     GraphSystem::update(registry);
+    SpatialMapSystem::update(registry);
+    RenderSystem::update(registry, debug_mode);
 }
 
 void Game::render()
@@ -190,9 +191,9 @@ void Game::run()
         const uint64_t elapsed_this_frame { SDL_GetTicks64() - start };
 
         // Delay until the START of the next frame
-        const float time_to_delay { constants::MILLIS_PER_FRAME - elapsed_this_frame };
+        const float time_to_delay { Constants::MILLIS_PER_FRAME - elapsed_this_frame };
 
-        if (time_to_delay > 0 && time_to_delay <= constants::MILLIS_PER_FRAME) {
+        if (time_to_delay > 0 && time_to_delay <= Constants::MILLIS_PER_FRAME) {
             SDL_Delay(time_to_delay);
         }
 
@@ -202,7 +203,7 @@ void Game::run()
 
 void Game::destroy()
 {
-    save_to(registry, constants::SAVE_FILE_PATH);
+    save_to(registry, Constants::SAVE_FILE_PATH);
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
@@ -219,9 +220,9 @@ void Game::load_from(entt::registry& registry, const std::string input_path)
         .get<GridPositionComponent>(my_archive)
         .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive)
-        // .get<SenderFlag>(my_archive)
-        // .get<ReceiverFlag>(my_archive)
-        // .get<BuildingPairComponent>(my_archive)
+        .get<SenderFlag>(my_archive)
+        .get<ReceiverFlag>(my_archive)
+        .get<BuildingPairComponent>(my_archive)
         .orphans();
 
     my_archive.load_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());

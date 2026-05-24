@@ -1,6 +1,7 @@
 #ifndef FLAGS_H
 #define FLAGS_H
 
+struct SpatialMapEntityUpdateFlag { };
 struct ConnectivityUpdateFlag { };
 struct SegmentDeleteFlag { };
 struct DebugFlag { };

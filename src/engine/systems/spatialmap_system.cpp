@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include <cmath>
+#include <components/flags.h>
 #include <components/segment_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/spatialmapcell_span_component.h>
@@ -8,6 +9,7 @@
 #include <components/transform_component.h>
 #include <directions.h>
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 #include <grid.h>
 #include <position.h>
 #include <projection.h>
@@ -15,7 +17,6 @@
 #include <spritesheet.h>
 #include <systems/spatialmap_system.h>
 #include <vector>
-#include <glm/glm.hpp>
 
 namespace {
 
@@ -24,15 +25,15 @@ std::vector<entt::entity> intersected_segments(
     const SegmentComponent& segment
 )
 {
-    Grid<entt::entity, SpatialMapProjection>& spatial_map { 
-        registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>() 
+    Grid<entt::entity, SpatialMapProjection>& spatial_map {
+        registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>()
     };
 
-    const TransformComponent& segment_start { 
+    const TransformComponent& segment_start {
         registry.get<const TransformComponent>(segment.origin)
     };
 
-    const TransformComponent& segment_end { 
+    const TransformComponent& segment_end {
         registry.get<const TransformComponent>(segment.termination)
     };
 
@@ -49,11 +50,11 @@ std::vector<entt::entity> intersected_segments(
         (delta.y != 0) ? std::abs(1.0f / delta.y) : std::numeric_limits<float>::infinity()
     };
 
-    glm::vec2 next_boundary { 
-        step.x > 0 ? chunk.x + 1 : chunk.x, 
-        step.y > 0 ? chunk.y + 1 : chunk.y 
+    glm::vec2 next_boundary {
+        step.x > 0 ? chunk.x + 1 : chunk.x,
+        step.y > 0 ? chunk.y + 1 : chunk.y
     };
-    
+
     glm::vec2 tMax { (next_boundary - start) / delta };
 
     std::vector<entt::entity> output;
@@ -102,10 +103,6 @@ SpatialMapCellSpanComponent spanned_cells(
     };
 }
 
-} // namespace
-
-namespace SpatialMapSystem {
-
 void update_entity(entt::registry& registry, entt::entity entity)
 {
     SpatialMapCellSpanComponent& current_span {
@@ -121,10 +118,28 @@ void update_entity(entt::registry& registry, entt::entity entity)
     };
 
     if (current_span != new_span) {
-        remove_entity(registry, entity);
-        emplace_entity(registry, entity);
+        SpatialMapSystem::remove_entity(registry, entity);
+        SpatialMapSystem::emplace_entity(registry, entity);
         current_span = new_span;
     }
+}
+
+} // namespace
+
+namespace SpatialMapSystem {
+
+void flag_change(entt::registry& registry, entt::entity entity)
+{
+    registry.emplace<SpatialMapEntityUpdateFlag>(entity);
+}
+
+void update(entt::registry& registry)
+{
+    auto update_queue { registry.view<SpatialMapEntityUpdateFlag>() };
+    for (auto entity : update_queue) {
+        update_entity(registry, entity);
+    }
+    registry.clear<SpatialMapEntityUpdateFlag>();
 }
 
 void emplace_entity(entt::registry& registry, entt::entity entity)

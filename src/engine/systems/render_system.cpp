@@ -14,9 +14,8 @@
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
 #include <constants.h>
-#include <entt/entt.hpp>
 #include <directions.h>
-#include <string>
+#include <entt/entt.hpp>
 #include <grid.h>
 #include <imgui.h>
 #include <iso_utility.h>
@@ -25,6 +24,7 @@
 #include <projection.h>
 #include <sprite.h>
 #include <spritesheet.h>
+#include <string>
 #include <systems/render_system.h>
 #include <tuple>
 #include <vector>
@@ -269,20 +269,24 @@ void render_imgui_ui(
         }
 
         if (sprite.sprite_definition->sprite_type == SpriteType::TILE) {
-            static std::string selected { "walker_w" };
+            static std::string selected_walker_sprite { "walker_w" };
+            static std::string selected_building_sprite { "building_short" };
+
             ImGui::SeparatorText("Walker Spawn");
-            if (ImGui::BeginCombo("Spawn Sprite", selected.c_str())) {
+
+            if (ImGui::BeginCombo("Walker Sprites", selected_walker_sprite.c_str())) {
                 for (const auto& [name, sprite_definition] : spritesheet.sprites) {
-                    if (sprite_definition.sprite_type == SpriteType::TILE)
+                    if (sprite_definition.sprite_type != SpriteType::WALKER)
                         continue;
 
-                    if (ImGui::Selectable(name.c_str(), selected == name)) {
-                        selected = name;
+                    if (ImGui::Selectable(name.c_str(), selected_walker_sprite == name)) {
+                        selected_walker_sprite = name;
                     }
                 }
                 ImGui::EndCombo();
             }
-            if (ImGui::Button("Spawn")) {
+
+            if (ImGui::Button("Spawn Walker")) {
                 entt::entity new_sprite { registry.create() };
                 TransformComponent& transform {
                     registry.emplace<TransformComponent>(
@@ -292,7 +296,7 @@ void render_imgui_ui(
 
                 const SpriteComponent& sprite {
                     registry.emplace<SpriteComponent>(
-                        new_sprite, &spritesheet.sprites.at(selected)
+                        new_sprite, &spritesheet.sprites.at(selected_walker_sprite)
                     )
                 };
 
@@ -303,6 +307,46 @@ void render_imgui_ui(
                     sprite,
                     SpriteAnchor::SPRITE_ANCHOR,
                     registry.get<const TransformComponent>(selected_entity).position
+                );
+            }
+
+            if (ImGui::BeginCombo("Building Sprites", selected_building_sprite.c_str())) {
+                for (const auto& [name, sprite_definition] : spritesheet.sprites) {
+                    if (
+                        sprite_definition.sprite_type != SpriteType::BUILDING_SENDER
+                        && sprite_definition.sprite_type != SpriteType::BUILDING_RECEIVER
+                    )
+                        continue;
+
+                    if (ImGui::Selectable(name.c_str(), selected_building_sprite == name)) {
+                        selected_building_sprite = name;
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            if (ImGui::Button("Spawn Building")) {
+                entt::entity new_sprite { registry.create() };
+                TransformComponent& transform {
+                    registry.emplace<TransformComponent>(
+                        new_sprite, glm::ivec2 {}, 1, 0.0
+                    )
+                };
+
+                const SpriteComponent& sprite {
+                    registry.emplace<SpriteComponent>(
+                        new_sprite, &spritesheet.sprites.at(selected_building_sprite)
+                    )
+                };
+
+                ISOUtility::align_sprite_to(
+                    registry,
+                    new_sprite,
+                    transform,
+                    sprite,
+                    SpriteAnchor::SPRITE_ANCHOR,
+                    registry.get<const TransformComponent>(selected_entity).position
+                        + glm::vec2 { Constants::TILE_SIZE / 2 }
                 );
             }
         }
@@ -320,7 +364,7 @@ void render_segments(
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     auto segments { registry.view<SegmentComponent>() };
-    [[maybe_unused]] const auto* road_gates { &constants::ROAD_GATES };
+    [[maybe_unused]] const auto* road_gates { &Constants::ROAD_GATES };
 
     for (auto [entity, segment] : segments.each()) {
         for (
@@ -333,7 +377,7 @@ void render_segments(
             glm::ivec2 origin_position {
                 Position::world_to_screen(
                     glm::ivec2 { registry.get<const TransformComponent>(origin).position }
-                        + constants::ROAD_GATES[Direction::index_position(direction)].exit,
+                        + Constants::ROAD_GATES[Direction::index_position(direction)].exit,
                     camera.position
                 )
             };
@@ -341,7 +385,7 @@ void render_segments(
             glm::ivec2 termination_position {
                 Position::world_to_screen(
                     glm::ivec2 { registry.get<const TransformComponent>(termination).position }
-                        + constants::ROAD_GATES[Direction::index_position(Direction::reverse(direction))].entry,
+                        + Constants::ROAD_GATES[Direction::index_position(Direction::reverse(direction))].entry,
                     camera.position
                 )
             };

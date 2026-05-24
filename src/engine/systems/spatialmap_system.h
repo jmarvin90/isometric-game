@@ -4,11 +4,12 @@
 #include <entt/entt.hpp>
 
 namespace SpatialMapSystem {
+void flag_change(entt::registry& registry, entt::entity entity);
 void emplace_entity(entt::registry& registry, entt::entity entity);
 void remove_entity(entt::registry& registry, entt::entity entity);
 void emplace_segment(entt::registry& registry, entt::entity entity);
 void remove_segment(entt::registry& registry, entt::entity entity);
-void update_entity(entt::registry& registry, entt::entity entity);
+void update(entt::registry& registry);
 void update_on_load(entt::registry& registry);
 };
 

@@ -24,7 +24,7 @@ inline constexpr std::array<Gate, 4> translations {
 };
 }
 
-namespace constants {
+namespace Constants {
 inline constexpr glm::ivec2 TILE_SIZE { 256, 128 };
 inline constexpr glm::ivec2 TILE_CENTRE { TILE_SIZE / 2 };
 inline constexpr glm::ivec2 CAMERA_SCROLL_SPEED { 18, 9 };
