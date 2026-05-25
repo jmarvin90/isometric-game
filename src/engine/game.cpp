@@ -95,17 +95,15 @@ void Game::initialise()
     registry.on_construct<SpriteComponent>().connect<&BuildingSystem::tag>();
     registry.on_update<SpriteComponent>().connect<&BuildingSystem::tag>();
 
-    registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
-
-    registry.on_construct<TransformComponent>().connect<&SpatialMapSystem::emplace_entity>();
-    registry.on_update<TransformComponent>().connect<&SpatialMapSystem::flag_change>();
+    registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::flag_create>();
+    registry.on_construct<TransformComponent>().connect<&SpatialMapSystem::flag_create>();
+    registry.on_update<TransformComponent>().connect<&SpatialMapSystem::flag_update>();
 
     registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
-
     registry.on_construct<SegmentComponent>().connect<&GraphSystem::emplace_segment>();
 
-    registry.on_construct<ConnectivityComponent>().connect<GraphSystem::flag_change>();
-    registry.on_update<ConnectivityComponent>().connect<GraphSystem::flag_change>();
+    registry.on_construct<ConnectivityComponent>().connect<GraphSystem::flag_update>();
+    registry.on_update<ConnectivityComponent>().connect<GraphSystem::flag_update>();
 
     registry.ctx().emplace<MouseComponent>();
 
@@ -150,11 +148,11 @@ void Game::process_input()
 void Game::update([[maybe_unused]] const float delta_time)
 {
     EntityReleaseSystem::update(registry);
-    MouseSystem::update(registry);
     CameraSystem::update(registry);
     BuildingSystem::update(registry);
     GraphSystem::update(registry);
     SpatialMapSystem::update(registry);
+    MouseSystem::update(registry);
     RenderSystem::update(registry, debug_mode);
 }
 

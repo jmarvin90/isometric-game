@@ -128,18 +128,40 @@ void update_entity(entt::registry& registry, entt::entity entity)
 
 namespace SpatialMapSystem {
 
-void flag_change(entt::registry& registry, entt::entity entity)
+void flag_create(entt::registry& registry, entt::entity entity)
 {
-    registry.emplace<SpatialMapEntityUpdateFlag>(entity);
+    registry.emplace_or_replace<SpatialMapEntityCreateFlag>(entity);
+}
+
+void flag_update(entt::registry& registry, entt::entity entity)
+{
+    registry.emplace_or_replace<SpatialMapEntityUpdateFlag>(entity);
+}
+
+void flag_delete(entt::registry& registry, entt::entity entity)
+{
+    registry.emplace_or_replace<SpatialMapEntityDeleteFlag>(entity);
 }
 
 void update(entt::registry& registry)
 {
+    auto create_queue { registry.view<SpatialMapEntityCreateFlag>() };
+    for (auto entity : create_queue) {
+        emplace_entity(registry, entity);
+    }
+    registry.clear<SpatialMapEntityCreateFlag>();
+
     auto update_queue { registry.view<SpatialMapEntityUpdateFlag>() };
     for (auto entity : update_queue) {
         update_entity(registry, entity);
     }
     registry.clear<SpatialMapEntityUpdateFlag>();
+
+    auto delete_queue { registry.view<SpatialMapEntityDeleteFlag>() };
+    for (auto entity : delete_queue) {
+        remove_entity(registry, entity);
+    }
+    registry.clear<SpatialMapEntityDeleteFlag>();
 }
 
 void emplace_entity(entt::registry& registry, entt::entity entity)

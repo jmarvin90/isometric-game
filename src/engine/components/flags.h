@@ -3,6 +3,8 @@
 
 struct EntityReleaseFlag { };
 struct SpatialMapEntityUpdateFlag { };
+struct SpatialMapEntityCreateFlag { };
+struct SpatialMapEntityDeleteFlag { };
 struct ConnectivityUpdateFlag { };
 struct SegmentDeleteFlag { };
 struct DebugFlag { };
