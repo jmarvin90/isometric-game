@@ -29,6 +29,7 @@
 #include <string>
 #include <systems/building_system.h>
 #include <systems/camera_system.h>
+#include <systems/entity_release_system.h>
 #include <systems/graph_system.h>
 #include <systems/mouse_system.h>
 #include <systems/render_system.h>
@@ -93,20 +94,15 @@ void Game::initialise()
 
     registry.on_construct<SpriteComponent>().connect<&BuildingSystem::tag>();
     registry.on_update<SpriteComponent>().connect<&BuildingSystem::tag>();
-    registry.on_destroy<SpriteComponent>().connect<&BuildingSystem::untag>();
 
     registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::emplace_entity>();
-    registry.on_destroy<SpriteComponent>().connect<&SpatialMapSystem::remove_entity>();
 
     registry.on_construct<TransformComponent>().connect<&SpatialMapSystem::emplace_entity>();
     registry.on_update<TransformComponent>().connect<&SpatialMapSystem::flag_change>();
-    registry.on_destroy<TransformComponent>().connect<&SpatialMapSystem::remove_entity>();
 
     registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
-    registry.on_destroy<SegmentComponent>().connect<&SpatialMapSystem::remove_segment>();
 
     registry.on_construct<SegmentComponent>().connect<&GraphSystem::emplace_segment>();
-    registry.on_destroy<SegmentComponent>().connect<&GraphSystem::remove_segment>();
 
     registry.on_construct<ConnectivityComponent>().connect<GraphSystem::flag_change>();
     registry.on_update<ConnectivityComponent>().connect<GraphSystem::flag_change>();
@@ -153,6 +149,7 @@ void Game::process_input()
 
 void Game::update([[maybe_unused]] const float delta_time)
 {
+    EntityReleaseSystem::update(registry);
     MouseSystem::update(registry);
     CameraSystem::update(registry);
     BuildingSystem::update(registry);

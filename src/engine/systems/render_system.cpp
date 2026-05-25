@@ -3,6 +3,7 @@
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <camera_component.h>
 #include <components/connectivity_component.h>
+#include <components/flags.h>
 #include <components/grid_position_component.h>
 #include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
@@ -171,7 +172,7 @@ void render_imgui_ui(
         registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
     };
     const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet>() };
-    entt::entity selected_entity { registry.ctx().get<const SelectedEntityComponent>().entity };
+    entt::entity& selected_entity { registry.ctx().get<SelectedEntityComponent>().entity };
 
     // The mouse and world positions
 
@@ -247,6 +248,11 @@ void render_imgui_ui(
             );
         }
 
+        if (ImGui::Button("Delete entity")) {
+            registry.emplace<EntityReleaseFlag>(selected_entity);
+            selected_entity = entt::null;
+        }
+
         if (ImGui::BeginCombo("Sprite", sprite.sprite_definition->name.c_str())) {
             for (const auto& [name, sprite_definition] : spritesheet.sprites) {
                 bool is_selected = (name == sprite.sprite_definition->name);
@@ -309,6 +315,8 @@ void render_imgui_ui(
                     registry.get<const TransformComponent>(selected_entity).position
                 );
             }
+
+            ImGui::SeparatorText("Building Spawn");
 
             if (ImGui::BeginCombo("Building Sprites", selected_building_sprite.c_str())) {
                 for (const auto& [name, sprite_definition] : spritesheet.sprites) {

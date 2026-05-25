@@ -43,6 +43,7 @@ add_executable(isometric-game
     src/engine/spritesheet.cpp
     src/engine/position.cpp
     src/engine/directions.cpp
+    src/engine/systems/entity_release_system.cpp
     src/engine/pathfinding.cpp
     src/engine/systems/render_system.cpp
     src/engine/systems/camera_system.cpp
