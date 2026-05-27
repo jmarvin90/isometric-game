@@ -9,7 +9,7 @@ glm::ivec2 screen_to_world(
     const glm::ivec2 camera_position
 )
 {
-    return (screen_position + camera_position) - constants::SCENE_BORDER_PX;
+    return (screen_position + camera_position) - Constants::SCENE_BORDER_PX;
 }
 
 glm::ivec2 world_to_screen(
@@ -17,7 +17,7 @@ glm::ivec2 world_to_screen(
     const glm::ivec2 camera_position
 )
 {
-    return (world_position - camera_position) + constants::SCENE_BORDER_PX;
+    return (world_position - camera_position) + Constants::SCENE_BORDER_PX;
 }
 
 } // namespace

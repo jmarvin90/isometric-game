@@ -1,8 +1,10 @@
 #ifndef FLAGS_H
 #define FLAGS_H
 
-struct JunctionCreateFlag { };
-struct JunctionDeleteFlag { };
+struct EntityReleaseFlag { };
+struct SpatialMapEntityUpdateFlag { };
+struct SpatialMapEntityCreateFlag { };
+struct SpatialMapEntityDeleteFlag { };
 struct ConnectivityUpdateFlag { };
 struct SegmentDeleteFlag { };
 struct DebugFlag { };
