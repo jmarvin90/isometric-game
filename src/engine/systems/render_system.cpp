@@ -2,6 +2,7 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <camera_component.h>
+#include <components/building_pair_component.h>
 #include <components/connectivity_component.h>
 #include <components/flags.h>
 #include <components/grid_position_component.h>
@@ -215,6 +216,15 @@ void render_imgui_ui(
     auto segments_view { registry.view<SegmentComponent>() };
     ImGui::Text("Junctions: %d", static_cast<int>(junctions_view.size()));
     ImGui::Text("Segments: %d", static_cast<int>(segments_view.size()));
+
+    auto pairs_view { registry.view<BuildingPairComponent>() };
+    if (pairs_view.begin() != pairs_view.end()) {
+        ImGui::SeparatorText("Building Pairs");
+        ImGui::Text(
+            "# paired entities: %d",
+            static_cast<int>(pairs_view.size())
+        );
+    }
 
     if (selected_entity != entt::null) {
         SpriteComponent& sprite { registry.get<SpriteComponent>(selected_entity) };
