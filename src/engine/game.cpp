@@ -35,6 +35,60 @@
 #include <systems/render_system.h>
 #include <systems/spatialmap_system.h>
 
+namespace {
+void save_to(entt::registry& registry, const std::string output_path)
+{
+    for (auto entity : registry.view<SegmentComponent>())
+        registry.destroy(entity);
+
+    registry.clear<ConnectivityComponent>();
+    registry.clear<JunctionComponent>();
+    registry.clear<SegmentMemberComponent>();
+
+    OutputArchive my_archive;
+    entt::basic_snapshot(registry)
+        .get<entt::entity>(my_archive)
+        .get<TransformComponent>(my_archive)
+        .get<SpriteComponent>(my_archive)
+        .get<GridPositionComponent>(my_archive)
+        .get<SpatialMapCellComponent>(my_archive)
+        .get<SpatialMapCellSpanComponent>(my_archive)
+        .get<SenderFlag>(my_archive)
+        .get<ReceiverFlag>(my_archive)
+        .get<BuildingPairComponent>(my_archive);
+
+    my_archive.save_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
+    my_archive.save_context_element("spatialmap", registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>());
+    my_archive.to_file(output_path);
+}
+
+void load_from(entt::registry& registry, const std::string input_path)
+{
+    InputArchive my_archive(input_path, registry.ctx().get<const SpriteSheet>());
+    entt::snapshot_loader { registry }
+        .get<entt::entity>(my_archive)
+        .get<TransformComponent>(my_archive)
+        .get<SpriteComponent>(my_archive)
+        .get<GridPositionComponent>(my_archive)
+        .get<SpatialMapCellComponent>(my_archive)
+        .get<SpatialMapCellSpanComponent>(my_archive)
+        .get<SenderFlag>(my_archive)
+        .get<ReceiverFlag>(my_archive)
+        .get<BuildingPairComponent>(my_archive)
+        .orphans();
+
+    my_archive.load_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
+    my_archive.load_context_element("spatialmap", registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>());
+
+    // TODO: a temporary until the save file is fixed
+    for (auto [entity, sprite] : registry.view<SpriteComponent>().each()) {
+        registry.emplace_or_replace<ConnectivityComponent>(entity, sprite.sprite_definition->directions);
+    }
+
+    GraphSystem::update(registry);
+}
+}
+
 Game::Game()
 {
     spdlog::info("Game constructor called.");
@@ -95,15 +149,15 @@ void Game::initialise()
     registry.on_construct<SpriteComponent>().connect<&BuildingSystem::tag>();
     registry.on_update<SpriteComponent>().connect<&BuildingSystem::tag>();
 
-    registry.on_construct<SpriteComponent>().connect<&SpatialMapSystem::flag_create>();
-    registry.on_construct<TransformComponent>().connect<&SpatialMapSystem::flag_create>();
-    registry.on_update<TransformComponent>().connect<&SpatialMapSystem::flag_update>();
+    registry.on_construct<SpriteComponent>().connect<&flag<SpatialMapEntityCreateFlag>>();
+    registry.on_construct<TransformComponent>().connect<&flag<SpatialMapEntityCreateFlag>>();
+    registry.on_update<TransformComponent>().connect<&flag<SpatialMapEntityUpdateFlag>>();
 
     registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
     registry.on_construct<SegmentComponent>().connect<&GraphSystem::emplace_segment>();
 
-    registry.on_construct<ConnectivityComponent>().connect<GraphSystem::flag_update>();
-    registry.on_update<ConnectivityComponent>().connect<GraphSystem::flag_update>();
+    registry.on_construct<ConnectivityComponent>().connect<&flag<ConnectivityUpdateFlag>>();
+    registry.on_update<ConnectivityComponent>().connect<&flag<ConnectivityUpdateFlag>>();
 
     registry.ctx().emplace<MouseComponent>();
 
@@ -203,56 +257,4 @@ void Game::destroy()
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
     SDL_Quit();
-}
-
-void Game::load_from(entt::registry& registry, const std::string input_path)
-{
-    InputArchive my_archive(input_path, registry.ctx().get<const SpriteSheet>());
-    entt::snapshot_loader { registry }
-        .get<entt::entity>(my_archive)
-        .get<TransformComponent>(my_archive)
-        .get<SpriteComponent>(my_archive)
-        .get<GridPositionComponent>(my_archive)
-        .get<SpatialMapCellComponent>(my_archive)
-        .get<SpatialMapCellSpanComponent>(my_archive)
-        .get<SenderFlag>(my_archive)
-        .get<ReceiverFlag>(my_archive)
-        .get<BuildingPairComponent>(my_archive)
-        .orphans();
-
-    my_archive.load_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
-    my_archive.load_context_element("spatialmap", registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>());
-
-    // TODO: a temporary until the save file is fixed
-    for (auto [entity, sprite] : registry.view<SpriteComponent>().each()) {
-        registry.emplace_or_replace<ConnectivityComponent>(entity, sprite.sprite_definition->directions);
-    }
-
-    GraphSystem::update(registry);
-}
-
-void Game::save_to(entt::registry& registry, const std::string output_path)
-{
-    for (auto entity : registry.view<SegmentComponent>())
-        registry.destroy(entity);
-
-    registry.clear<ConnectivityComponent>();
-    registry.clear<JunctionComponent>();
-    registry.clear<SegmentMemberComponent>();
-
-    OutputArchive my_archive;
-    entt::basic_snapshot(registry)
-        .get<entt::entity>(my_archive)
-        .get<TransformComponent>(my_archive)
-        .get<SpriteComponent>(my_archive)
-        .get<GridPositionComponent>(my_archive)
-        .get<SpatialMapCellComponent>(my_archive)
-        .get<SpatialMapCellSpanComponent>(my_archive)
-        .get<SenderFlag>(my_archive)
-        .get<ReceiverFlag>(my_archive)
-        .get<BuildingPairComponent>(my_archive);
-
-    my_archive.save_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
-    my_archive.save_context_element("spatialmap", registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>());
-    my_archive.to_file(output_path);
 }

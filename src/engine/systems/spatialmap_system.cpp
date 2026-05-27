@@ -128,21 +128,6 @@ void update_entity(entt::registry& registry, entt::entity entity)
 
 namespace SpatialMapSystem {
 
-void flag_create(entt::registry& registry, entt::entity entity)
-{
-    registry.emplace_or_replace<SpatialMapEntityCreateFlag>(entity);
-}
-
-void flag_update(entt::registry& registry, entt::entity entity)
-{
-    registry.emplace_or_replace<SpatialMapEntityUpdateFlag>(entity);
-}
-
-void flag_delete(entt::registry& registry, entt::entity entity)
-{
-    registry.emplace_or_replace<SpatialMapEntityDeleteFlag>(entity);
-}
-
 void update(entt::registry& registry)
 {
     auto create_queue { registry.view<SpatialMapEntityCreateFlag>() };

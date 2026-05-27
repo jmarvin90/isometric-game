@@ -9,10 +9,6 @@
 #include <systems/spatialmap_system.h>
 
 namespace EntityReleaseSystem {
-void flag_delete(entt::registry& registry, entt::entity entity)
-{
-    registry.emplace_or_replace<EntityReleaseFlag>(entity);
-}
 
 void update(entt::registry& registry)
 {

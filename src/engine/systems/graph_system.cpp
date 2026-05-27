@@ -185,11 +185,6 @@ void graph_compute(entt::registry& registry)
 
 namespace GraphSystem {
 
-void flag_update(entt::registry& registry, entt::entity entity)
-{
-    registry.emplace_or_replace<ConnectivityUpdateFlag>(entity);
-}
-
 void update(entt::registry& registry)
 {
     auto change_view { registry.view<ConnectivityUpdateFlag>() };

@@ -6,6 +6,12 @@
 #include <iso_utility.h>
 #include <memory>
 
+template <typename Flag>
+void flag(entt::registry& registry, entt::entity entity)
+{
+    registry.emplace_or_replace<Flag>(entity);
+}
+
 class Game {
     bool is_running { false };
     bool debug_mode { false };
@@ -34,8 +40,6 @@ public:
     void initialise();
     void run();
     void destroy();
-    void save_to(entt::registry& registry, const std::string output_path);
-    void load_from(entt::registry& registry, const std::string input_path);
 };
 
 #endif
