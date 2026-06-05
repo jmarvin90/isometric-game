@@ -34,6 +34,7 @@
 #include <systems/mouse_system.h>
 #include <systems/render_system.h>
 #include <systems/spatialmap_system.h>
+#include <systems/walker_system.h>
 
 namespace {
 void save_to(entt::registry& registry, const std::string output_path)
@@ -83,6 +84,8 @@ void load_from(entt::registry& registry, const std::string input_path)
     // TODO: a temporary until the save file is fixed
     for (auto [entity, sprite] : registry.view<SpriteComponent>().each()) {
         registry.emplace_or_replace<ConnectivityComponent>(entity, sprite.sprite_definition->directions);
+        // TODO: This shouldn't need to be explicit
+        registry.emplace_or_replace<ConnectivityUpdateFlag>(entity);
     }
 
     GraphSystem::update(registry);
@@ -202,6 +205,7 @@ void Game::process_input()
 void Game::update([[maybe_unused]] const float delta_time)
 {
     EntityReleaseSystem::update(registry);
+    WalkerSystem::update(registry);
     CameraSystem::update(registry);
     BuildingSystem::update(registry);
     GraphSystem::update(registry);

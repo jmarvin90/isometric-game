@@ -1,12 +1,18 @@
 #include <components/spatialmapcell_span_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
+#include <entt/entt.hpp>
 #include <iso_utility.h>
 #include <sprite.h>
 #include <spritesheet.h>
 #include <systems/spatialmap_system.h>
-#include <entt/entt.hpp>
 
+/*
+    TODO - this is pretty redundant if it needs to be called
+    after the sprite/transform have been emplaced because some
+    signals invoked by emplacement require the transform to
+    be accurate
+*/
 namespace ISOUtility {
 void align_sprite_to(
     entt::registry& registry,

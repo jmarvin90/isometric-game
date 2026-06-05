@@ -2,9 +2,11 @@
 #include <algorithm>
 #include <components/grid_position_component.h>
 #include <components/junction_component.h>
+#include <components/segment_component.h>
+#include <components/segment_member_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/transform_component.h>
-#include <components/segment_component.h>
+#include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <grid.h>
 #include <pathfinding.h>
@@ -12,42 +14,13 @@
 #include <queue>
 #include <unordered_map>
 #include <vector>
-#include <entt/entt.hpp>
 
 namespace {
 
-entt::entity get_segment(const entt::registry& registry, entt::entity tile)
+bool is_adjacent_to(glm::ivec2 from, glm::ivec2 to)
 {
-    const Grid<entt::entity, SpatialMapProjection>& spatial_map {
-        registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
-    };
-
-    const TransformComponent& transform { registry.get<const TransformComponent>(tile) };
-    entt::entity spatial_map_cell_entity { spatial_map.at_world(transform.position) };
-
-    // TODO: this shouldn't happen, really
-    if (spatial_map_cell_entity == entt::null)
-        return entt::null;
-
-    const SpatialMapCellComponent& spatial_map_cell_component {
-        registry.get<const SpatialMapCellComponent>(spatial_map_cell_entity)
-    };
-
-    for (auto segment : spatial_map_cell_component.segments) {
-        const SegmentComponent& segment_component {
-            registry.get<const SegmentComponent>(segment)
-        };
-        if (
-            std::find(
-                segment_component.entities.begin(), //
-                segment_component.entities.end(), //
-                tile
-            )
-            != segment_component.entities.end()
-        )
-            return segment;
-    }
-    return entt::null;
+    glm::ivec2 diff = glm::abs(from - to);
+    return diff.x + diff.y == 1;
 }
 
 struct PathStep {
@@ -83,6 +56,10 @@ void path_between(
     if (from_tile == to_tile)
         return;
 
+    const GridPositionComponent& from_tile_position {
+        registry.get<const GridPositionComponent>(from_tile)
+    };
+
     const GridPositionComponent& to_tile_position {
         registry.get<const GridPositionComponent>(to_tile)
     };
@@ -95,7 +72,10 @@ void path_between(
         PathStep current { frontier.top() };
         frontier.pop();
 
-        if (current.tile == to_tile)
+        if (
+            current.tile == to_tile
+            || is_adjacent_to(from_tile_position.position, to_tile_position.position)
+        )
             break;
 
         const JunctionComponent* junction_component {
@@ -104,9 +84,17 @@ void path_between(
 
         std::vector<entt::entity> pending;
 
+        bool has_required_components {
+            registry.any_of<SegmentMemberComponent, JunctionComponent>(current.tile)
+        };
+
+        assert(has_required_components);
+
         if (!junction_component) {
             const SegmentComponent* segment_component {
-                &registry.get<const SegmentComponent>(get_segment(registry, current.tile))
+                &registry.get<const SegmentComponent>(
+                    registry.get<SegmentMemberComponent>(current.tile).segment
+                )
             };
             pending.push_back(segment_component->origin);
             pending.push_back(segment_component->termination);
@@ -118,6 +106,19 @@ void path_between(
                 const SegmentComponent& segment_component {
                     registry.get<const SegmentComponent>(segment)
                 };
+
+                for (auto tile : segment_component.entities) {
+                    if (
+                        tile == to_tile
+                        || is_adjacent_to(
+                            to_tile_position.position,
+                            registry.get<const GridPositionComponent>(tile).position
+                        )
+                    ) {
+                        pending.push_back(to_tile);
+                        break;
+                    }
+                }
 
                 if (
                     std::find(

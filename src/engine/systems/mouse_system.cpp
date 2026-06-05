@@ -1,7 +1,6 @@
 #include <camera_component.h>
 #include <components/grid_position_component.h>
 #include <components/highlighted_entity_component.h>
-#include <components/render_offset_component.h>
 #include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <entt/entt.hpp>

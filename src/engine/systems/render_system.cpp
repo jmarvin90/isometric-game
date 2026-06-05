@@ -345,26 +345,20 @@ void render_imgui_ui(
 
             if (ImGui::Button("Spawn Building")) {
                 entt::entity new_sprite { registry.create() };
-                TransformComponent& transform {
-                    registry.emplace<TransformComponent>(
-                        new_sprite, glm::ivec2 {}, 1, 0.0
-                    )
-                };
-
-                const SpriteComponent& sprite {
-                    registry.emplace<SpriteComponent>(
-                        new_sprite, &spritesheet.sprites.at(selected_building_sprite)
-                    )
-                };
-
-                ISOUtility::align_sprite_to(
-                    registry,
+                registry.emplace<TransformComponent>(
                     new_sprite,
-                    transform,
-                    sprite,
-                    SpriteAnchor::SPRITE_ANCHOR,
-                    registry.get<const TransformComponent>(selected_entity).position
-                        + glm::vec2 { Constants::TILE_SIZE / 2 }
+                    glm::ivec2 {
+                        (
+                            glm::ivec2 { registry.get<const TransformComponent>(selected_entity).position }
+                            + Constants::TILE_CENTRE
+                        )
+                        - glm::ivec2 { spritesheet.sprites.at(selected_building_sprite).anchor } },
+                    1,
+                    0.0
+                );
+
+                registry.emplace<SpriteComponent>(
+                    new_sprite, &spritesheet.sprites.at(selected_building_sprite)
                 );
             }
         }
