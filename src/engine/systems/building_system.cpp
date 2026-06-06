@@ -45,6 +45,9 @@ std::vector<entt::entity> get_access_points(
             grid_position + Direction::direction_vectors.at(direction)
         };
 
+        if (!tilemap.position_is_valid(candidate_grid_position))
+            continue;
+
         entt::entity candidate { tilemap[candidate_grid_position] };
 
         if (

@@ -172,6 +172,9 @@ void emplace_entity(entt::registry& registry, entt::entity entity)
 
     for (int x = cell_span.AA.x; x <= cell_span.BB.x; x++) {
         for (int y = cell_span.AA.y; y <= cell_span.BB.y; y++) {
+            if (!spatial_map.position_is_valid({ x, y }))
+                continue;
+
             SpatialMapCellComponent& cell {
                 registry.get_or_emplace<SpatialMapCellComponent>(spatial_map[{ x, y }])
             };

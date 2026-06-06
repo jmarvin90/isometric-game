@@ -5,6 +5,7 @@
 #include <components/road_access_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
+#include <constants.h>
 #include <entt/entt.hpp>
 #include <grid.h>
 #include <pathfinding.h>
@@ -33,6 +34,7 @@ void update(entt::registry& registry)
     const TileMapType tilemap { registry.ctx().get<const TileMapType>() };
 
     for (auto [entity, transform, sprite, building_pair, road_access] : pending.each()) {
+        // TODO - move out of loop and clear each time
         std::vector<entt::entity> path {};
 
         entt::entity target_tile {
@@ -60,6 +62,14 @@ void update(entt::registry& registry)
         entt::entity walker_entity { registry.create() };
         registry.emplace<PathComponent>(walker_entity, path);
         registry.emplace<HasWalkerFlag>(entity);
+        registry.emplace<TransformComponent>(
+            walker_entity,
+            registry.get<const TransformComponent>(*path.begin()).position
+                + glm::vec2 { Constants::TILE_SIZE / 2 },
+            1,
+            0
+        );
+        registry.emplace<SpriteComponent>(walker_entity, &spritesheet.sprites.at("walker_e"));
 
         for (auto position : path) {
             const GridPositionComponent& grid_position {

@@ -49,13 +49,11 @@ void save_to(entt::registry& registry, const std::string output_path)
     OutputArchive my_archive;
     entt::basic_snapshot(registry)
         .get<entt::entity>(my_archive)
+        .get<GridPositionComponent>(my_archive)
         .get<TransformComponent>(my_archive)
         .get<SpriteComponent>(my_archive)
-        .get<GridPositionComponent>(my_archive)
         .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive)
-        .get<SenderFlag>(my_archive)
-        .get<ReceiverFlag>(my_archive)
         .get<BuildingPairComponent>(my_archive);
 
     my_archive.save_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
@@ -66,26 +64,25 @@ void save_to(entt::registry& registry, const std::string output_path)
 void load_from(entt::registry& registry, const std::string input_path)
 {
     InputArchive my_archive(input_path, registry.ctx().get<const SpriteSheet>());
-    entt::snapshot_loader { registry }
-        .get<entt::entity>(my_archive)
-        .get<TransformComponent>(my_archive)
-        .get<SpriteComponent>(my_archive)
-        .get<GridPositionComponent>(my_archive)
-        .get<SpatialMapCellComponent>(my_archive)
-        .get<SpatialMapCellSpanComponent>(my_archive)
-        .get<SenderFlag>(my_archive)
-        .get<ReceiverFlag>(my_archive)
-        .get<BuildingPairComponent>(my_archive)
-        .orphans();
 
     my_archive.load_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
     my_archive.load_context_element("spatialmap", registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>());
 
+    entt::snapshot_loader { registry }
+        .get<entt::entity>(my_archive)
+        .get<GridPositionComponent>(my_archive)
+        .get<TransformComponent>(my_archive)
+        .get<SpriteComponent>(my_archive)
+        .get<SpatialMapCellComponent>(my_archive)
+        .get<SpatialMapCellSpanComponent>(my_archive)
+        .get<BuildingPairComponent>(my_archive)
+        .orphans();
+
     // TODO: a temporary until the save file is fixed
     for (auto [entity, sprite] : registry.view<SpriteComponent>().each()) {
         registry.emplace_or_replace<ConnectivityComponent>(entity, sprite.sprite_definition->directions);
-        // TODO: This shouldn't need to be explicit
-        registry.emplace_or_replace<ConnectivityUpdateFlag>(entity);
+        // // TODO: This shouldn't need to be explicit
+        // registry.emplace_or_replace<ConnectivityUpdateFlag>(entity);
     }
 
     GraphSystem::update(registry);
@@ -147,8 +144,6 @@ void Game::initialise()
     registry.ctx().emplace<SelectedEntityComponent>();
     registry.ctx().emplace<HighlightedEntityComponent>();
 
-    load_from(registry, Constants::SAVE_FILE_PATH);
-
     registry.on_construct<SpriteComponent>().connect<&BuildingSystem::tag>();
     registry.on_update<SpriteComponent>().connect<&BuildingSystem::tag>();
 
@@ -161,6 +156,8 @@ void Game::initialise()
 
     registry.on_construct<ConnectivityComponent>().connect<&flag<ConnectivityUpdateFlag>>();
     registry.on_update<ConnectivityComponent>().connect<&flag<ConnectivityUpdateFlag>>();
+
+    load_from(registry, Constants::SAVE_FILE_PATH);
 
     registry.ctx().emplace<MouseComponent>();
 
