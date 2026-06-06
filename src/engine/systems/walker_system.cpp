@@ -1,5 +1,3 @@
-#include <systems/walker_system.h>
-
 #include <components/building_pair_component.h>
 #include <components/connectivity_component.h>
 #include <components/flags.h>
@@ -11,6 +9,10 @@
 #include <grid.h>
 #include <pathfinding.h>
 #include <projection.h>
+#include <spritesheet.h>
+#include <systems/walker_system.h>
+
+#include <spdlog/spdlog.h>
 
 namespace {
 }
@@ -54,9 +56,17 @@ void update(entt::registry& registry)
         if (path.empty())
             continue;
 
+        [[maybe_unused]] const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet>() };
         entt::entity walker_entity { registry.create() };
-        registry.emplace<PathComponent>(walker_entity);
+        registry.emplace<PathComponent>(walker_entity, path);
         registry.emplace<HasWalkerFlag>(entity);
+
+        for (auto position : path) {
+            const GridPositionComponent& grid_position {
+                registry.get<const GridPositionComponent>(position)
+            };
+            spdlog::info("Step: {},{}", grid_position.position.x, grid_position.position.y);
+        }
     }
 }
 }

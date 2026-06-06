@@ -23,6 +23,17 @@ bool is_adjacent_to(glm::ivec2 from, glm::ivec2 to)
     return diff.x + diff.y == 1;
 }
 
+bool is_goal(const entt::registry& registry, entt::entity goal, entt::entity comparator)
+{
+    return (
+        goal == comparator
+        || is_adjacent_to(
+            registry.get<const GridPositionComponent>(goal).position,
+            registry.get<const GridPositionComponent>(comparator).position
+        )
+    );
+}
+
 struct PathStep {
     entt::entity tile;
     int priority;
@@ -41,11 +52,61 @@ int heuristic(const glm::ivec2& lhs, const glm::ivec2& rhs)
     return delta.x + delta.y;
 }
 
+void advance(
+    const entt::registry& registry,
+    std::priority_queue<PathStep, std::vector<PathStep>, Compare>& frontier,
+    std::unordered_map<entt::entity, entt::entity>& came_from,
+    entt::entity current_tile,
+    entt::entity query_tile,
+    entt::entity target_tile
+)
+{
+    if (came_from.find(query_tile) != came_from.end())
+        return;
+
+    int heuristic_val {
+        heuristic(
+            registry.get<const GridPositionComponent>(query_tile).position,
+            registry.get<const GridPositionComponent>(target_tile).position
+        )
+    };
+
+    frontier.push({ query_tile, heuristic_val });
+    came_from.emplace(query_tile, current_tile);
+}
+
+void query_segment(
+    const entt::registry& registry,
+    const SegmentComponent& segment,
+    std::priority_queue<PathStep, std::vector<PathStep>, Compare>& frontier,
+    std::unordered_map<entt::entity, entt::entity>& came_from,
+    entt::entity target_tile,
+    entt::entity current_tile
+)
+{
+    auto it {
+        std::find_if(
+            segment.entities.begin(),
+            segment.entities.end(),
+            [&registry, target_tile](entt::entity entity) {
+                return is_goal(registry, target_tile, entity);
+            }
+        )
+    };
+
+    if (it != segment.entities.end()) {
+        advance(registry, frontier, came_from, current_tile, *it, target_tile);
+    } else {
+        for (auto entity : { segment.origin, segment.termination }) {
+            advance(registry, frontier, came_from, current_tile, entity, target_tile);
+        }
+    }
+}
+
 } // namespace
 
 namespace Pathfinding {
 
-// TODO - or entt::entity
 void path_between(
     const entt::registry& registry,
     entt::entity from_tile,
@@ -56,14 +117,6 @@ void path_between(
     if (from_tile == to_tile)
         return;
 
-    const GridPositionComponent& from_tile_position {
-        registry.get<const GridPositionComponent>(from_tile)
-    };
-
-    const GridPositionComponent& to_tile_position {
-        registry.get<const GridPositionComponent>(to_tile)
-    };
-
     std::priority_queue<PathStep, std::vector<PathStep>, Compare> frontier;
     std::unordered_map<entt::entity, entt::entity> came_from;
     frontier.push({ from_tile, 0 });
@@ -72,90 +125,43 @@ void path_between(
         PathStep current { frontier.top() };
         frontier.pop();
 
-        if (
-            current.tile == to_tile
-            || is_adjacent_to(from_tile_position.position, to_tile_position.position)
-        )
+        assert(
+            (
+                registry.any_of<SegmentMemberComponent, JunctionComponent>(current.tile) //
+                && !registry.all_of<SegmentMemberComponent, JunctionComponent>(current.tile) //
+            )
+        );
+
+        if (is_goal(registry, to_tile, current.tile)) {
+            came_from.emplace(to_tile, current.tile);
             break;
-
-        const JunctionComponent* junction_component {
-            registry.try_get<const JunctionComponent>(current.tile)
-        };
-
-        std::vector<entt::entity> pending;
-
-        bool has_required_components {
-            registry.any_of<SegmentMemberComponent, JunctionComponent>(current.tile)
-        };
-
-        assert(has_required_components);
-
-        if (!junction_component) {
-            const SegmentComponent* segment_component {
-                &registry.get<const SegmentComponent>(
-                    registry.get<SegmentMemberComponent>(current.tile).segment
-                )
-            };
-            pending.push_back(segment_component->origin);
-            pending.push_back(segment_component->termination);
-        } else {
-            for (auto segment : junction_component->connections) {
-                if (segment == entt::null)
-                    continue;
-
-                const SegmentComponent& segment_component {
-                    registry.get<const SegmentComponent>(segment)
-                };
-
-                for (auto tile : segment_component.entities) {
-                    if (
-                        tile == to_tile
-                        || is_adjacent_to(
-                            to_tile_position.position,
-                            registry.get<const GridPositionComponent>(tile).position
-                        )
-                    ) {
-                        pending.push_back(to_tile);
-                        break;
-                    }
-                }
-
-                if (
-                    std::find(
-                        segment_component.entities.begin(),
-                        segment_component.entities.end(),
-                        to_tile
-                    )
-                    != segment_component.entities.end()
-                ) {
-                    pending.push_back(to_tile);
-                    break;
-                }
-
-                if (segment_component.origin == current.tile) {
-                    pending.push_back(segment_component.termination);
-                } else if (segment_component.termination == current.tile) {
-                    pending.push_back(segment_component.origin);
-                } else {
-                    //
-                }
-            }
         }
 
-        for (auto next_tile : pending) {
-            if (came_from.find(next_tile) != came_from.end())
-                continue;
-
-            const GridPositionComponent& next_tile_position {
-                registry.get<const GridPositionComponent>(next_tile)
-            };
-
-            frontier.push(
-                { next_tile,
-                  heuristic(next_tile_position.position, to_tile_position.position) }
+        if (registry.all_of<SegmentMemberComponent>(current.tile)) {
+            query_segment(
+                registry,
+                registry.get<SegmentComponent>(registry.get<SegmentMemberComponent>(current.tile).segment),
+                frontier,
+                came_from,
+                to_tile,
+                current.tile
             );
+        }
 
-            came_from.emplace(next_tile, current.tile);
+        if (registry.all_of<JunctionComponent>(current.tile)) {
+            for (auto segment_entity : registry.get<JunctionComponent>(current.tile).connections) {
+                if (segment_entity == entt::null)
+                    continue;
+
+                query_segment(
+                    registry,
+                    registry.get<SegmentComponent>(segment_entity),
+                    frontier,
+                    came_from,
+                    to_tile,
+                    current.tile
+                );
+            }
         }
     }
 

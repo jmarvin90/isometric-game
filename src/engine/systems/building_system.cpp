@@ -63,7 +63,7 @@ void unpair(entt::registry& registry, entt::entity entity)
     if (!registry.all_of<BuildingPairComponent>(entity))
         return;
 
-    const BuildingPairComponent pair {
+    const BuildingPairComponent& pair {
         registry.get<const BuildingPairComponent>(entity)
     };
 
