@@ -78,11 +78,9 @@ void load_from(entt::registry& registry, const std::string input_path)
         .get<BuildingPairComponent>(my_archive)
         .orphans();
 
-    // TODO: a temporary until the save file is fixed
+    // // TODO: ConnectivityUpdateFlag potentially not created on load
     for (auto [entity, sprite] : registry.view<SpriteComponent>().each()) {
         registry.emplace_or_replace<ConnectivityComponent>(entity, sprite.sprite_definition->directions);
-        // // TODO: This shouldn't need to be explicit
-        // registry.emplace_or_replace<ConnectivityUpdateFlag>(entity);
     }
 
     GraphSystem::update(registry);

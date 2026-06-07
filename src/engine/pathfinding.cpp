@@ -114,54 +114,49 @@ void path_between(
     std::vector<entt::entity>& path
 )
 {
-    if (from_tile == to_tile)
+    if (
+        from_tile == to_tile
+        || !registry.any_of<JunctionComponent, SegmentMemberComponent>(from_tile)
+    )
         return;
 
     std::priority_queue<PathStep, std::vector<PathStep>, Compare> frontier;
     std::unordered_map<entt::entity, entt::entity> came_from;
-    frontier.push({ from_tile, 0 });
+
+    if (registry.all_of<SegmentMemberComponent>(from_tile)) {
+        query_segment(
+            registry,
+            registry.get<SegmentComponent>(registry.get<SegmentMemberComponent>(from_tile).segment),
+            frontier,
+            came_from,
+            to_tile,
+            from_tile
+        );
+    } else {
+        frontier.push({ from_tile, 0 });
+    }
 
     while (!frontier.empty()) {
         PathStep current { frontier.top() };
         frontier.pop();
-
-        assert(
-            (
-                registry.any_of<SegmentMemberComponent, JunctionComponent>(current.tile) //
-                && !registry.all_of<SegmentMemberComponent, JunctionComponent>(current.tile) //
-            )
-        );
 
         if (is_goal(registry, to_tile, current.tile)) {
             came_from.emplace(to_tile, current.tile);
             break;
         }
 
-        if (registry.all_of<SegmentMemberComponent>(current.tile)) {
+        for (auto segment_entity : registry.get<JunctionComponent>(current.tile).connections) {
+            if (segment_entity == entt::null)
+                continue;
+
             query_segment(
                 registry,
-                registry.get<SegmentComponent>(registry.get<SegmentMemberComponent>(current.tile).segment),
+                registry.get<SegmentComponent>(segment_entity),
                 frontier,
                 came_from,
                 to_tile,
                 current.tile
             );
-        }
-
-        if (registry.all_of<JunctionComponent>(current.tile)) {
-            for (auto segment_entity : registry.get<JunctionComponent>(current.tile).connections) {
-                if (segment_entity == entt::null)
-                    continue;
-
-                query_segment(
-                    registry,
-                    registry.get<SegmentComponent>(segment_entity),
-                    frontier,
-                    came_from,
-                    to_tile,
-                    current.tile
-                );
-            }
         }
     }
 
