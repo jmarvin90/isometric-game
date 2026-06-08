@@ -54,10 +54,11 @@ inline constexpr std::array<SDL_Point, 4> TILE_ISO_POINTS { {
 inline const std::array<Gate, 4> ROAD_GATES {
     [] {
         std::array<Gate, 4> output {};
-        for (int index = 0; index < 4; index++) {
-            output[index] = {
-                TILE_CENTRE + (ROAD_MARK_OFFSET * translations[index].entry), // entry
-                TILE_CENTRE + (ROAD_MARK_OFFSET * translations[index].exit) // exit
+        for (auto direction : Direction::EachDirectionIn { Direction::TDirection::ALL_CARDINAL_DIRECTIONS }) {
+            auto index_position { Direction::index_position(direction) };
+            output[index_position] = {
+                TILE_CENTRE + (ROAD_MARK_OFFSET * translations[index_position].entry), // entry
+                TILE_CENTRE + (ROAD_MARK_OFFSET * translations[index_position].exit) // exit
             };
         }
         return output;
