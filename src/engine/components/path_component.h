@@ -6,6 +6,7 @@
 
 struct PathComponent {
     std::vector<entt::entity> path;
+    int current { 0 };
 };
 
 #endif

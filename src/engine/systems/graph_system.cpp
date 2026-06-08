@@ -54,7 +54,7 @@ Direction::TDirection resolved_directions(
     for (
         auto direction : Direction::EachDirectionIn { unresolved_directions }
     ) {
-        glm::ivec2 step { Direction::direction_vectors[direction] };
+        glm::ivec2 step { Direction::direction_vectors.at(direction) };
         entt::entity next { tilemap[grid_position + step] };
 
         if (
@@ -103,7 +103,7 @@ std::vector<entt::entity> get_segment_from(
         if (current_entity != tile && registry.all_of<JunctionComponent>(current_entity))
             break;
 
-        glm::ivec2 next_position { current_position + Direction::direction_vectors[direction] };
+        glm::ivec2 next_position { current_position + Direction::direction_vectors.at(direction) };
         entt::entity next_entity { tilemap[next_position] };
 
         if (

@@ -5,7 +5,9 @@
 #include <components/road_access_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
+#include <components/velocity_component.h>
 #include <constants.h>
+#include <directions.h>
 #include <entt/entt.hpp>
 #include <grid.h>
 #include <pathfinding.h>
@@ -16,10 +18,7 @@
 #include <spdlog/spdlog.h>
 
 namespace {
-}
-
-namespace WalkerSystem {
-void update(entt::registry& registry)
+void create_walkers(entt::registry& registry)
 {
     [[maybe_unused]] auto pending {
         registry.view<
@@ -32,10 +31,10 @@ void update(entt::registry& registry)
 
     using TileMapType = Grid<entt::entity, TileMapProjection>;
     const TileMapType tilemap { registry.ctx().get<const TileMapType>() };
+    std::vector<entt::entity> path {};
 
     for (auto [entity, transform, sprite, building_pair, road_access] : pending.each()) {
-        // TODO - move out of loop and clear each time
-        std::vector<entt::entity> path {};
+        path.clear();
 
         entt::entity target_tile {
             tilemap.at_world(
@@ -44,6 +43,7 @@ void update(entt::registry& registry)
             )
         };
 
+        // Get the first viable path, even if not the best
         for (entt::entity access_point : road_access.road_access_points) {
             Pathfinding::path_between(
                 registry,
@@ -58,25 +58,43 @@ void update(entt::registry& registry)
         if (path.empty())
             continue;
 
-        [[maybe_unused]] const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet>() };
         entt::entity walker_entity { registry.create() };
         registry.emplace<PathComponent>(walker_entity, path);
         registry.emplace<HasWalkerFlag>(entity);
-        registry.emplace<TransformComponent>(
-            walker_entity,
-            registry.get<const TransformComponent>(*path.begin()).position
-                + glm::vec2 { Constants::TILE_SIZE / 2 },
-            1,
-            0
-        );
-        registry.emplace<SpriteComponent>(walker_entity, &spritesheet.sprites.at("walker_e"));
-
-        for (auto position : path) {
-            const GridPositionComponent& grid_position {
-                registry.get<const GridPositionComponent>(position)
-            };
-            spdlog::info("Step: {},{}", grid_position.position.x, grid_position.position.y);
-        }
     }
+}
+
+[[maybe_unused]] Direction::TDirection direction_between(
+    const entt::registry& registry,
+    entt::entity start,
+    entt::entity end
+)
+{
+    glm::ivec2 dir {
+        registry.get<const GridPositionComponent>(start).position
+        - registry.get<const GridPositionComponent>(end).position
+    };
+
+    return Direction::vector_directions.at(
+        Direction::to_direction_vector(dir)
+    );
+}
+
+// void advance(entt::registry& registry, entt::entity entity)
+// {
+//     PathComponent& path { registry.get<PathComponent>(entity) };
+//     entt::entity current { path.path[path.current++] };
+
+//     if (path.path.size() == path.current) {
+//     }
+
+//     entt::entity next { path.path[path.current] };
+// }
+}
+
+namespace WalkerSystem {
+void update(entt::registry& registry)
+{
+    create_walkers(registry);
 }
 }

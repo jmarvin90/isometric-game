@@ -386,6 +386,8 @@ void render_segments(
                 std::tuple { segment.termination, segment.origin, Direction::reverse(segment.direction) } //
             } //
         ) {
+            [[maybe_unused]] uint8_t index_position { Direction::index_position(direction) };
+
             glm::ivec2 origin_position {
                 Position::world_to_screen(
                     glm::ivec2 { registry.get<const TransformComponent>(origin).position }

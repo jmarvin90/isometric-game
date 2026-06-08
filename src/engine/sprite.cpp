@@ -1,10 +1,10 @@
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
+#include <json_parse.h>
 #include <nlohmann/json.hpp>
 #include <sprite.h>
 #include <spritemask.h>
 #include <string>
-#include <json_parse.h>
 
 SpriteDefinition::SpriteDefinition(nlohmann::json input, SDL_Surface* surface)
     : name { input["name"].get<std::string>() }

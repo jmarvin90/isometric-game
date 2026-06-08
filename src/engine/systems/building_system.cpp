@@ -40,7 +40,7 @@ std::vector<entt::entity> get_access_points(
     std::vector<entt::entity>
         output {};
 
-    for (auto direction : Direction::EachDirectionIn { Direction::TDirection::ALL_DIRECTIONS }) {
+    for (auto direction : Direction::EachDirectionIn { Direction::TDirection::ALL_CARDINAL_DIRECTIONS }) {
         glm::ivec2 candidate_grid_position {
             grid_position + Direction::direction_vectors.at(direction)
         };

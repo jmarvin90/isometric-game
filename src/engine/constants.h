@@ -3,8 +3,10 @@
 
 #include <SDL2/SDL.h>
 #include <array>
+#include <directions.h>
 #include <glm/glm.hpp>
 #include <string>
+#include <unordered_map>
 
 // TODO - probably move gates / translations
 namespace {
@@ -35,6 +37,12 @@ inline constexpr int ROAD_WIDTH_PX { 68 };
 inline constexpr glm::ivec2 ROAD_MARK_OFFSET { ROAD_WIDTH_PX / 4, ROAD_WIDTH_PX / 8 };
 const std::string spritesheet { "assets/spritesheet_scaled.png" };
 const std::string SAVE_FILE_PATH { "save.json" };
+
+inline std::unordered_map<Direction::TDirection, std::string> WALKER_DIRECTIONS //
+    { { { Direction::TDirection::NORTH, "walker_n" },
+        { Direction::TDirection::SOUTH, "walker_s" },
+        { Direction::TDirection::EAST, "walker_e" },
+        { Direction::TDirection::WEST, "walker_w" } } };
 
 inline constexpr std::array<SDL_Point, 4> TILE_ISO_POINTS { {
     { TILE_CENTRE.x, 0 }, //

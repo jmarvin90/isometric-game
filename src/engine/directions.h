@@ -2,36 +2,65 @@
 #define DIRECTIONS_H
 #define GLM_ENABLE_EXPERIMENTAL
 
-#include <type_traits>
-#include <glm/gtx/hash.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtx/hash.hpp>
+#include <type_traits>
 #include <unordered_map>
 
 /*
-    1
-  2   8
-    4
+ -- Cardinally
+
+    2-------1------128
+    |                |
+    4               64
+    |                |
+    8-------16------32
+
+
+ -- Isometrically
+
+            2
+        4       1
+    8               128
+        16      64
+            32
 */
 
 // TODO - investigate entt enum bitmask
 namespace Direction {
 enum class TDirection : uint8_t {
-    NO_DIRECTION = 0, //
-    NORTH = 1 << 0, //
-    WEST = 1 << 1, //
-    SOUTH = 1 << 2, //
-    EAST = 1 << 3, //
-    ALL_DIRECTIONS = 15
+    NO_DIRECTION = 0,
+    NORTH = 1 << 0,
+    NORTH_WEST = 1 << 1,
+    WEST = 1 << 2,
+    SOUTH_WEST = 1 << 3,
+    SOUTH = 1 << 4,
+    SOUTH_EAST = 1 << 5,
+    EAST = 1 << 6,
+    NORTH_EAST = 1 << 7,
+    ALL_CARDINAL_DIRECTIONS = 85,
+    ALL_DIRECTIONS = 255
 };
 
-inline std::unordered_map<TDirection, glm::ivec2> direction_vectors {
+inline const std::unordered_map<TDirection, glm::ivec2> isometric_direction_vectors { {
+    { TDirection::NORTH, { 1, -2 } }, //
+    { TDirection::NORTH_WEST, { 0, -1 } }, //
+    { TDirection::WEST, { -2, -1 } }, //
+    { TDirection::SOUTH_WEST, { -1, 0 } },
+    { TDirection::SOUTH, { -1, 2 } }, //
+    { TDirection::SOUTH_EAST, { 0, 1 } },
+    { TDirection::EAST, { 2, 1 } }, //
+    { TDirection::NORTH_EAST, { 1, 0 } } //
+} };
+
+inline const std::unordered_map<TDirection, glm::ivec2> direction_vectors { {
     { TDirection::NORTH, { 0, -1 } },
     { TDirection::EAST, { 1, 0 } },
     { TDirection::SOUTH, { 0, 1 } },
     { TDirection::WEST, { -1, 0 } },
-};
+} };
 
-inline std::unordered_map<glm::ivec2, TDirection> vector_directions { {
+inline const std::unordered_map<glm::ivec2, TDirection> vector_directions { {
     { { 0, -1 }, TDirection::NORTH },
     { { 1, 0 }, TDirection::EAST },
     { { 0, 1 }, TDirection::SOUTH },
@@ -79,7 +108,7 @@ TDirection from_vector(const T& vector)
 constexpr TDirection operator-(const TDirection op)
 {
     return Direction::TDirection {
-        uint8_t((-to_underlying(op)) & 15)
+        uint8_t((-to_underlying(op)) & 255)
     };
 }
 
@@ -104,7 +133,7 @@ constexpr TDirection operator&(
 constexpr TDirection operator!(const TDirection op)
 {
     return Direction::TDirection {
-        uint8_t((!to_underlying(op)) & 15)
+        uint8_t((!to_underlying(op)) & 255)
     };
 }
 
@@ -113,7 +142,7 @@ constexpr TDirection operator>>(
 )
 {
     uint8_t bits { Direction::to_underlying(lhs) };
-    return Direction::TDirection((bits << places) & 15);
+    return Direction::TDirection((bits << places) & 255);
 }
 
 constexpr TDirection operator<<(
@@ -121,12 +150,12 @@ constexpr TDirection operator<<(
 )
 {
     uint8_t bits { Direction::to_underlying(lhs) };
-    return Direction::TDirection((bits >> places) & 15);
+    return Direction::TDirection((bits >> places) & 255);
 }
 
 constexpr bool any(const TDirection d)
 {
-    return to_underlying(d) & 15;
+    return to_underlying(d) & 255;
 }
 
 TDirection reverse(const TDirection direction);
