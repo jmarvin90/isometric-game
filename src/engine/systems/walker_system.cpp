@@ -1,11 +1,12 @@
 #include <components/building_pair_component.h>
 #include <components/connectivity_component.h>
 #include <components/flags.h>
+#include <components/origin_component.h>
 #include <components/path_component.h>
 #include <components/road_access_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
-#include <components/velocity_component.h>
+#include <components/walker_component.h>
 #include <constants.h>
 #include <directions.h>
 #include <entt/entt.hpp>
@@ -26,8 +27,11 @@ void create_walkers(entt::registry& registry)
             SpriteComponent,
             BuildingPairComponent,
             RoadAccessComponent,
-            SenderFlag>(entt::exclude<HasWalkerFlag>)
+            SenderFlag>(entt::exclude<WalkerComponent>)
     };
+
+    if (pending.begin() == pending.end())
+        return;
 
     using TileMapType = Grid<entt::entity, TileMapProjection>;
     const TileMapType tilemap { registry.ctx().get<const TileMapType>() };
@@ -60,37 +64,21 @@ void create_walkers(entt::registry& registry)
 
         entt::entity walker_entity { registry.create() };
         registry.emplace<PathComponent>(walker_entity, path);
-        registry.emplace<HasWalkerFlag>(entity);
+        registry.emplace<WalkerComponent>(entity, walker_entity);
     }
 }
 
-[[maybe_unused]] Direction::TDirection direction_between(
-    const entt::registry& registry,
-    entt::entity start,
-    entt::entity end
-)
-{
-    glm::ivec2 dir {
-        registry.get<const GridPositionComponent>(start).position
-        - registry.get<const GridPositionComponent>(end).position
-    };
-
-    return Direction::vector_directions.at(
-        Direction::to_direction_vector(dir)
-    );
-}
-
-// void advance(entt::registry& registry, entt::entity entity)
+// void step(entt::registry& registry, entt::entity entity)
 // {
-//     PathComponent& path { registry.get<PathComponent>(entity) };
-//     entt::entity current { path.path[path.current++] };
-
-//     if (path.path.size() == path.current) {
-//     }
-
-//     entt::entity next { path.path[path.current] };
 // }
 }
+
+/*
+    - Just starting out: no destination, no transform
+    - Intra-junction: at destination, has next step
+    - Inter-junction: not at destination
+    - Finishing: at desination, no next step
+*/
 
 namespace WalkerSystem {
 void update(entt::registry& registry)

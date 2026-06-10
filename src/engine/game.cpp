@@ -32,7 +32,6 @@
 #include <systems/entity_release_system.h>
 #include <systems/graph_system.h>
 #include <systems/mouse_system.h>
-#include <systems/movement_system.h>
 #include <systems/render_system.h>
 #include <systems/spatialmap_system.h>
 #include <systems/walker_system.h>
@@ -207,7 +206,6 @@ void Game::update([[maybe_unused]] const float delta_time)
     GraphSystem::update(registry);
     SpatialMapSystem::update(registry);
     MouseSystem::update(registry);
-    MovementSystem::update(registry, delta_time);
     RenderSystem::update(registry, debug_mode);
 }
 
