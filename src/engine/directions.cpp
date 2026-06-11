@@ -46,9 +46,7 @@ DirectionIterator EachDirectionIn::end() const
 
 TDirection reverse(const TDirection direction)
 {
-    if (to_underlying(direction) > 15)
-        return direction << 4;
-    return direction >> 4;
+    return mask(to_underlying(direction << 2 | direction >> 2));
 }
 
 bool is_junction(Direction::TDirection direction)
@@ -65,7 +63,7 @@ bool is_junction(Direction::TDirection direction)
 
 uint8_t index_position(Direction::TDirection direction)
 {
-    return __builtin_ctz(to_underlying(direction)) >> 1;
+    return __builtin_ctz(to_underlying(direction));
 }
 
 bool opposed(Direction::TDirection direction)

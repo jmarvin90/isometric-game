@@ -65,12 +65,10 @@ void create_walkers(entt::registry& registry)
         entt::entity walker_entity { registry.create() };
         registry.emplace<PathComponent>(walker_entity, path);
         registry.emplace<WalkerComponent>(entity, walker_entity);
+        std::vector<Pathfinding::PathSegment> expanded_path {};
+        Pathfinding::expand_path(registry, path, expanded_path);
     }
 }
-
-// void step(entt::registry& registry, entt::entity entity)
-// {
-// }
 }
 
 /*

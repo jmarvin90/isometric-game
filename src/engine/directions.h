@@ -10,36 +10,40 @@
 /*
  -- Cardinally
 
-    2-------1------128
-    |                |
-    4               64
-    |                |
-    8-------16------32
+    3-------1-------9
+    |               |
+    2               8
+    |               |
+    6-------4-------12
 
 
  -- Isometrically
 
-            2
-        4       1
-    8               128
-        16      64
-            32
+            3
+        2       1
+    6               9
+        4      8
+            12
 */
 
 // TODO - investigate entt enum bitmask
 namespace Direction {
 enum class TDirection : uint8_t {
     NO_DIRECTION = 0,
+
     NORTH = 1 << 0,
-    NORTH_WEST = 1 << 1,
-    WEST = 1 << 2,
-    SOUTH_WEST = 1 << 3,
-    SOUTH = 1 << 4,
-    SOUTH_EAST = 1 << 5,
-    EAST = 1 << 6,
-    NORTH_EAST = 1 << 7,
-    ALL_CARDINAL_DIRECTIONS = 85,
-    ALL_DIRECTIONS = 255
+    WEST = 1 << 1,
+    SOUTH = 1 << 2,
+    EAST = 1 << 3,
+
+    NORTH_WEST = NORTH | WEST,
+    SOUTH_WEST = SOUTH | WEST,
+    NORTH_EAST = NORTH | EAST,
+    SOUTH_EAST = SOUTH | EAST,
+
+    ALL_CARDINAL_DIRECTIONS = NORTH | SOUTH | EAST | WEST,
+    ALL_DIAGONAL_DIRECTIONS = NORTH_WEST | SOUTH_WEST | SOUTH_EAST | NORTH_EAST,
+    ALL_DIRECTIONS = ALL_CARDINAL_DIRECTIONS | ALL_DIAGONAL_DIRECTIONS
 };
 
 inline const std::unordered_map<TDirection, glm::ivec2> isometric_direction_vectors { {
@@ -54,17 +58,25 @@ inline const std::unordered_map<TDirection, glm::ivec2> isometric_direction_vect
 } };
 
 inline const std::unordered_map<TDirection, glm::ivec2> direction_vectors { {
-    { TDirection::NORTH, { 0, -1 } },
-    { TDirection::EAST, { 1, 0 } },
-    { TDirection::SOUTH, { 0, 1 } },
-    { TDirection::WEST, { -1, 0 } },
+    { TDirection::NORTH, { 0, -1 } }, //
+    { TDirection::NORTH_WEST, { -1, -1 } }, //
+    { TDirection::WEST, { -1, 0 } }, //
+    { TDirection::SOUTH_WEST, { -1, 1 } }, //
+    { TDirection::SOUTH, { 0, 1 } }, //
+    { TDirection::SOUTH_EAST, { 1, 1 } }, //
+    { TDirection::EAST, { 1, 0 } }, //
+    { TDirection::NORTH_EAST, { 1, -1 } } //
 } };
 
 inline const std::unordered_map<glm::ivec2, TDirection> vector_directions { {
-    { { 0, -1 }, TDirection::NORTH },
-    { { 1, 0 }, TDirection::EAST },
-    { { 0, 1 }, TDirection::SOUTH },
-    { { -1, 0 }, TDirection::WEST },
+    { { 0, -1 }, TDirection::NORTH }, //
+    { { -1, -1 }, TDirection::NORTH_WEST }, //
+    { { -1, 0 }, TDirection::WEST }, //
+    { { -1, 1 }, TDirection::SOUTH_WEST }, //
+    { { 0, 1 }, TDirection::SOUTH }, //
+    { { 1, 1 }, TDirection::SOUTH_EAST }, //
+    { { 1, 0 }, TDirection::EAST }, //
+    { { 1, -1 }, TDirection::NORTH_EAST } //
 } };
 
 struct DirectionIterator {
@@ -85,9 +97,14 @@ struct EachDirectionIn {
 };
 
 template <typename T>
-constexpr uint8_t to_underlying(T t)
+constexpr std::underlying_type_t<T> to_underlying(T t)
 {
     return static_cast<std::underlying_type_t<T>>(t);
+}
+
+constexpr TDirection mask(uint8_t bits)
+{
+    return TDirection(bits & to_underlying(TDirection::ALL_DIRECTIONS));
 }
 
 template <typename T>
@@ -102,14 +119,12 @@ glm::ivec2 to_direction_vector(const T& vector)
 template <typename T>
 TDirection from_vector(const T& vector)
 {
-    return Direction::vector_directions[to_direction_vector<T>(vector)];
+    return Direction::vector_directions.at(to_direction_vector<T>(vector));
 }
 
 constexpr TDirection operator-(const TDirection op)
 {
-    return Direction::TDirection {
-        uint8_t((-to_underlying(op)) & 255)
-    };
+    return mask(uint8_t((-to_underlying(op))));
 }
 
 constexpr TDirection operator|(
@@ -132,9 +147,7 @@ constexpr TDirection operator&(
 
 constexpr TDirection operator!(const TDirection op)
 {
-    return Direction::TDirection {
-        uint8_t((!to_underlying(op)) & 255)
-    };
+    return mask(uint8_t((!to_underlying(op))));
 }
 
 constexpr TDirection operator>>(
@@ -142,7 +155,7 @@ constexpr TDirection operator>>(
 )
 {
     uint8_t bits { Direction::to_underlying(lhs) };
-    return Direction::TDirection((bits << places) & 255);
+    return mask(bits << places);
 }
 
 constexpr TDirection operator<<(
@@ -150,12 +163,12 @@ constexpr TDirection operator<<(
 )
 {
     uint8_t bits { Direction::to_underlying(lhs) };
-    return Direction::TDirection((bits >> places) & 255);
+    return mask(bits >> places);
 }
 
 constexpr bool any(const TDirection d)
 {
-    return to_underlying(d) & 255;
+    return bool(mask(to_underlying(d)));
 }
 
 TDirection reverse(const TDirection direction);

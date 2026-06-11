@@ -9,6 +9,7 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <grid.h>
+#include <optional>
 #include <pathfinding.h>
 #include <projection.h>
 #include <queue>
@@ -173,6 +174,51 @@ void path_between(
 
     path.push_back(from_tile);
     std::reverse(path.begin(), path.end());
+}
+
+void expand_path(
+    entt::registry& registry,
+    const std::vector<entt::entity>& path,
+    std::vector<PathSegment>& expanded_path
+)
+{
+    Direction::TDirection incoming_direction { Direction::TDirection::NO_DIRECTION };
+
+    for (std::size_t index = 0; index < path.size() - 1; index++) {
+        const glm::ivec2 current_grid_position { registry.get<const GridPositionComponent>(path.at(index)).position };
+        const glm::ivec2 current_transform_abs { registry.get<const TransformComponent>(path.at(index)).position };
+        const glm::ivec2 next_grid_position { registry.get<const GridPositionComponent>(path.at(index + 1)).position };
+        const glm::ivec2 next_transform_abs { registry.get<const TransformComponent>(path.at(index + 1)).position };
+
+        Direction::TDirection outgoing_direction {
+            Direction::from_vector(next_grid_position - current_grid_position)
+        };
+
+        Direction::TDirection reverse_outgoing_direction {
+            Direction::reverse(outgoing_direction)
+        };
+
+        glm::ivec2 outgoing_exit {
+            current_transform_abs
+            + Constants::ROAD_GATES.at(index_position(outgoing_direction)).exit
+        };
+
+        if (index != 0 && registry.all_of<JunctionComponent>(path.at(index))) {
+            expanded_path.emplace_back(
+                current_transform_abs + Constants::ROAD_GATES.at(index_position(Direction::reverse(incoming_direction))).entry,
+                outgoing_exit,
+                incoming_direction | outgoing_direction
+            );
+        }
+
+        expanded_path.emplace_back(
+            outgoing_exit,
+            next_transform_abs + Constants::ROAD_GATES.at(index_position(reverse_outgoing_direction)).entry,
+            outgoing_direction
+        );
+
+        incoming_direction = outgoing_direction;
+    }
 }
 
 } // namespace
