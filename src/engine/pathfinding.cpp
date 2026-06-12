@@ -185,10 +185,10 @@ void expand_path(
     Direction::TDirection incoming_direction { Direction::TDirection::NO_DIRECTION };
 
     for (std::size_t index = 0; index < path.size() - 1; index++) {
-        const glm::vec2 current_grid_position { registry.get<const GridPositionComponent>(path.at(index)).position };
-        const glm::vec2 current_transform_abs { registry.get<const TransformComponent>(path.at(index)).position };
-        const glm::vec2 next_grid_position { registry.get<const GridPositionComponent>(path.at(index + 1)).position };
-        const glm::vec2 next_transform_abs { registry.get<const TransformComponent>(path.at(index + 1)).position };
+        const glm::ivec2 current_grid_position { registry.get<const GridPositionComponent>(path.at(index)).position };
+        const glm::ivec2 current_transform_abs { registry.get<const TransformComponent>(path.at(index)).position };
+        const glm::ivec2 next_grid_position { registry.get<const GridPositionComponent>(path.at(index + 1)).position };
+        const glm::ivec2 next_transform_abs { registry.get<const TransformComponent>(path.at(index + 1)).position };
 
         Direction::TDirection outgoing_direction {
             Direction::from_vector(next_grid_position - current_grid_position)

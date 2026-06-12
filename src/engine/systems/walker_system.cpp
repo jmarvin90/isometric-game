@@ -43,7 +43,7 @@ void create_walkers(entt::registry& registry)
 
         entt::entity target_tile {
             tilemap.at_world(
-                glm::vec2 { registry.get<const TransformComponent>(building_pair.paired_with).position }
+                glm::ivec2 { registry.get<const TransformComponent>(building_pair.paired_with).position }
                 + registry.get<const SpriteComponent>(building_pair.paired_with).sprite_definition->anchor
             )
         };
