@@ -46,18 +46,26 @@ enum class TDirection : uint8_t {
     ALL_DIRECTIONS = ALL_CARDINAL_DIRECTIONS | ALL_DIAGONAL_DIRECTIONS
 };
 
-inline const std::unordered_map<TDirection, glm::ivec2> isometric_direction_vectors { {
-    { TDirection::NORTH, { 1, -2 } }, //
+inline const std::unordered_map<TDirection, glm::vec2> isometric_direction_vectors { {
+    { TDirection::NORTH, { 2, -1 } }, //
     { TDirection::NORTH_WEST, { 0, -1 } }, //
     { TDirection::WEST, { -2, -1 } }, //
     { TDirection::SOUTH_WEST, { -1, 0 } },
-    { TDirection::SOUTH, { -1, 2 } }, //
+    { TDirection::SOUTH, { -2, 1 } }, //
     { TDirection::SOUTH_EAST, { 0, 1 } },
     { TDirection::EAST, { 2, 1 } }, //
     { TDirection::NORTH_EAST, { 1, 0 } } //
+    // { TDirection::NORTH, { 2, -1 } }, //
+    // { TDirection::NORTH_WEST, { 1, 0 } }, //
+    // { TDirection::WEST, { 2, 1 } }, //
+    // { TDirection::SOUTH_WEST, { 0, 1 } },
+    // { TDirection::SOUTH, { -1, 2 } }, //
+    // { TDirection::SOUTH_EAST, { -1, 0 } },
+    // { TDirection::EAST, { -2, -1 } }, //
+    // { TDirection::NORTH_EAST, { 0, -0 } } //
 } };
 
-inline const std::unordered_map<TDirection, glm::ivec2> direction_vectors { {
+inline const std::unordered_map<TDirection, glm::vec2> direction_vectors { {
     { TDirection::NORTH, { 0, -1 } }, //
     { TDirection::NORTH_WEST, { -1, -1 } }, //
     { TDirection::WEST, { -1, 0 } }, //
@@ -68,7 +76,7 @@ inline const std::unordered_map<TDirection, glm::ivec2> direction_vectors { {
     { TDirection::NORTH_EAST, { 1, -1 } } //
 } };
 
-inline const std::unordered_map<glm::ivec2, TDirection> vector_directions { {
+inline const std::unordered_map<glm::vec2, TDirection> vector_directions { {
     { { 0, -1 }, TDirection::NORTH }, //
     { { -1, -1 }, TDirection::NORTH_WEST }, //
     { { -1, 0 }, TDirection::WEST }, //
@@ -108,7 +116,7 @@ constexpr TDirection mask(uint8_t bits)
 }
 
 template <typename T>
-glm::ivec2 to_direction_vector(const T& vector)
+glm::vec2 to_direction_vector(const T& vector)
 {
     return {
         vector.x != 0 ? std::copysign(1, vector.x) : 0,

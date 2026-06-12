@@ -32,6 +32,7 @@
 #include <systems/entity_release_system.h>
 #include <systems/graph_system.h>
 #include <systems/mouse_system.h>
+#include <systems/movement_system.h>
 #include <systems/render_system.h>
 #include <systems/spatialmap_system.h>
 #include <systems/walker_system.h>
@@ -200,6 +201,7 @@ void Game::process_input()
 void Game::update([[maybe_unused]] const float delta_time)
 {
     EntityReleaseSystem::update(registry);
+    MovementSystem::update(registry, delta_time);
     WalkerSystem::update(registry);
     CameraSystem::update(registry);
     BuildingSystem::update(registry);
@@ -229,7 +231,12 @@ void Game::run()
         // The start point (in ticks), the delta to the last frame in s/ms
         const uint64_t start { SDL_GetTicks64() };
         const uint64_t since_last_frame { start - _last_time };
-        const float delta_time = { since_last_frame / 1'000.f };
+        const float delta_time = {
+            std::min(
+                since_last_frame / 1'000.f,
+                0.1f
+            )
+        };
 
         process_input();
         update(delta_time);

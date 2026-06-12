@@ -61,6 +61,7 @@ bool is_junction(Direction::TDirection direction)
     return is_junction;
 }
 
+// TODO: Important! Only works for cardinal directions; essentially not fit for purpose
 uint8_t index_position(Direction::TDirection direction)
 {
     return __builtin_ctz(to_underlying(direction));

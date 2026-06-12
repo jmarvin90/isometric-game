@@ -1,24 +1,15 @@
 #ifndef PATHFINDING_H
 #define PATHFINDING_H
 
+#include <components/path_component.h>
 #include <components/segment_component.h>
 #include <directions.h>
 #include <entt/entt.hpp>
 #include <vector>
 
-namespace Pathfinding {
+struct PathSegment;
 
-struct PathSegment {
-    glm::ivec2 start;
-    glm::ivec2 end;
-    Direction::TDirection direction;
-    PathSegment(glm::ivec2 start, glm::ivec2 end, Direction::TDirection direction)
-        : start { start }
-        , end { end }
-        , direction { direction }
-    {
-    }
-};
+namespace Pathfinding {
 
 void path_between(
     const entt::registry& registry,

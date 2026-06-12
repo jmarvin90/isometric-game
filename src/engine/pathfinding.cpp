@@ -18,9 +18,9 @@
 
 namespace {
 
-bool is_adjacent_to(glm::ivec2 from, glm::ivec2 to)
+bool is_adjacent_to(glm::vec2 from, glm::vec2 to)
 {
-    glm::ivec2 diff = glm::abs(from - to);
+    glm::vec2 diff = glm::abs(from - to);
     return diff.x + diff.y == 1;
 }
 
@@ -47,9 +47,9 @@ struct Compare {
     }
 };
 
-int heuristic(const glm::ivec2& lhs, const glm::ivec2& rhs)
+int heuristic(const glm::vec2& lhs, const glm::vec2& rhs)
 {
-    glm::ivec2 delta { glm::abs(rhs - lhs) };
+    glm::vec2 delta { glm::abs(rhs - lhs) };
     return delta.x + delta.y;
 }
 
@@ -185,10 +185,10 @@ void expand_path(
     Direction::TDirection incoming_direction { Direction::TDirection::NO_DIRECTION };
 
     for (std::size_t index = 0; index < path.size() - 1; index++) {
-        const glm::ivec2 current_grid_position { registry.get<const GridPositionComponent>(path.at(index)).position };
-        const glm::ivec2 current_transform_abs { registry.get<const TransformComponent>(path.at(index)).position };
-        const glm::ivec2 next_grid_position { registry.get<const GridPositionComponent>(path.at(index + 1)).position };
-        const glm::ivec2 next_transform_abs { registry.get<const TransformComponent>(path.at(index + 1)).position };
+        const glm::vec2 current_grid_position { registry.get<const GridPositionComponent>(path.at(index)).position };
+        const glm::vec2 current_transform_abs { registry.get<const TransformComponent>(path.at(index)).position };
+        const glm::vec2 next_grid_position { registry.get<const GridPositionComponent>(path.at(index + 1)).position };
+        const glm::vec2 next_transform_abs { registry.get<const TransformComponent>(path.at(index + 1)).position };
 
         Direction::TDirection outgoing_direction {
             Direction::from_vector(next_grid_position - current_grid_position)
@@ -198,7 +198,7 @@ void expand_path(
             Direction::reverse(outgoing_direction)
         };
 
-        glm::ivec2 outgoing_exit {
+        glm::vec2 outgoing_exit {
             current_transform_abs
             + Constants::ROAD_GATES.at(index_position(outgoing_direction)).exit
         };
