@@ -93,10 +93,11 @@ void tag(entt::registry& registry, entt::entity entity)
     };
 
     // TODO: copied mulitple times, emplacement condition duplicated
-    std::vector<entt::entity> access_points { get_access_points(registry, entity) };
+    std::vector<entt::entity> access_points;
 
     switch (sprite.sprite_definition->sprite_type) {
     case SpriteType::BUILDING_SENDER:
+        access_points = get_access_points(registry, entity);
         registry.emplace<SenderFlag>(entity);
         if (access_points.size() != 0)
             registry.emplace_or_replace<RoadAccessComponent>(
@@ -104,6 +105,7 @@ void tag(entt::registry& registry, entt::entity entity)
             );
         break;
     case SpriteType::BUILDING_RECEIVER:
+        access_points = get_access_points(registry, entity);
         registry.emplace<ReceiverFlag>(entity);
         if (access_points.size() != 0)
             registry.emplace_or_replace<RoadAccessComponent>(

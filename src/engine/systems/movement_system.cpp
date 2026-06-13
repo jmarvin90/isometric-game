@@ -17,6 +17,7 @@ void update(entt::registry& registry, const float delta_time)
         float budget { velocity.speed * delta_time };
 
         while (budget > 0 && size_t(path.current) != path.path.size() - 1) {
+            [[maybe_unused]] auto& gates { Constants::ROAD_GATES };
             const PathSegment& current_segment { path.path.at(path.current) };
             const glm::vec2 remaining { glm::vec2 { current_segment.end } - transform.position };
             const float dist_to_target = glm::length(remaining);
