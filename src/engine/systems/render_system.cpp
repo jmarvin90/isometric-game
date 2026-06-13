@@ -6,13 +6,11 @@
 #include <components/connectivity_component.h>
 #include <components/flags.h>
 #include <components/grid_position_component.h>
-#include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
 #include <components/render_offset_component.h>
 #include <components/segment_component.h>
 #include <components/segment_member_component.h>
-#include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
@@ -33,6 +31,41 @@
 #include <vector>
 
 namespace {
+
+glm::vec2 resolve_position(
+    const TransformComponent& transform,
+    const RenderOffsetComponent* offset
+)
+{
+    return glm::vec2 {
+        offset ? transform.position + offset->render_offset : transform.position
+    };
+}
+
+void extract_renderables(
+    const entt::registry& registry,
+    std::vector<Renderable>& renderables,
+    const SpatialMapCellComponent& spatial_map_cell,
+    const CameraComponent& camera
+)
+{
+    for (entt::entity renderable_entity : spatial_map_cell.entities) {
+        if (!registry.all_of<TransformComponent, SpriteComponent>(renderable_entity))
+            continue;
+
+        const TransformComponent& transform { registry.get<const TransformComponent>(renderable_entity) };
+        const RenderOffsetComponent* offset { registry.try_get<const RenderOffsetComponent>(renderable_entity) };
+
+        renderables.emplace_back(
+            &transform,
+            registry.get<const SpriteComponent>(renderable_entity).sprite_definition,
+            offset,
+            registry.all_of<HighlightedFlag>(renderable_entity),
+            registry.all_of<SelectedFlag>(renderable_entity),
+            Position::world_to_screen(resolve_position(transform, offset), camera.position)
+        );
+    }
+}
 
 // TODO - get rid of debug mode
 bool transform_comparison(
@@ -86,29 +119,12 @@ void update(entt::registry& registry, const bool debug_mode)
         };
 
         if (SDL_HasIntersection(&comparator, &camera_rect)) {
-            entt::entity highlighted_entity { registry.ctx().get<const HighlightedEntityComponent>().entity };
-            entt::entity selected_entity { registry.ctx().get<const SelectedEntityComponent>().entity };
-
-            for (entt::entity renderable_entity : cell.entities) {
-                if (!registry.all_of<TransformComponent, SpriteComponent>(renderable_entity))
-                    continue;
-
-                const TransformComponent& transform { registry.get<const TransformComponent>(renderable_entity) };
-                const RenderOffsetComponent* offset { registry.try_get<const RenderOffsetComponent>(renderable_entity) };
-
-                renderables.emplace_back(
-                    &transform,
-                    registry.get<const SpriteComponent>(renderable_entity).sprite_definition,
-                    offset,
-                    renderable_entity == highlighted_entity,
-                    renderable_entity == selected_entity,
-                    Position::world_to_screen(
-                        offset ? transform.position + offset->render_offset : transform.position, camera.position
-                    )
-                );
-            }
-
-            // TODO - can I add segments to the renderables pile?
+            extract_renderables(
+                registry,
+                renderables,
+                cell,
+                camera
+            );
         }
     }
 
@@ -178,7 +194,6 @@ void render_imgui_ui(
         registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
     };
     const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet>() };
-    entt::entity& selected_entity { registry.ctx().get<SelectedEntityComponent>().entity };
 
     // The mouse and world positions
 
@@ -231,7 +246,8 @@ void render_imgui_ui(
         );
     }
 
-    if (selected_entity != entt::null) {
+    if (auto view { registry.view<SelectedFlag>() }; view.begin() != view.end()) {
+        entt::entity selected_entity { view.front() };
         SpriteComponent& sprite { registry.get<SpriteComponent>(selected_entity) };
         const TransformComponent& transform { registry.get<const TransformComponent>(selected_entity) };
         const SegmentMemberComponent* segment_membership { registry.try_get<const SegmentMemberComponent>(selected_entity) };
@@ -265,7 +281,7 @@ void render_imgui_ui(
 
         if (ImGui::Button("Delete entity")) {
             registry.emplace<EntityReleaseFlag>(selected_entity);
-            selected_entity = entt::null;
+            registry.clear<SelectedFlag>();
         }
 
         if (ImGui::BeginCombo("Sprite", sprite.sprite_definition->name.c_str())) {

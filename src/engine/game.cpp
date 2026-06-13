@@ -5,12 +5,10 @@
 #include <components/camera_component.h>
 #include <components/connectivity_component.h>
 #include <components/flags.h>
-#include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
 #include <components/segment_component.h>
 #include <components/segment_member_component.h>
-#include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/spatialmapcell_span_component.h>
 #include <components/sprite_component.h>
@@ -139,9 +137,6 @@ void Game::initialise()
         std::string { "assets/spritesheet.json" },
         renderer
     );
-
-    registry.ctx().emplace<SelectedEntityComponent>();
-    registry.ctx().emplace<HighlightedEntityComponent>();
 
     registry.on_construct<SpriteComponent>().connect<&BuildingSystem::tag>();
     registry.on_update<SpriteComponent>().connect<&BuildingSystem::tag>();
