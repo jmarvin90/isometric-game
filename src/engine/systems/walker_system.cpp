@@ -3,6 +3,7 @@
 #include <components/flags.h>
 #include <components/origin_component.h>
 #include <components/path_component.h>
+#include <components/render_offset_component.h>
 #include <components/road_access_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
@@ -69,23 +70,30 @@ void create_walkers(entt::registry& registry)
         const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet>() };
         registry.emplace<PathComponent>(walker_entity, expanded_path);
         registry.emplace<WalkerComponent>(entity, walker_entity);
-        registry.emplace<SpriteComponent>(
-            walker_entity,
-            &spritesheet.sprites.at(
-                Constants::WALKER_DIRECTIONS.at(expanded_path.front().direction)
+        const SpriteComponent& sprite_component {
+            registry.emplace<SpriteComponent>(
+                walker_entity,
+                &spritesheet.sprites.at(
+                    Constants::WALKER_DIRECTIONS.at(expanded_path.front().direction)
+                )
             )
-        );
+        };
         registry.emplace<TransformComponent>(
             walker_entity,
             expanded_path.front().start,
             1,
             0.0
         );
-        [[maybe_unused]] const VelocityComponent& vel_comp = registry.emplace<VelocityComponent>(
+        registry.emplace<RenderOffsetComponent>(
             walker_entity,
-            Direction::isometric_direction_vectors.at(expanded_path.front().direction),
-            60
+            -sprite_component.sprite_definition->anchor
         );
+        [[maybe_unused]] const VelocityComponent& vel_comp
+            = registry.emplace<VelocityComponent>(
+                walker_entity,
+                Direction::isometric_direction_vectors.at(expanded_path.front().direction),
+                60
+            );
     }
 }
 }

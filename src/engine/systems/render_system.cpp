@@ -9,6 +9,7 @@
 #include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
+#include <components/render_offset_component.h>
 #include <components/segment_component.h>
 #include <components/segment_member_component.h>
 #include <components/selected_entity_component.h>
@@ -93,13 +94,17 @@ void update(entt::registry& registry, const bool debug_mode)
                     continue;
 
                 const TransformComponent& transform { registry.get<const TransformComponent>(renderable_entity) };
+                const RenderOffsetComponent* offset { registry.try_get<const RenderOffsetComponent>(renderable_entity) };
 
                 renderables.emplace_back(
                     &transform,
                     registry.get<const SpriteComponent>(renderable_entity).sprite_definition,
+                    offset,
                     renderable_entity == highlighted_entity,
                     renderable_entity == selected_entity,
-                    Position::world_to_screen(transform.position, camera.position)
+                    Position::world_to_screen(
+                        offset ? transform.position + offset->render_offset : transform.position, camera.position
+                    )
                 );
             }
 

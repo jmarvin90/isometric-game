@@ -4,15 +4,17 @@
 #include <SDL2/SDL.h>
 #include <components/camera_component.h>
 #include <components/mouse_component.h>
+#include <components/render_offset_component.h>
 #include <components/transform_component.h>
-#include <sprite.h>
 #include <entt/entt.hpp>
-#include <spritesheet.h>
 #include <glm/glm.hpp>
+#include <sprite.h>
+#include <spritesheet.h>
 
 struct Renderable {
     const TransformComponent* transform;
     const SpriteDefinition* sprite;
+    const RenderOffsetComponent* offset;
     bool mouseover;
     bool selected;
     glm::ivec2 screen_position;
@@ -20,12 +22,14 @@ struct Renderable {
     Renderable(
         const TransformComponent* transform,
         const SpriteDefinition* sprite,
+        const RenderOffsetComponent* offset,
         bool mouseover,
         bool selected,
         glm::ivec2 screen_position
     )
         : transform { transform }
         , sprite { sprite }
+        , offset { offset }
         , mouseover { mouseover }
         , selected { selected }
         , screen_position { screen_position }

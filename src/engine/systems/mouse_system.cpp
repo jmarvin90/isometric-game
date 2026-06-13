@@ -1,6 +1,7 @@
 #include <camera_component.h>
 #include <components/grid_position_component.h>
 #include <components/highlighted_entity_component.h>
+#include <components/render_offset_component.h>
 #include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <entt/entt.hpp>
@@ -44,7 +45,15 @@ entt::entity get_hovered_entity(
             registry.get<const SpriteComponent>(entity)
         };
 
-        if (!ISOUtility::AABB(transform, sprite, mouse.world_position))
+        const RenderOffsetComponent* offset {
+            registry.try_get<const RenderOffsetComponent>(entity)
+        };
+
+        glm::vec2 abs_position {
+            offset ? transform.position + offset->render_offset : transform.position
+        };
+
+        if (!ISOUtility::AABB(abs_position, sprite, mouse.world_position))
             continue;
 
         if (

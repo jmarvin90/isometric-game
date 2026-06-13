@@ -31,9 +31,9 @@ struct SDLDestroyer {
 };
 
 bool AABB(
-    const TransformComponent& transform,
+    const glm::vec2& entity_position,
     const SpriteComponent& sprite,
-    const glm::ivec2 position
+    const glm::ivec2 query_position
 );
 
 void align_sprite_to(

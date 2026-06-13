@@ -41,12 +41,12 @@ void align_sprite_to(
 }
 
 bool AABB(
-    const TransformComponent& transform,
+    const glm::vec2& entity_position,
     const SpriteComponent& sprite,
-    const glm::ivec2 position
+    const glm::ivec2 query_position
 )
 {
-    glm::ivec2 AA { transform.position };
+    glm::ivec2 AA { entity_position };
     glm::ivec2 BB {
         AA
         + glm::ivec2 {
@@ -55,8 +55,8 @@ bool AABB(
     };
 
     return (
-        glm::all(glm::greaterThanEqual(position, AA))
-        & glm::all(glm::lessThan(position, BB))
+        glm::all(glm::greaterThanEqual(query_position, AA))
+        & glm::all(glm::lessThan(query_position, BB))
     );
 }
 }
