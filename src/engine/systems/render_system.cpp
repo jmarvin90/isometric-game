@@ -96,7 +96,9 @@ void update(entt::registry& registry, const bool debug_mode)
     */
 
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    const Grid<entt::entity, SpatialMapProjection>& spatial_map { registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>() };
+    const Grid<entt::entity, SpatialMapProjection>& spatial_map {
+        registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
+    };
 
     auto spatialmap_cells { registry.view<SpatialMapCellComponent, TransformComponent>() };
     std::vector<Renderable>& renderables { registry.ctx().get<std::vector<Renderable>>() };

@@ -18,27 +18,15 @@ std::vector<entt::entity> get_access_points(
     entt::entity entity
 )
 {
-    glm::ivec2 abs_position {
-        registry.get<const TransformComponent>(entity).position
+    glm::ivec2 position {
+        glm::ivec2 { registry.get<const TransformComponent>(entity).position }
+        + registry.get<const SpriteComponent>(entity).sprite_definition->anchor
     };
-
-    glm::ivec2 offset {
-        registry.get<const SpriteComponent>(entity).sprite_definition->anchor
-    };
-
-    glm::ivec2 position { abs_position + offset };
 
     using TileMapType = Grid<entt::entity, TileMapProjection>;
-    const TileMapType tilemap {
-        registry.ctx().get<const TileMapType>()
-    };
-
-    glm::ivec2 grid_position {
-        TileMapProjection::world_to_grid(position, tilemap)
-    };
-
-    std::vector<entt::entity>
-        output {};
+    const TileMapType tilemap { registry.ctx().get<const TileMapType>() };
+    glm::ivec2 grid_position { TileMapProjection::world_to_grid(position, tilemap) };
+    std::vector<entt::entity> output {};
 
     for (auto direction : Direction::EachDirectionIn { Direction::TDirection::ALL_CARDINAL_DIRECTIONS }) {
         glm::ivec2 candidate_grid_position {
