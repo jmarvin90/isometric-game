@@ -4,6 +4,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
+#include <numeric>
 #include <type_traits>
 #include <unordered_map>
 
@@ -118,10 +119,12 @@ constexpr TDirection mask(uint8_t bits)
 template <typename T>
 glm::vec2 to_direction_vector(const T& vector)
 {
-    return {
-        vector.x != 0 ? std::copysign(1, vector.x) : 0,
-        vector.y != 0 ? std::copysign(1, vector.y) : 0
-    };
+    T abs_vector { glm::abs(vector) };
+    if (abs_vector.x == abs_vector.y)
+        return { std::copysign(1, vector.x), std::copysign(1, vector.y) };
+    if (abs_vector.x > abs_vector.y)
+        return { std::copysign(1, vector.x), 0 };
+    return { 0, std::copysign(1, vector.y) };
 }
 
 template <typename T>

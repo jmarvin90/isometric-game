@@ -84,7 +84,7 @@ void create_walkers(entt::registry& registry)
         [[maybe_unused]] const VelocityComponent& vel_comp = registry.emplace<VelocityComponent>(
             walker_entity,
             Direction::isometric_direction_vectors.at(expanded_path.front().direction),
-            20
+            60
         );
     }
 }

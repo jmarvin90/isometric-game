@@ -41,9 +41,13 @@ const std::string SAVE_FILE_PATH { "save.json" };
 
 inline std::unordered_map<Direction::TDirection, std::string> WALKER_DIRECTIONS //
     { { { Direction::TDirection::NORTH, "walker_n" },
+        { Direction::TDirection::NORTH_WEST, "walker_nw" },
+        { Direction::TDirection::WEST, "walker_w" },
+        { Direction::TDirection::SOUTH_WEST, "walker_sw" },
         { Direction::TDirection::SOUTH, "walker_s" },
+        { Direction::TDirection::SOUTH_EAST, "walker_se" },
         { Direction::TDirection::EAST, "walker_e" },
-        { Direction::TDirection::WEST, "walker_w" } } };
+        { Direction::TDirection::NORTH_EAST, "walker_ne" } } };
 
 inline constexpr std::array<SDL_Point, 4> TILE_ISO_POINTS { {
     { TILE_CENTRE.x, 0 }, //
