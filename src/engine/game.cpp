@@ -5,12 +5,10 @@
 #include <components/camera_component.h>
 #include <components/connectivity_component.h>
 #include <components/flags.h>
-#include <components/highlighted_entity_component.h>
 #include <components/junction_component.h>
 #include <components/mouse_component.h>
 #include <components/segment_component.h>
 #include <components/segment_member_component.h>
-#include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <components/spatialmapcell_span_component.h>
 #include <components/sprite_component.h>
@@ -32,8 +30,10 @@
 #include <systems/entity_release_system.h>
 #include <systems/graph_system.h>
 #include <systems/mouse_system.h>
+#include <systems/movement_system.h>
 #include <systems/render_system.h>
 #include <systems/spatialmap_system.h>
+#include <systems/walker_system.h>
 
 namespace {
 void save_to(entt::registry& registry, const std::string output_path)
@@ -48,13 +48,11 @@ void save_to(entt::registry& registry, const std::string output_path)
     OutputArchive my_archive;
     entt::basic_snapshot(registry)
         .get<entt::entity>(my_archive)
+        .get<GridPositionComponent>(my_archive)
         .get<TransformComponent>(my_archive)
         .get<SpriteComponent>(my_archive)
-        .get<GridPositionComponent>(my_archive)
         .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive)
-        .get<SenderFlag>(my_archive)
-        .get<ReceiverFlag>(my_archive)
         .get<BuildingPairComponent>(my_archive);
 
     my_archive.save_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
@@ -65,22 +63,21 @@ void save_to(entt::registry& registry, const std::string output_path)
 void load_from(entt::registry& registry, const std::string input_path)
 {
     InputArchive my_archive(input_path, registry.ctx().get<const SpriteSheet>());
-    entt::snapshot_loader { registry }
-        .get<entt::entity>(my_archive)
-        .get<TransformComponent>(my_archive)
-        .get<SpriteComponent>(my_archive)
-        .get<GridPositionComponent>(my_archive)
-        .get<SpatialMapCellComponent>(my_archive)
-        .get<SpatialMapCellSpanComponent>(my_archive)
-        .get<SenderFlag>(my_archive)
-        .get<ReceiverFlag>(my_archive)
-        .get<BuildingPairComponent>(my_archive)
-        .orphans();
 
     my_archive.load_context_element("tilemap", registry.ctx().get<Grid<entt::entity, TileMapProjection>>());
     my_archive.load_context_element("spatialmap", registry.ctx().get<Grid<entt::entity, SpatialMapProjection>>());
 
-    // TODO: a temporary until the save file is fixed
+    entt::snapshot_loader { registry }
+        .get<entt::entity>(my_archive)
+        .get<GridPositionComponent>(my_archive)
+        .get<TransformComponent>(my_archive)
+        .get<SpriteComponent>(my_archive)
+        .get<SpatialMapCellComponent>(my_archive)
+        .get<SpatialMapCellSpanComponent>(my_archive)
+        .get<BuildingPairComponent>(my_archive)
+        .orphans();
+
+    // // TODO: ConnectivityUpdateFlag potentially not created on load
     for (auto [entity, sprite] : registry.view<SpriteComponent>().each()) {
         registry.emplace_or_replace<ConnectivityComponent>(entity, sprite.sprite_definition->directions);
     }
@@ -141,11 +138,6 @@ void Game::initialise()
         renderer
     );
 
-    registry.ctx().emplace<SelectedEntityComponent>();
-    registry.ctx().emplace<HighlightedEntityComponent>();
-
-    load_from(registry, Constants::SAVE_FILE_PATH);
-
     registry.on_construct<SpriteComponent>().connect<&BuildingSystem::tag>();
     registry.on_update<SpriteComponent>().connect<&BuildingSystem::tag>();
 
@@ -158,6 +150,8 @@ void Game::initialise()
 
     registry.on_construct<ConnectivityComponent>().connect<&flag<ConnectivityUpdateFlag>>();
     registry.on_update<ConnectivityComponent>().connect<&flag<ConnectivityUpdateFlag>>();
+
+    load_from(registry, Constants::SAVE_FILE_PATH);
 
     registry.ctx().emplace<MouseComponent>();
 
@@ -202,6 +196,8 @@ void Game::process_input()
 void Game::update([[maybe_unused]] const float delta_time)
 {
     EntityReleaseSystem::update(registry);
+    MovementSystem::update(registry, delta_time);
+    WalkerSystem::update(registry);
     CameraSystem::update(registry);
     BuildingSystem::update(registry);
     GraphSystem::update(registry);
@@ -230,7 +226,12 @@ void Game::run()
         // The start point (in ticks), the delta to the last frame in s/ms
         const uint64_t start { SDL_GetTicks64() };
         const uint64_t since_last_frame { start - _last_time };
-        const float delta_time = { since_last_frame / 1'000.f };
+        const float delta_time = {
+            std::min(
+                since_last_frame / 1'000.f,
+                0.1f
+            )
+        };
 
         process_input();
         update(delta_time);

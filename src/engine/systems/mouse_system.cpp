@@ -1,10 +1,9 @@
 #include <camera_component.h>
 #include <components/grid_position_component.h>
-#include <components/highlighted_entity_component.h>
 #include <components/render_offset_component.h>
-#include <components/selected_entity_component.h>
 #include <components/spatialmapcell_component.h>
 #include <entt/entt.hpp>
+#include <flags.h>
 #include <grid.h>
 #include <iso_utility.h>
 #include <mouse_component.h>
@@ -45,12 +44,20 @@ entt::entity get_hovered_entity(
             registry.get<const SpriteComponent>(entity)
         };
 
-        if (!ISOUtility::AABB(transform, sprite, mouse.world_position))
+        const RenderOffsetComponent* offset {
+            registry.try_get<const RenderOffsetComponent>(entity)
+        };
+
+        glm::vec2 abs_position {
+            offset ? transform.position + offset->render_offset : transform.position
+        };
+
+        if (!ISOUtility::AABB(abs_position, sprite, mouse.world_position))
             continue;
 
         if (
             !sprite.sprite_definition->spritemask.at_world(
-                mouse.world_position, transform.position
+                mouse.world_position, abs_position
             )
         )
             continue;
@@ -61,7 +68,7 @@ entt::entity get_hovered_entity(
         ) {
             best_entity = entity;
             best_depth = transform.z_index;
-            best_y = transform.position.y;
+            best_y = abs_position.y;
         }
     }
 
@@ -72,15 +79,16 @@ entt::entity get_hovered_entity(
 namespace MouseSystem {
 void update(entt::registry& registry)
 {
+
     MouseComponent& mouse { registry.ctx().get<MouseComponent>() };
     const CameraComponent& camera { registry.ctx().get<const CameraComponent>() };
-    HighlightedEntityComponent& highlight { registry.ctx().get<HighlightedEntityComponent>() };
 
     glm::ivec2 current_mouse_screen_pos {};
     SDL_GetMouseState(&current_mouse_screen_pos.x, &current_mouse_screen_pos.y);
     mouse.moved_in_frame = (mouse.screen_position != current_mouse_screen_pos);
 
     if (mouse.moved_in_frame) {
+        registry.clear<HighlightedFlag>();
         mouse.screen_position = current_mouse_screen_pos;
 
         mouse.world_position = Position::screen_to_world(
@@ -88,15 +96,17 @@ void update(entt::registry& registry)
         );
 
         entt::entity hovered_entity { get_hovered_entity(registry, mouse) };
-        highlight.entity = hovered_entity;
+        if (hovered_entity != entt::null)
+            registry.emplace_or_replace<HighlightedFlag>(
+                get_hovered_entity(registry, mouse)
+            );
     }
 }
 
 void select_entity(entt::registry& registry)
 {
-    SelectedEntityComponent& selected_entity { registry.ctx().get<SelectedEntityComponent>() };
     const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
-    entt::entity selection { get_hovered_entity(registry, mouse) };
-    selected_entity.entity = selection;
+    registry.clear<SelectedFlag>();
+    registry.emplace_or_replace<SelectedFlag>(get_hovered_entity(registry, mouse));
 }
 }

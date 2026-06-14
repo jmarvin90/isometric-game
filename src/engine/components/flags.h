@@ -10,5 +10,7 @@ struct SegmentDeleteFlag { };
 struct DebugFlag { };
 struct SenderFlag { };
 struct ReceiverFlag { };
+struct SelectedFlag { };
+struct HighlightedFlag { };
 
 #endif

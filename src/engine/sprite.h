@@ -1,13 +1,14 @@
 #ifndef SPRITEDEFINITION_H
 #define SPRITEDEFINITION_H
 
+#include <SDL2/SDL.h>
 #include <directions.h>
+#include <glm/glm.hpp>
 #include <grid.h>
 #include <nlohmann/json.hpp>
 #include <projection.h>
 #include <string>
-#include <glm/glm.hpp>
-#include <SDL2/SDL.h>
+#include <unordered_map>
 
 enum class SpriteType {
     TILE = 0,

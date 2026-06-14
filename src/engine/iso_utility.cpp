@@ -1,12 +1,18 @@
 #include <components/spatialmapcell_span_component.h>
 #include <components/sprite_component.h>
 #include <components/transform_component.h>
+#include <entt/entt.hpp>
 #include <iso_utility.h>
 #include <sprite.h>
 #include <spritesheet.h>
 #include <systems/spatialmap_system.h>
-#include <entt/entt.hpp>
 
+/*
+    TODO - this is pretty redundant if it needs to be called
+    after the sprite/transform have been emplaced because some
+    signals invoked by emplacement require the transform to
+    be accurate
+*/
 namespace ISOUtility {
 void align_sprite_to(
     entt::registry& registry,
@@ -35,12 +41,12 @@ void align_sprite_to(
 }
 
 bool AABB(
-    const TransformComponent& transform,
+    const glm::vec2& entity_position,
     const SpriteComponent& sprite,
-    const glm::ivec2 position
+    const glm::ivec2 query_position
 )
 {
-    glm::ivec2 AA { transform.position };
+    glm::ivec2 AA { entity_position };
     glm::ivec2 BB {
         AA
         + glm::ivec2 {
@@ -49,8 +55,8 @@ bool AABB(
     };
 
     return (
-        glm::all(glm::greaterThanEqual(position, AA))
-        & glm::all(glm::lessThan(position, BB))
+        glm::all(glm::greaterThanEqual(query_position, AA))
+        & glm::all(glm::lessThan(query_position, BB))
     );
 }
 }

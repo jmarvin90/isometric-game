@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 
 struct RenderOffsetComponent {
-    glm::ivec2 offset;
+    glm::vec2 render_offset;
 };
 
 #endif

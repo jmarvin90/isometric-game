@@ -40,6 +40,8 @@ add_executable(isometric-game
     src/engine/spritemask.cpp
     src/engine/iso_utility.cpp
     src/engine/game.cpp
+    src/engine/systems/walker_system.cpp
+    src/engine/systems/movement_system.cpp
     src/engine/spritesheet.cpp
     src/engine/position.cpp
     src/engine/directions.cpp
