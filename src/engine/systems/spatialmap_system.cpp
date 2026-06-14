@@ -62,6 +62,7 @@ std::vector<entt::entity> intersected_segments(
     while (true) {
         entt::entity spatial_map_cell { spatial_map[chunk] };
 
+        // TODO: silent emplacement as side-effect; shouldn't be here
         if (!registry.all_of<SpatialMapCellComponent>(spatial_map_cell))
             registry.emplace<SpatialMapCellComponent>(spatial_map_cell);
 
@@ -105,7 +106,7 @@ SpatialMapCellSpanComponent spanned_cells(
 
 void update_entity(entt::registry& registry, entt::entity entity)
 {
-    SpatialMapCellSpanComponent& current_span {
+    const SpatialMapCellSpanComponent& current_span {
         registry.get<SpatialMapCellSpanComponent>(entity)
     };
 
@@ -117,10 +118,10 @@ void update_entity(entt::registry& registry, entt::entity entity)
         )
     };
 
+    // TODO: duplicates the spanned_cells call again in emplace_entity
     if (current_span != new_span) {
         SpatialMapSystem::remove_entity(registry, entity);
         SpatialMapSystem::emplace_entity(registry, entity);
-        current_span = new_span;
     }
 }
 
@@ -195,6 +196,8 @@ void remove_entity(entt::registry& registry, entt::entity entity)
 
     for (int x = cell_span.AA.x; x <= cell_span.BB.x; x++) {
         for (int y = cell_span.AA.y; y <= cell_span.BB.y; y++) {
+            if (!spatial_map.position_is_valid({ x, y }))
+                continue;
 
             SpatialMapCellComponent* cell {
                 registry.try_get<SpatialMapCellComponent>(spatial_map[{ x, y }])
@@ -208,7 +211,8 @@ void remove_entity(entt::registry& registry, entt::entity entity)
                     cell->entities.begin(),
                     cell->entities.end(),
                     entity
-                )
+                ),
+                cell->entities.end()
             );
         }
     }
@@ -237,7 +241,8 @@ void remove_segment(entt::registry& registry, entt::entity entity)
                 cell_component.segments.begin(),
                 cell_component.segments.end(),
                 entity
-            )
+            ),
+            cell_component.segments.end()
         );
     }
 }
