@@ -36,6 +36,14 @@ entt::entity get_hovered_entity(
     int best_y { -1 };
 
     for (entt::entity entity : spatialmap_cell->entities) {
+        // TODO: investigate why this is needed; helps to prevent
+        // crashes but relates to an attempt to highlight a deleted entity
+        if (
+            !registry.all_of<TransformComponent, SpriteComponent>(entity)
+            || registry.all_of<EntityReleaseFlag>(entity)
+        )
+            continue;
+
         const TransformComponent& transform {
             registry.get<const TransformComponent>(entity)
         };

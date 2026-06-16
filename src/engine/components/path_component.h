@@ -21,7 +21,7 @@ struct PathSegment {
 
 struct PathComponent {
     std::vector<PathSegment> path;
-    int current { 0 };
+    size_t current { 0 };
 };
 
 #endif

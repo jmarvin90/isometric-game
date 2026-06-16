@@ -106,20 +106,23 @@ SpatialMapCellSpanComponent spanned_cells(
 
 void update_entity(entt::registry& registry, entt::entity entity)
 {
-    const SpatialMapCellSpanComponent& current_span {
+    const SpatialMapCellSpanComponent previous_span {
         registry.get<SpatialMapCellSpanComponent>(entity)
     };
 
-    const SpatialMapCellSpanComponent new_span {
-        spanned_cells(
-            registry.get<const TransformComponent>(entity),
-            registry.get<const SpriteComponent>(entity),
-            registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
+    const SpatialMapCellSpanComponent& new_span {
+        registry.emplace_or_replace<SpatialMapCellSpanComponent>(
+            entity,
+            spanned_cells(
+                registry.get<const TransformComponent>(entity),
+                registry.get<const SpriteComponent>(entity),
+                registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
+            )
         )
     };
 
     // TODO: duplicates the spanned_cells call again in emplace_entity
-    if (current_span != new_span) {
+    if (previous_span != new_span) {
         SpatialMapSystem::remove_entity(registry, entity);
         SpatialMapSystem::emplace_entity(registry, entity);
     }

@@ -95,6 +95,7 @@ void query_segment(
         )
     };
 
+    // Advance to target tile if it's the goal, else via the origin/termination
     if (it != segment.entities.end()) {
         advance(registry, frontier, came_from, current_tile, *it, target_tile);
     } else {
@@ -165,7 +166,7 @@ void path_between(
         return;
 
     for (
-        entt::entity current = to_tile;
+        entt::entity current = came_from.at(to_tile);
         current != from_tile;
         current = came_from.at(current)
     ) {
@@ -183,10 +184,10 @@ void expand_path(
 )
 {
     Direction::TDirection incoming_direction { Direction::TDirection::NO_DIRECTION };
+    glm::ivec2 current_grid_position { registry.get<const GridPositionComponent>(path.front()).position };
+    glm::ivec2 current_transform_abs { registry.get<const TransformComponent>(path.front()).position };
 
-    for (std::size_t index = 0; index < path.size() - 1; index++) {
-        const glm::ivec2 current_grid_position { registry.get<const GridPositionComponent>(path.at(index)).position };
-        const glm::ivec2 current_transform_abs { registry.get<const TransformComponent>(path.at(index)).position };
+    for (size_t index = 0; index < path.size() - 1; index++) {
         const glm::ivec2 next_grid_position { registry.get<const GridPositionComponent>(path.at(index + 1)).position };
         const glm::ivec2 next_transform_abs { registry.get<const TransformComponent>(path.at(index + 1)).position };
 
@@ -203,6 +204,7 @@ void expand_path(
             + Constants::ROAD_GATES.at(index_position(outgoing_direction)).exit
         };
 
+        // Add a step to traverse a junction
         if (index != 0 && registry.all_of<JunctionComponent>(path.at(index))) {
             expanded_path.emplace_back(
                 current_transform_abs + Constants::ROAD_GATES.at(index_position(Direction::reverse(incoming_direction))).entry,
@@ -218,7 +220,10 @@ void expand_path(
         );
 
         incoming_direction = outgoing_direction;
+        current_grid_position = next_grid_position;
+        current_transform_abs = next_transform_abs;
     }
+    [[maybe_unused]] const GridPositionComponent& last_pos { registry.get<const GridPositionComponent>(path.back()) };
 }
 
 } // namespace

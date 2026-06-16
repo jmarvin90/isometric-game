@@ -39,7 +39,7 @@ void create_walkers(entt::registry& registry)
     const TileMapType tilemap { registry.ctx().get<const TileMapType>() };
     std::vector<entt::entity> path {};
 
-    for (auto [entity, transform, sprite, building_pair, road_access] : pending.each()) {
+    for (auto [building_entity, transform, sprite, building_pair, road_access] : pending.each()) {
         path.clear();
 
         entt::entity target_tile {
@@ -69,7 +69,8 @@ void create_walkers(entt::registry& registry)
         Pathfinding::expand_path(registry, path, expanded_path);
         const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet>() };
         registry.emplace<PathComponent>(walker_entity, expanded_path);
-        registry.emplace<WalkerComponent>(entity, walker_entity);
+        registry.emplace<WalkerComponent>(building_entity, walker_entity);
+        registry.emplace<OriginComponent>(walker_entity, building_entity);
         const SpriteComponent& sprite_component {
             registry.emplace<SpriteComponent>(
                 walker_entity,
