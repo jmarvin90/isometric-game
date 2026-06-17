@@ -185,6 +185,12 @@ void create_entity(entt::registry& registry, entt::entity entity)
                 registry.get_or_emplace<SpatialMapCellComponent>(spatial_map[{ x, y }])
             };
 
+            // TODO - remove this assertion. Logic should guarantee no dupes
+            assert(
+                std::find(cell.entities.begin(), cell.entities.end(), entity)
+                == cell.entities.end()
+            );
+
             cell.entities.emplace_back(entity);
         }
     }
