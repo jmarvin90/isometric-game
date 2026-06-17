@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pathlib
 import json
 import pydantic
@@ -6,19 +7,26 @@ import warnings
 import typing
 import pprint
 import typing_extensions
+import pandas
 
 LOAD_SAVE_FILE_FROM="save.json"
 SAVE_UPDATES_TO="updated_save.json"
 
-def duplicate_check(value: list) -> list:
+def _has_duplicates(value: list) -> bool:
     if (len(value) != (len(set(value)))):
-        warnings.warn("Duplicates in container")
-    return list(set(value))
+        return True
+    return False
 
 class Vec2(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(extra="forbid")
     x: int | float
     y: int | float
+
+    def __mul__(self, comparator: Vec2) -> Vec2:
+        return Vec2(x=self.x * comparator.x, y=self.y * comparator.y)
+
+class BuildingPairComponent(pydantic.BaseModel):
+    paired_with: int
 
 class GridPositionComponent(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(extra="forbid")
@@ -42,7 +50,14 @@ class SpatialMapCellComponent(pydantic.BaseModel):
     @pydantic.field_validator("entities", "segments")
     @classmethod
     def duplicate_check(cls, value: list[int]) -> list[int]:
-        return duplicate_check(value)
+        if (_has_duplicates(value)):
+            warnings.warn("Duplicates in container")
+        return value
+
+    def clear(self) -> None:
+        self.entities = []
+        self.segments = []
+        print("Cleared!")
 
 class CellSpanComponent(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(extra="forbid")
@@ -55,12 +70,24 @@ class Grid(pydantic.BaseModel):
     cells: list[int]
     grid_dimensions: Vec2
 
+    @pydantic.computed_field
+    @property
+    def grid_area(self) -> Vec2:
+        return self.grid_dimensions * self.cell_size
+        
     @pydantic.field_validator("cells")
     @classmethod
     def square_warning(cls, value: list[int]) -> list[int]:
         root = math.sqrt(len(value))
         if (len(value) != root ** 2):
-            warnings.warn("Spatial map structure isn't perfect square")
+            raise ValueError("Spatial map structure isn't perfect square")
+        return value
+
+    @pydantic.field_validator("cells")
+    @classmethod
+    def duplicate_check(cls, value: list[int]) -> list[int]:
+        if (_has_duplicates(value)):
+            warnings.warn("Duplicates in container")
         return value
 
     @pydantic.model_validator(mode="after")
@@ -73,7 +100,6 @@ class Grid(pydantic.BaseModel):
             raise ValueError("Contained elements don't match grid dimensions")
         return self
 
-
 class SpatialMap(Grid):
     pass
 
@@ -84,13 +110,19 @@ class Context(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(extra="forbid")
     spatialmap: SpatialMap
     tilemap: TileMap
+    @pydantic.model_validator(mode="after")
+    def spatial_and_tilemap_align(self) -> typing_extensions.Self:
+        if (self.spatialmap.grid_area != self.tilemap.grid_area):
+            raise ValueError("The tilemap and the spatial partition have different total areas")
+        return self
 
 ComponentType = typing.Annotated[
     GridPositionComponent 
     | TransformComponent 
     | SpriteComponent 
     | SpatialMapCellComponent 
-    | CellSpanComponent, 
+    | CellSpanComponent
+    | BuildingPairComponent,
     pydantic.Field(union_mode="left_to_right") 
 ]
 
@@ -104,19 +136,43 @@ class ComponentPool(pydantic.BaseModel):
     @pydantic.field_validator("entities")
     @classmethod
     def duplicate_check(cls, value: list[int]) -> list[int]:
-        return duplicate_check(value)
+        if (_has_duplicates(value)):
+            warnings.warn("Duplicates in container")
+        return value
 
 
 class SaveFile(pydantic.BaseModel):
     component_pools: list[ComponentPool]
     context: Context
 
+    def as_pandas(self) -> pandas.DataFrame:
+        output = pandas.DataFrame()
+        for component_pool in self.component_pools:
+            if component_pool.components:
+                output[str(type(component_pool.components[0]))] = \
+                    pandas.Series(True, index=component_pool.entities)
+        return output
+
 
 save_file = pathlib.Path(LOAD_SAVE_FILE_FROM)
 data = json.loads(save_file.open("r").read())
+
 try:
     save_file = SaveFile.model_validate(data)
-    updated_save_file = pathlib.Path(SAVE_UPDATES_TO).open("w").write(json.dumps(save_file.model_dump()))
-    print("Squanch")
+    for pool in save_file.component_pools:
+        if (not pool.components):
+            continue
+        print(type(pool.components[0]))
+        if isinstance(pool.components[0], SpatialMapCellComponent):
+            print("clearing...")
+            for component in pool.components:
+                component.clear()
+    updated_save_file = pathlib.Path(SAVE_UPDATES_TO).open("w").write(
+        json.dumps(
+            save_file.model_dump(exclude_computed_fields=True)
+        )
+    )
+    dataframe = save_file.as_pandas()
+    pathlib.Path("tabular_output.txt").open("w").write(dataframe.to_string())
 except pydantic.ValidationError as e:
     pprint.pprint(e.errors())

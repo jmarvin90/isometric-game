@@ -166,8 +166,10 @@ void graph_release(entt::registry& registry)
 {
     // Delete all the segments
     auto segments { registry.view<SegmentComponent>() };
-    registry.destroy(segments.begin(), segments.end());
-    registry.clear<SegmentMemberComponent>(); // redundant because of remove_segment
+    for (auto segment : segments) {
+        registry.emplace<EntityReleaseFlag>(segment);
+    }
+
     registry.clear<JunctionComponent>();
     registry.clear<ConnectivityUpdateFlag>();
 }
@@ -196,7 +198,7 @@ void update(entt::registry& registry)
     graph_compute(registry);
 }
 
-void emplace_segment(entt::registry& registry, entt::entity entity)
+void create(entt::registry& registry, entt::entity entity)
 {
     const SegmentComponent& segment { registry.get<const SegmentComponent>(entity) };
     for (auto member : segment.entities) {
@@ -204,8 +206,11 @@ void emplace_segment(entt::registry& registry, entt::entity entity)
     }
 }
 
-void remove_segment(entt::registry& registry, entt::entity entity)
+void remove(entt::registry& registry, entt::entity entity)
 {
+    if (!registry.all_of<SegmentComponent>(entity))
+        return;
+
     const SegmentComponent& segment { registry.get<const SegmentComponent>(entity) };
     for (auto member : segment.entities) {
         registry.remove<SegmentMemberComponent>(member);

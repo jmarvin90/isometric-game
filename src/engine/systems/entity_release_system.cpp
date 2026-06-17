@@ -13,6 +13,7 @@
 #include <systems/entity_release_system.h>
 #include <systems/graph_system.h>
 #include <systems/spatialmap_system.h>
+#include <systems/walker_system.h>
 
 namespace EntityReleaseSystem {
 
@@ -20,24 +21,11 @@ void update(entt::registry& registry)
 {
     auto deletion_view { registry.view<EntityReleaseFlag>() };
     for (auto entity : deletion_view) {
-        if (registry.any_of<SenderFlag, ReceiverFlag, BuildingPairComponent>(entity)) {
-            BuildingSystem::untag(registry, entity);
-        }
-
-        if (registry.any_of<SpriteComponent>(entity)) {
-            SpatialMapSystem::remove_entity(registry, entity);
-        }
-
-        if (registry.any_of<SegmentComponent>(entity)) {
-            SpatialMapSystem::remove_segment(registry, entity);
-            GraphSystem::remove_segment(registry, entity);
-        }
-
-        if (registry.any_of<PathComponent, OriginComponent>(entity)) {
-            registry.remove<WalkerComponent>(
-                registry.get<OriginComponent>(entity).origin
-            );
-        }
+        BuildingSystem::remove(registry, entity);
+        SpatialMapSystem::remove_entity(registry, entity);
+        SpatialMapSystem::remove_segment(registry, entity);
+        GraphSystem::remove(registry, entity);
+        WalkerSystem::remove(registry, entity);
     }
     registry.destroy(deletion_view.begin(), deletion_view.end());
 }

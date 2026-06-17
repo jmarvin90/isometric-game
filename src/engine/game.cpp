@@ -51,7 +51,6 @@ void save_to(entt::registry& registry, const std::string output_path)
         .get<GridPositionComponent>(my_archive)
         .get<TransformComponent>(my_archive)
         .get<SpriteComponent>(my_archive)
-        .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive)
         .get<BuildingPairComponent>(my_archive);
 
@@ -72,7 +71,6 @@ void load_from(entt::registry& registry, const std::string input_path)
         .get<GridPositionComponent>(my_archive)
         .get<TransformComponent>(my_archive)
         .get<SpriteComponent>(my_archive)
-        .get<SpatialMapCellComponent>(my_archive)
         .get<SpatialMapCellSpanComponent>(my_archive)
         .get<BuildingPairComponent>(my_archive)
         .orphans();
@@ -138,15 +136,15 @@ void Game::initialise()
         renderer
     );
 
-    registry.on_construct<SpriteComponent>().connect<&BuildingSystem::tag>();
-    registry.on_update<SpriteComponent>().connect<&BuildingSystem::tag>();
+    registry.on_construct<SpriteComponent>().connect<&BuildingSystem::create>();
+    registry.on_update<SpriteComponent>().connect<&BuildingSystem::create>();
 
     registry.on_construct<SpriteComponent>().connect<&flag<SpatialMapEntityCreateFlag>>();
     registry.on_construct<TransformComponent>().connect<&flag<SpatialMapEntityCreateFlag>>();
     registry.on_update<TransformComponent>().connect<&flag<SpatialMapEntityUpdateFlag>>();
 
-    registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::emplace_segment>();
-    registry.on_construct<SegmentComponent>().connect<&GraphSystem::emplace_segment>();
+    registry.on_construct<SegmentComponent>().connect<&SpatialMapSystem::create_segment>();
+    registry.on_construct<SegmentComponent>().connect<&GraphSystem::create>();
 
     registry.on_construct<ConnectivityComponent>().connect<&flag<ConnectivityUpdateFlag>>();
     registry.on_update<ConnectivityComponent>().connect<&flag<ConnectivityUpdateFlag>>();
