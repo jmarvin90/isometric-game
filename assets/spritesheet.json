@@ -175,6 +175,20 @@
         }
     },
     {
+        "name": "tree",
+        "source_rect": {
+            "x": 2,
+            "y": 1118,
+            "w": 102,
+            "h": 140
+        },
+        "type": 4,
+        "anchor": {
+            "x": 51,
+            "y": 114
+        }
+    },
+    {
         "name": "vehicle_se",
         "source_rect": {
             "x": 1,
