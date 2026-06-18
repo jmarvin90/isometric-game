@@ -66,15 +66,9 @@ void unpair(entt::registry& registry, entt::entity entity)
 
 namespace BuildingSystem {
 
-void untag(entt::registry& registry, entt::entity entity)
+void create(entt::registry& registry, entt::entity entity)
 {
-    unpair(registry, entity);
-    registry.remove<SenderFlag, ReceiverFlag, RoadAccessComponent>(entity);
-}
-
-void tag(entt::registry& registry, entt::entity entity)
-{
-    untag(registry, entity);
+    remove(registry, entity);
 
     const SpriteComponent& sprite {
         registry.get<const SpriteComponent>(entity)
@@ -127,6 +121,15 @@ void update(entt::registry& registry)
         registry.emplace<BuildingPairComponent>(sender, receiver);
         registry.emplace<BuildingPairComponent>(receiver, sender);
     }
+}
+
+void remove(entt::registry& registry, entt::entity entity)
+{
+    if (!registry.any_of<SenderFlag, ReceiverFlag, RoadAccessComponent>(entity))
+        return;
+
+    unpair(registry, entity);
+    registry.remove<SenderFlag, ReceiverFlag, RoadAccessComponent>(entity);
 }
 
 }

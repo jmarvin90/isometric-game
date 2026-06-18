@@ -62,6 +62,7 @@ std::vector<entt::entity> intersected_segments(
     while (true) {
         entt::entity spatial_map_cell { spatial_map[chunk] };
 
+        // TODO: silent emplacement as side-effect; shouldn't be here
         if (!registry.all_of<SpatialMapCellComponent>(spatial_map_cell))
             registry.emplace<SpatialMapCellComponent>(spatial_map_cell);
 
@@ -105,23 +106,28 @@ SpatialMapCellSpanComponent spanned_cells(
 
 void update_entity(entt::registry& registry, entt::entity entity)
 {
-    SpatialMapCellSpanComponent& current_span {
-        registry.get<SpatialMapCellSpanComponent>(entity)
-    };
+    /*
+        TODO: the below probably doesn't save much
+        It could possibly be re-implemented as a bounding box component
+    */
 
-    const SpatialMapCellSpanComponent new_span {
-        spanned_cells(
-            registry.get<const TransformComponent>(entity),
-            registry.get<const SpriteComponent>(entity),
-            registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
-        )
-    };
+    // const SpatialMapCellSpanComponent& previous_span {
+    //     registry.get<SpatialMapCellSpanComponent>(entity)
+    // };
 
-    if (current_span != new_span) {
-        SpatialMapSystem::remove_entity(registry, entity);
-        SpatialMapSystem::emplace_entity(registry, entity);
-        current_span = new_span;
-    }
+    // const SpatialMapCellSpanComponent new_span {
+    //     spanned_cells(
+    //         registry.get<const TransformComponent>(entity),
+    //         registry.get<const SpriteComponent>(entity),
+    //         registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
+    //     )
+    // };
+
+    // TODO: duplicates the spanned_cells call again in create_entity
+    // if (previous_span != new_span) {
+    SpatialMapSystem::remove_entity(registry, entity);
+    SpatialMapSystem::create_entity(registry, entity);
+    // }
 }
 
 } // namespace
@@ -132,7 +138,7 @@ void update(entt::registry& registry)
 {
     auto create_queue { registry.view<SpatialMapEntityCreateFlag>() };
     for (auto entity : create_queue) {
-        emplace_entity(registry, entity);
+        create_entity(registry, entity);
     }
     registry.clear<SpatialMapEntityCreateFlag>();
 
@@ -149,7 +155,7 @@ void update(entt::registry& registry)
     registry.clear<SpatialMapEntityDeleteFlag>();
 }
 
-void emplace_entity(entt::registry& registry, entt::entity entity)
+void create_entity(entt::registry& registry, entt::entity entity)
 {
 
     if (!registry.all_of<SpriteComponent, TransformComponent>(entity))
@@ -178,6 +184,13 @@ void emplace_entity(entt::registry& registry, entt::entity entity)
             SpatialMapCellComponent& cell {
                 registry.get_or_emplace<SpatialMapCellComponent>(spatial_map[{ x, y }])
             };
+
+            // TODO - remove this assertion. Logic should guarantee no dupes
+            assert(
+                std::find(cell.entities.begin(), cell.entities.end(), entity)
+                == cell.entities.end()
+            );
+
             cell.entities.emplace_back(entity);
         }
     }
@@ -185,6 +198,9 @@ void emplace_entity(entt::registry& registry, entt::entity entity)
 
 void remove_entity(entt::registry& registry, entt::entity entity)
 {
+    if (!registry.all_of<SpatialMapCellSpanComponent>(entity))
+        return;
+
     const Grid<entt::entity, SpatialMapProjection>& spatial_map {
         registry.ctx().get<const Grid<entt::entity, SpatialMapProjection>>()
     };
@@ -195,6 +211,8 @@ void remove_entity(entt::registry& registry, entt::entity entity)
 
     for (int x = cell_span.AA.x; x <= cell_span.BB.x; x++) {
         for (int y = cell_span.AA.y; y <= cell_span.BB.y; y++) {
+            if (!spatial_map.position_is_valid({ x, y }))
+                continue;
 
             SpatialMapCellComponent* cell {
                 registry.try_get<SpatialMapCellComponent>(spatial_map[{ x, y }])
@@ -208,14 +226,15 @@ void remove_entity(entt::registry& registry, entt::entity entity)
                     cell->entities.begin(),
                     cell->entities.end(),
                     entity
-                )
+                ),
+                cell->entities.end()
             );
         }
     }
     registry.remove<SpatialMapCellSpanComponent>(entity);
 }
 
-void emplace_segment(entt::registry& registry, entt::entity entity)
+void create_segment(entt::registry& registry, entt::entity entity)
 {
     const SegmentComponent& segment { registry.get<SegmentComponent>(entity) };
     std::vector<entt::entity> cells { intersected_segments(registry, segment) };
@@ -226,6 +245,9 @@ void emplace_segment(entt::registry& registry, entt::entity entity)
 
 void remove_segment(entt::registry& registry, entt::entity entity)
 {
+    if (!registry.all_of<SegmentComponent>(entity))
+        return;
+
     const SegmentComponent& segment { registry.get<SegmentComponent>(entity) };
     std::vector<entt::entity> cells { intersected_segments(registry, segment) };
     for (auto cell : cells) {
@@ -237,7 +259,8 @@ void remove_segment(entt::registry& registry, entt::entity entity)
                 cell_component.segments.begin(),
                 cell_component.segments.end(),
                 entity
-            )
+            ),
+            cell_component.segments.end()
         );
     }
 }

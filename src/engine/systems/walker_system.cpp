@@ -18,15 +18,66 @@
 #include <spritesheet.h>
 #include <systems/walker_system.h>
 
-#include <spdlog/spdlog.h>
-
-namespace {
-void create_walkers(entt::registry& registry)
+namespace WalkerSystem {
+void create(
+    entt::registry& registry,
+    entt::entity origin_building_entity,
+    const std::vector<PathSegment>& expanded_path,
+    const SpriteSheet& spritesheet
+)
 {
-    [[maybe_unused]] auto pending {
+    entt::entity walker_entity { registry.create() };
+    registry.emplace<PathComponent>(walker_entity, expanded_path);
+    registry.emplace<WalkerComponent>(origin_building_entity, walker_entity);
+    registry.emplace<OriginComponent>(walker_entity, origin_building_entity);
+
+    const SpriteComponent& sprite_component {
+        registry.emplace<SpriteComponent>(
+            walker_entity,
+            &spritesheet.sprites.at(
+                Constants::WALKER_DIRECTIONS.at(expanded_path.front().direction)
+            )
+        )
+    };
+
+    registry.emplace<TransformComponent>(
+        walker_entity,
+        expanded_path.front().start,
+        1,
+        0.0
+    );
+
+    registry.emplace<RenderOffsetComponent>(
+        walker_entity,
+        -sprite_component.sprite_definition->anchor
+    );
+
+    registry.emplace<VelocityComponent>(
+        walker_entity,
+        Direction::isometric_direction_vectors.at(expanded_path.front().direction),
+        60 // TODO - should be encoded in the sprite definition JSON
+    );
+}
+
+void remove(
+    entt::registry& registry,
+    entt::entity walker
+)
+{
+    if (!registry.all_of<OriginComponent>(walker))
+        return;
+
+    entt::entity origin {
+        registry.get<const OriginComponent>(walker).origin
+    };
+
+    registry.remove<WalkerComponent>(origin);
+}
+
+void update(entt::registry& registry)
+{
+    auto pending {
         registry.view<
-            TransformComponent,
-            SpriteComponent,
             BuildingPairComponent,
             RoadAccessComponent,
             SenderFlag>(entt::exclude<WalkerComponent>)
@@ -39,9 +90,10 @@ void create_walkers(entt::registry& registry)
     const TileMapType tilemap { registry.ctx().get<const TileMapType>() };
     std::vector<entt::entity> path {};
 
-    for (auto [entity, transform, sprite, building_pair, road_access] : pending.each()) {
+    for (auto [building_entity, building_pair, road_access] : pending.each()) {
         path.clear();
 
+        // TODO: idiomatic/repeatable way to get sprite position from entity
         entt::entity target_tile {
             tilemap.at_world(
                 glm::ivec2 { registry.get<const TransformComponent>(building_pair.paired_with).position }
@@ -64,43 +116,10 @@ void create_walkers(entt::registry& registry)
         if (path.empty())
             continue;
 
-        entt::entity walker_entity { registry.create() };
         std::vector<PathSegment> expanded_path {};
         Pathfinding::expand_path(registry, path, expanded_path);
         const SpriteSheet& spritesheet { registry.ctx().get<const SpriteSheet>() };
-        registry.emplace<PathComponent>(walker_entity, expanded_path);
-        registry.emplace<WalkerComponent>(entity, walker_entity);
-        const SpriteComponent& sprite_component {
-            registry.emplace<SpriteComponent>(
-                walker_entity,
-                &spritesheet.sprites.at(
-                    Constants::WALKER_DIRECTIONS.at(expanded_path.front().direction)
-                )
-            )
-        };
-        registry.emplace<TransformComponent>(
-            walker_entity,
-            expanded_path.front().start,
-            1,
-            0.0
-        );
-        registry.emplace<RenderOffsetComponent>(
-            walker_entity,
-            -sprite_component.sprite_definition->anchor
-        );
-        [[maybe_unused]] const VelocityComponent& vel_comp
-            = registry.emplace<VelocityComponent>(
-                walker_entity,
-                Direction::isometric_direction_vectors.at(expanded_path.front().direction),
-                60
-            );
+        create(registry, building_entity, expanded_path, spritesheet);
     }
-}
-}
-
-namespace WalkerSystem {
-void update(entt::registry& registry)
-{
-    create_walkers(registry);
 }
 }
