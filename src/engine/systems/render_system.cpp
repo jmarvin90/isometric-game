@@ -356,6 +356,7 @@ void render_imgui_ui(
                     if (
                         sprite_definition.sprite_type != SpriteType::BUILDING_SENDER
                         && sprite_definition.sprite_type != SpriteType::BUILDING_RECEIVER
+                        && sprite_definition.sprite_type != SpriteType::FURNITURE
                     )
                         continue;
 
@@ -368,6 +369,10 @@ void render_imgui_ui(
 
             if (ImGui::Button("Spawn Building")) {
                 entt::entity new_sprite { registry.create() };
+                const SpriteDefinition& sprite_def {
+                    spritesheet.sprites.at(selected_building_sprite)
+                };
+
                 registry.emplace<TransformComponent>(
                     new_sprite,
                     glm::ivec2 {
@@ -375,7 +380,7 @@ void render_imgui_ui(
                             glm::ivec2 { registry.get<const TransformComponent>(selected_entity).position }
                             + Constants::TILE_CENTRE
                         )
-                        - glm::ivec2 { spritesheet.sprites.at(selected_building_sprite).anchor } },
+                        - glm::ivec2 { sprite_def.anchor } },
                     1,
                     0.0
                 );
