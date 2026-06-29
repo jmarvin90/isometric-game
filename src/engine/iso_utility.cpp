@@ -56,7 +56,7 @@ bool AABB(
 
     return (
         glm::all(glm::greaterThanEqual(query_position, AA))
-        & glm::all(glm::lessThan(query_position, BB))
+        && glm::all(glm::lessThan(query_position, BB))
     );
 }
 }

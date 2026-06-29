@@ -39,7 +39,7 @@ struct SegmentComponent {
     {
     }
 
-    SegmentComponent(std::vector<entt::entity>& _entities, Direction::TDirection direction)
+    SegmentComponent(const std::vector<entt::entity>& _entities, Direction::TDirection direction)
         : origin { _entities.front() }
         , termination { _entities.back() }
         , direction { direction }

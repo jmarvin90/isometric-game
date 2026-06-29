@@ -148,6 +148,7 @@ void Game::initialise()
 
     registry.on_construct<ConnectivityComponent>().connect<&flag<ConnectivityUpdateFlag>>();
     registry.on_update<ConnectivityComponent>().connect<&flag<ConnectivityUpdateFlag>>();
+    registry.on_destroy<ConnectivityComponent>().connect<&flag<ConnectivityUpdateFlag>>();
 
     load_from(registry, Constants::SAVE_FILE_PATH);
 

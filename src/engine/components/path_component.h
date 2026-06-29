@@ -1,7 +1,6 @@
 #ifndef PATHCOMPONENT_H
 #define PATHCOMPONENT_H
 
-#include <components/path_component.h>
 #include <directions.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>

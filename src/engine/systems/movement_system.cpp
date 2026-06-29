@@ -84,7 +84,7 @@ void update(entt::registry& registry, const float delta_time)
 
         if (path.current >= path.path.size()) {
             registry.emplace_or_replace<EntityReleaseFlag>(entity);
-            return;
+            continue;
         }
 
         float budget { velocity.speed * delta_time };
