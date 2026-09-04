@@ -1,0 +1,49 @@
+#include <cmath>
+#include <components/camera_component.h>
+#include <components/mouse_component.h>
+#include <constants.h>
+#include <grid.h>
+#include <projection.h>
+#include <systems/camera_system.h>
+
+namespace CameraSystem {
+
+void update(entt::registry& registry)
+{
+    CameraComponent& camera { registry.ctx().get<CameraComponent>() };
+    const MouseComponent& mouse { registry.ctx().get<const MouseComponent>() };
+
+    const Grid<entt::entity, TileMapProjection>& tilemap {
+        registry.ctx().get<const Grid<entt::entity, TileMapProjection>>()
+    };
+
+    camera.moved_in_frame = false;
+    glm::ivec2 map_extent { tilemap.area + (Constants::SCENE_BORDER_PX * 2) };
+    glm::ivec2 delta { 0, 0 };
+
+    for (int i = 0; i < 2; i++) {
+        if (
+            mouse.screen_position[i] < Constants::SCENE_BORDER_PX[i]
+            && camera.position[i] > 0
+        ) {
+            delta[i] = std::max(
+                -Constants::CAMERA_SCROLL_SPEED[i],
+                -mouse.screen_position[i]
+            );
+        } else if (
+            mouse.screen_position[i] > (camera.size - Constants::SCENE_BORDER_PX)[i]
+            && (camera.position + camera.size)[i] < map_extent[i]
+        ) {
+            delta[i] = std::min(
+                Constants::CAMERA_SCROLL_SPEED[i],
+                map_extent[i] - mouse.screen_position[i]
+            );
+        }
+    }
+
+    if (delta != glm::ivec2 { 0, 0 }) {
+        camera.moved_in_frame = true;
+        camera.position += delta;
+    }
+}
+}
