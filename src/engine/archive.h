@@ -8,9 +8,9 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <queue>
+#include <spdlog/spdlog.h>
 #include <spritesheet.h>
 #include <string>
-#include <spdlog/spdlog.h>
 #include <type_traits>
 
 #include <components/sprite_component.h>
@@ -111,8 +111,6 @@ class InputArchive {
     std::queue<ImportComponentDocument> component_pools;
     std::optional<ImportComponentDocument> current_pool;
     nlohmann::json context;
-
-    int count { 0 };
 
 public:
     InputArchive(std::string file_path, const SpriteSheet& spritesheet);
