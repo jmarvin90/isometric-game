@@ -17,7 +17,6 @@ class Game {
     bool debug_mode { false };
 
     // Has to be default initialised because it's referenced in Game::update()
-    int millis_previous_frame {};
     uint64_t _last_time { 0 };
 
     std::unique_ptr<SDL_Window, ISOUtility::SDLDestroyer> window;
