@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
-#include <camera_component.h>
 #include <components/building_pair_component.h>
+#include <components/camera_component.h>
 #include <components/connectivity_component.h>
 #include <components/flags.h>
 #include <components/grid_position_component.h>

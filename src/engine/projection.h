@@ -3,19 +3,20 @@
 
 #include <glm/glm.hpp>
 
-namespace {
-glm::mat2 projection_matrix(const glm::ivec2 cell_size)
-{
-    return glm::mat2 {
-        cell_size.x / 2.0f,
-        cell_size.y / 2.0f,
-        -cell_size.x / 2.0f,
-        cell_size.y / 2.0f
-    };
-}
-}
-
 struct TileMapProjection {
+
+private:
+    static glm::mat2 projection_matrix(const glm::ivec2 cell_size)
+    {
+        return glm::mat2 {
+            cell_size.x / 2.0f,
+            cell_size.y / 2.0f,
+            -cell_size.x / 2.0f,
+            cell_size.y / 2.0f
+        };
+    }
+
+public:
     template <typename Grid>
     static glm::ivec2 grid_to_world(const glm::ivec2 grid_position, const Grid& grid)
     {

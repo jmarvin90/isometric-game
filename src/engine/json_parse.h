@@ -8,14 +8,6 @@
 #include <nlohmann/json.hpp>
 #include <spritesheet.h>
 
-namespace glm {
-void to_json(nlohmann::json& j, const glm::ivec2& P);
-void to_json(nlohmann::json& j, const glm::vec2& P);
-
-void from_json(const nlohmann::json& j, glm::ivec2& P);
-void from_json(const nlohmann::json& j, glm::vec2& P);
-}
-
 void from_json(const nlohmann::json& j, SDL_Rect& P);
 void to_json(nlohmann::json& j, const SDL_Rect& P);
 

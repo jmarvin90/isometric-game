@@ -4,6 +4,7 @@
 #include <constants.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
+#include <glm_json.h>
 #include <nlohmann/json.hpp>
 
 struct TransformComponent {

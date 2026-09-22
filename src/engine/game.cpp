@@ -115,11 +115,11 @@ void Game::initialise()
 
     registry = entt::registry();
 
-    Grid<entt::entity, TileMapProjection>& tilemap {
+    [[maybe_unused]] Grid<entt::entity, TileMapProjection>& tilemap {
         registry.ctx().emplace<Grid<entt::entity, TileMapProjection>>()
     };
 
-    Grid<entt::entity, SpatialMapProjection>& spatial_map {
+    [[maybe_unused]] Grid<entt::entity, SpatialMapProjection>& spatial_map {
         registry.ctx().emplace<Grid<entt::entity, SpatialMapProjection>>()
     };
 

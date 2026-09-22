@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <entt/entt.hpp>
+#include <glm_json.h>
 #include <nlohmann/json.hpp>
 #include <vector>
 

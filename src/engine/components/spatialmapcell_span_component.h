@@ -2,6 +2,7 @@
 #define SPATIALMAPCELLSPANCOMPONENT_H
 
 #include <glm/glm.hpp>
+#include <glm_json.h>
 #include <nlohmann/json.hpp>
 
 struct SpatialMapCellSpanComponent {

@@ -6,7 +6,6 @@
 #include <components/segment_member_component.h>
 #include <components/transform_component.h>
 #include <directions.h>
-#include <flags.h>
 #include <grid.h>
 #include <iterator>
 #include <projection.h>

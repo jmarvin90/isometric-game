@@ -1,19 +1,19 @@
-#include <camera_component.h>
+#include <components/camera_component.h>
+#include <components/flags.h>
 #include <components/grid_position_component.h>
+#include <components/mouse_component.h>
 #include <components/render_offset_component.h>
 #include <components/spatialmapcell_component.h>
+#include <components/sprite_component.h>
+#include <components/transform_component.h>
 #include <entt/entt.hpp>
-#include <flags.h>
 #include <grid.h>
 #include <iso_utility.h>
-#include <mouse_component.h>
 #include <position.h>
 #include <projection.h>
 #include <sprite.h>
-#include <sprite_component.h>
 #include <spritesheet.h>
 #include <systems/mouse_system.h>
-#include <transform_component.h>
 
 namespace {
 entt::entity get_hovered_entity(
