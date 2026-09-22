@@ -8,8 +8,6 @@ struct MouseComponent {
     glm::ivec2 screen_position;
     glm::ivec2 world_position;
     bool moved_in_frame;
-
-    MouseComponent(const MouseComponent&) = delete;
 };
 
 #endif
