@@ -1,5 +1,5 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL_image.h>
 #include <fstream>
 #include <memory>
 #include <spdlog/spdlog.h>
@@ -50,7 +50,7 @@ SpriteSheet::SpriteSheet(
     nlohmann::json data = nlohmann::json::parse(input);
 
     for (const auto& json_object : data) {
-        auto emplacement_result {
+        [[maybe_unused]] auto emplacement_result {
             sprites.try_emplace(
                 json_object["name"],
                 SpriteDefinition(json_object, surface.get())

@@ -41,7 +41,7 @@ void advance(
     // Apply the movement to the transform
     registry.patch<TransformComponent>(
         entity,
-        [&current_segment, &remaining, &movement](auto& transform) {
+        [&movement](auto& transform) {
             transform.position += movement;
         }
     );
