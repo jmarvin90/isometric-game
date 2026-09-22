@@ -19,6 +19,14 @@ include(FetchContent)
 set(FETCHCONTENT_QUIET OFF)
 
 FetchContent_Declare(
+  glm
+  GIT_REPOSITORY https://github.com/g-truc/glm.git
+  GIT_TAG        1.0.1
+  GIT_SHALLOW    TRUE
+  SYSTEM
+)
+
+FetchContent_Declare(
   entt
   GIT_REPOSITORY https://github.com/skypjack/entt.git
   GIT_TAG        v3.13.2
@@ -77,7 +85,7 @@ set(SDL_TEST OFF CACHE BOOL "" FORCE)
 
 set(SDL2IMAGE_VENDORED ON CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(entt json spdlog SDL2 SDL_image imgui)
+FetchContent_MakeAvailable(entt json spdlog SDL2 SDL_image imgui glm)
 
 # ---------------------------------------------------------------------------
 # ImGui target
@@ -144,6 +152,7 @@ target_link_libraries(IsometricGame PRIVATE
   SDL2::SDL2main
   SDL2_image
   imgui
+  glm::glm
 )
 
 # ---------------------------------------------------------------------------
