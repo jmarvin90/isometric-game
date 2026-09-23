@@ -1,7 +1,7 @@
 # isometric-game
 
 The purpose of the code in this repository is to demonstrate implementations for
-some of the logic necessary to implement a 2.5D (isometric) game world.
+some of the logic necessary to create a 2.5D (isometric) game world.
 
 Much of the logic is an elaboration on the patterns introduced in the 
 [2D Game Engine with C++](https://pikuma.com/courses/cpp-2d-game-engine-development) 
