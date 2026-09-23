@@ -15,13 +15,40 @@ develop the foundations of 2D game.
 ![Game demo](output.gif)
 
 The implementation comprises:
- - Isometric projection of 2D to 2.5D cooardinates, per [this video](https://youtu.be/04oQ2jOUjkU?si=yIhHjz9SubxI9CQB) by Jordan West
+ - Isometric projection of 2D to 2.5D coordinates, per [this video](https://youtu.be/04oQ2jOUjkU?si=yIhHjz9SubxI9CQB) by Jordan West
  - A spatial partition, informed by the [Game Programming Patterns](https://gameprogrammingpatterns.com/spatial-partition.html) book by Robert Nystrom
  - A pathfinding algorithm, informed by a [Red Blob Games](https://www.redblobgames.com/pathfinding/a-star/introduction.html) article on the subject
 
 Additional logic includes:
  - Game loop fundamentals, including timestep and sprite ordering
  - Game data serialisation, supported by the chosen ECS library (EnTT)
+
+### Design Choices
+
+ - **Entity, Component, System**: an ECS framework (EnTT) was used to improve 
+ cache utilisation in "hot" (frequently executed) portions of the code; this is
+ a common approach in game development
+ - **Spatial Partition**: chunking the world space and limiting per-frame processing
+ to only visible chunks allowed for a big increase in the scale of the world with 
+ with near-constant-time spatial queries
+
+### Current Status
+
+I'm no longer actively working on this project; I was treating it as a learning 
+exercise, and (for now), I want to work on improving my skills via other means / 
+methods.
+
+The application still stuffers from a few issues:
+ - The debug screen provides some information about the mouse position - including
+ world space, grid, and spatial partition coordiates; in some instances, it is possible
+ to crash the application in case the mouse position does not make sense in one of
+ those domains (e.g. if the mouse is temporarily off the edge of the screen with 
+ a dual-monitor set-up)
+ - The spatial partition logic reduces the total number of game entities into
+ a list of visible entities to be rendered per frame; that logic appears to suffer
+ with issues when elements are at or on spatial partition chunk boundaries,
+ and some popping of entities (particularly tiles) is visible when navigating
+ around the game world
 
 ## Getting Started
 
