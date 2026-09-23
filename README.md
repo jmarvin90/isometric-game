@@ -28,9 +28,8 @@ Additional logic includes:
  - **Entity, Component, System**: an ECS framework (EnTT) was used to improve 
  cache utilisation in "hot" (frequently executed) portions of the code; this is
  a common approach in game development
- - **Spatial Partition**: chunking the world space and limiting per-frame processing
- to only visible chunks allowed for a big increase in the scale of the world with 
- near-constant-time spatial queries
+ - **Spatial Partition**: World space is chunked into a spatial partition, limiting 
+ per-frame processing to visible chunks
 
 ### Current Status
 
