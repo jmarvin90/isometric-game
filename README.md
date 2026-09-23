@@ -8,7 +8,7 @@ Much of the logic is an elaboration on the patterns introduced in the
 course on [Pikuma.com](pikuma.com).
 
 My objective was to become proficient in C++ development to the extent that I could 
-develop the foundations of 2D game.
+develop the foundations of a 2D game.
 
 ## Overview
 
@@ -30,7 +30,7 @@ Additional logic includes:
  a common approach in game development
  - **Spatial Partition**: chunking the world space and limiting per-frame processing
  to only visible chunks allowed for a big increase in the scale of the world with 
- with near-constant-time spatial queries
+ near-constant-time spatial queries
 
 ### Current Status
 
@@ -38,9 +38,9 @@ I'm no longer actively working on this project; I was treating it as a learning
 exercise, and (for now), I want to work on improving my skills via other means / 
 methods.
 
-The application still stuffers from a few issues:
+The application still suffers from a few issues:
  - The debug screen provides some information about the mouse position - including
- world space, grid, and spatial partition coordiates; in some instances, it is possible
+ world space, grid, and spatial partition coordinates; in some instances, it is possible
  to crash the application in case the mouse position does not make sense in one of
  those domains (e.g. if the mouse is temporarily off the edge of the screen with 
  a dual-monitor set-up)
