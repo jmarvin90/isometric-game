@@ -93,7 +93,10 @@ Game::~Game() { spdlog::info("Game destructor called."); }
 
 void Game::initialise()
 {
-    SDL_Init(SDL_INIT_EVERYTHING);
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        spdlog::error("SDL_Init failed: {}", SDL_GetError());
+        return;
+    }
 
     SDL_GetDesktopDisplayMode(0, &display_mode);
 
@@ -110,7 +113,7 @@ void Game::initialise()
     );
 
     if (!window) {
-        spdlog::error("Could not initialise SDL Window.");
+        spdlog::error("Could not initialise SDL Window: {}", SDL_GetError());
     }
 
     registry = entt::registry();
